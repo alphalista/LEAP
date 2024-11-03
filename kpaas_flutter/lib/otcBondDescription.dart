@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-void main() {
-  runApp(MaterialApp(
-    home: const OtcBondDescriptionPage(),
-    theme: ThemeData(
-      primarySwatch: Colors.blue,
-    ),
-  ));
-}
-
 class OtcBondDescriptionPage extends StatefulWidget {
-  const OtcBondDescriptionPage({Key? key}) : super(key: key);
+  final Map<String, dynamic> bondData;
+  const OtcBondDescriptionPage({Key? key, required this.bondData}) : super(key: key);
 
   @override
   _OtcBondDescriptionPageState createState() => _OtcBondDescriptionPageState();
@@ -25,11 +17,11 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
 
   // 정보와 수익 데이터
   List<String> leftColumnData = ['발행일', '만기일', '채권 종류', '위험도', '이자 지급 구분', '차기 이자 지급일', '이자 지급 주기'];
-  List<String> rightColumnData = ['22.05.24', '25.05.24', '할부금융채', '매우낮은위험', '이표채', '24.11.24', '3개월'];
+  List<String> rightColumnData = [];
 
   // 수익 데이터
   final List<String> profitLeftColumnData = ['이자율', '세전 수익률', '세후 수익률', '예상 수익금'];
-  final List<String> profitRightColumnData = ['4.63%', '3.11%', '2.63%', '10180.0'];
+  List<String> profitRightColumnData = [];
 
   // 시가와 듀레이션 데이터
   final List<_ChartData> weeklyMarketPriceData = [
@@ -84,11 +76,28 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
 
   List<_ChartData> chartData = [];
 
+  String formatDate(String date) {
+    if (date.length == 8) {
+      return '${date.substring(0, 4)} - ${date.substring(4, 6)} - ${date.substring(6, 8)}';
+    }
+    return date;
+  }
+
   // 초기화 및 데이터 변경 함수
   @override
   void initState() {
     super.initState();
     chartData = weeklyMarketPriceData; // 초기값 설정
+
+    rightColumnData = [
+      formatDate(widget.bondData['issu_dt']) ?? 'N/A',
+      formatDate(widget.bondData['expd_dt']) ?? 'N/A',
+      widget.bondData['prdt_type_cd'] ?? 'N/A',
+      widget.bondData['nice_crdt_grad_text'] ?? 'N/A',
+      widget.bondData['bond_int_dfrm_mthd_cd'] ?? 'N/A',
+      formatDate(widget.bondData['nxtm_int_dfrm_dt']) ?? 'N/A',
+      "${widget.bondData['int_pay_cycle']}개월" ?? 'N/A',
+    ];
   }
 
   // 텍스트 데이터 변경 함수
@@ -97,10 +106,23 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
       selectedText = type;
       if (type == '정보') {
         leftColumnData = ['발행일', '만기일', '채권 종류', '위험도', '이자 지급 구분', '차기 이자 지급일', '이자 지급 주기'];
-        rightColumnData = ['22.05.24', '25.05.24', '할부금융채', '매우낮은위험', '이표채', '24.11.24', '3개월'];
+        rightColumnData = [
+          formatDate(widget.bondData['issu_dt']) ?? 'N/A',
+          formatDate(widget.bondData['expd_dt']) ?? 'N/A',
+          widget.bondData['prdt_type_cd'] ?? 'N/A',
+          widget.bondData['nice_crdt_grad_text'] ?? 'N/A',
+          widget.bondData['bond_int_dfrm_mthd_cd'] ?? 'N/A',
+          formatDate(widget.bondData['nxtm_int_dfrm_dt']) ?? 'N/A',
+          "${widget.bondData['int_pay_cycle']}개월" ?? 'N/A',
+        ];
       } else if (type == '수익') {
         leftColumnData = profitLeftColumnData;
-        rightColumnData = profitRightColumnData;
+        rightColumnData = [
+          "${widget.bondData['interest_percentage']}%" ?? 'N/A',
+          "${widget.bondData['YTM']}%" ?? 'N/A',
+          "${widget.bondData['YTM_after_tax']}%" ?? 'N/A',
+          "${widget.bondData['expt_income']}원" ?? 'N/A',
+        ];
       }
     });
   }
@@ -395,7 +417,7 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -403,22 +425,22 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '한국전력공사채권1204',
-                    style: TextStyle(
+                    widget.bondData['prdt_type_cd'] ?? 'N/A',
+                    style: const TextStyle(
                       fontSize: 25,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 15),
+                  const SizedBox(height: 15),
                   Text(
-                    "(KR350114GC54)",
-                    style: TextStyle(
+                    "(${widget.bondData['code']})" ?? 'N/A',
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    "(미래에셋 증권)",
-                    style: TextStyle(
+                    "(${widget.bondData['issu_istt_name']})" ?? 'N/A',
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.red,
                     ),
@@ -428,8 +450,8 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
               Align(
                 alignment: Alignment.bottomRight,
                 child: Text(
-                  "10,180.0",
-                  style: TextStyle(
+                  widget.bondData['expt_income'] ?? 'N/A',
+                  style: const TextStyle(
                     fontSize: 35,
                     fontWeight: FontWeight.bold,
                     color: Colors.red,
