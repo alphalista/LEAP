@@ -46,7 +46,6 @@ class _EtBondPageState extends State<EtBondPage> {
     });
 
     try {
-      // Assuming you have a function in DataController to fetch the data
       final dataController = Get.find<DataController>();
       final response = await dataController.fetchEtBondData(nextUrl!);
       setState(() {
@@ -280,8 +279,8 @@ class _EtBondPageState extends State<EtBondPage> {
                                       ),
                                     ),
                                     Text(
-                                      (bondData[actualIndex]['nice_crdt_grad_text'] != null && bondData[actualIndex]['nice_crdt_grad_text'].toString().isNotEmpty)
-                                          ? bondData[actualIndex]['nice_crdt_grad_text']
+                                      (bondData[actualIndex]['kbp_crdt_grad_text'] != null && bondData[actualIndex]['kbp_crdt_grad_text'].toString().isNotEmpty)
+                                          ? bondData[actualIndex]['kbp_crdt_grad_text']
                                           : '무위험',
                                       style: const TextStyle(
                                         fontSize: 20,
