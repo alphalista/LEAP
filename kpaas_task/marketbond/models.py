@@ -382,6 +382,13 @@ class MarketBondInquireAskingPrice(models.Model):
     shnu_ernn_rate4 = models.CharField(max_length=84, verbose_name="매수2 수익 비율4")
     shnu_ernn_rate5 = models.CharField(max_length=84, verbose_name="매수2 수익 비율5")
 
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=["aspr_acpt_hour", "code"], name="unique_daily_item_chart_price"
+            )
+        ]
+
 
 # 장내채권 평균단가조회
 # 추가(수정)필요

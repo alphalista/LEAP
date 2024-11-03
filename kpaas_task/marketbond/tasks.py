@@ -108,7 +108,7 @@ def market_bond_inquire_price():
     try:
         pdno_list = list(MarketBondCode.objects.values_list('code', flat=True))
         for pdno in pdno_list:
-            fetch_market_bond_inquire_price(pdno)  # Use .delay() to enqueue tasks
+            fetch_market_bond_inquire_price.delay(pdno)  # Use .delay() to enqueue tasks
     except Exception as e:
         print(e)
 
