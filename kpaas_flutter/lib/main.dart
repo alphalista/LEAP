@@ -61,9 +61,9 @@ class _MyHomePageState extends State<MyHomePage> {
       etBondData = etResponse['results'] ?? [];
       nextEtBondUrl = etResponse['next'] ?? '';
 
-      final otcResponse = jsonDecode(DummyData.MarketOtcBondAllList);
-      otcBondData = otcResponse['results'];
-      nextOtcBondUrl = otcResponse['next'];
+      final otcResponse = await dataController.fetchOtcBondData("https://leapbond.com/api/otcbond/otc-bond-all/");
+      otcBondData = otcResponse['results'] ?? [];
+      nextOtcBondUrl = otcResponse['next'] ?? "";
 
       setState(() {});
     } catch (e) {
