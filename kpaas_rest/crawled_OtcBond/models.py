@@ -3,23 +3,6 @@ from django.contrib.auth.models import User
 # Create your models here.
 
 class OTC_Bond(models.Model):
-    # trading_company_name = models.CharField(max_length=100)
-    # bond_code = models.CharField(max_length=100, primary_key=True)
-    # bond_name = models.CharField(max_length=100)
-    # danger_degree = models.CharField(max_length=100)
-    # pub_date = models.CharField(max_length=100)
-    # mat_date = models.CharField(max_length=100)
-    # YTM = models.CharField(max_length=100)
-    # YTM_after_tax = models.CharField(max_length=100)
-    # price_per_10 = models.CharField(max_length=100)
-    # bond_type = models.CharField(max_length=100)
-    # int_pay_class = models.CharField(max_length=100)
-    # int_pay_cycle = models.CharField(max_length=100)
-    # interest_percentage = models.CharField(max_length=100)
-    # nxt_int_date = models.CharField(max_length=100)
-    # expt_income = models.CharField(max_length=100)
-    # # duration 추가
-    # duration = models.CharField(max_length=100)
     issu_istt_name = models.CharField(max_length=100)
     code = models.CharField(max_length=100, primary_key=True)
     prdt_name = models.CharField(max_length=100)
@@ -38,6 +21,9 @@ class OTC_Bond(models.Model):
     # duration 추가
     duration = models.CharField(max_length=100)
     add_date = models.DateField(auto_now_add=True)
+    class Meta:
+        db_table = 'crawling_otc_bond'
+        managed = False
 
 # 장외 관심 채권
 class OTC_Bond_Interest(models.Model):
