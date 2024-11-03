@@ -4,7 +4,7 @@ import os
 import requests
 
 env = environ.Env()
-# environ.Env.read_env(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), '.env'))
+environ.Env.read_env(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env'))
 
 # 기본 경로 설정
 BASE_DIR = Path(__file__).resolve().parent.parent.parent

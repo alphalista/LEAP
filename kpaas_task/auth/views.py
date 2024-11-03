@@ -1,58 +1,46 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
+from django.http import HttpResponse
 import requests
-from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.middleware.csrf import get_token
+from config.settings.base import KAKAO_CLIENT_SECRET, KAKAO_REST_API_KEY
 
+def kakao_callback(request):
+    code = request.GET.get('code')
+    redirect_uri = 'http://127.0.0.1:8000/auth/login/kakao-callback'
+    url = 'https://kauth.kakao.com/oauth/token'
+    test_uri = 'http://127.0.0.1:8000/auth/seongmin'
+    csrf_token = get_token(request)
+    
+    key = KAKAO_REST_API_KEY
 
-class KakaoCallbackAPIView(APIView):
-    def post(self, request):
-        # POST 요청에서 'code' 파라미터를 받음
-        auth_code = request.data.get('code')
+    headers = {
+        'Content-type': 'application/x-www-form-urlencoded;charset=utf-8'
+    }
 
-        if not auth_code:
-            return Response({'error': 'No auth code received'}, status=status.HTTP_400_BAD_REQUEST)
+    test_headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': csrf_token
+    }
 
-        print(f"Received auth code: {auth_code}")
-
-        # 카카오에 토큰 요청을 위한 API 엔드포인트
-        token_url = "https://kauth.kakao.com/oauth/token"
-
-        # 토큰을 요청하기 위한 파라미터
-        token_data = {
-            'grant_type': 'authorization_code',
-            'client_id': settings.KAKAO_REST_API_KEY,
-            'redirect_uri': 'http://localhost:3000/auth/login/kakao-callback',
-            'code': auth_code,
+    data = {
+        'grant_type' : 'authorization_code',
+        'client_id' : key,
+        'redirect_uri' : redirect_uri,
+        'code' : code,
+        'client_secret' : KAKAO_CLIENT_SECRET
         }
+    
+    response = requests.post(url, data=data, headers=headers)
+    
+    if response.status_code == 200:
+        try:
+            # post_response = requests.post(test_uri, headers=test_headers, data={"message": "hi"})
+            return JsonResponse(response.json())
+        except ValueError:
+            return JsonResponse({"error": "Invalid JSON response", "content": response.text}, status=500)
+    else:
+        return JsonResponse({"response": response.text, "hhhh":data}, status=response.status_code,)
 
-        # 카카오 API로 POST 요청을 보내 토큰을 받음
-        token_response = requests.post(token_url, data=token_data)
-
-        if token_response.status_code == 200:
-            token_json = token_response.json()
-            access_token = token_json.get('access_token')
-
-            print(f"Access token received: {access_token}")
-
-            return Response({'access_token': access_token}, status=status.HTTP_200_OK)
-        else:
-            print(
-                f"Failed to retrieve token. Status code: {token_response.status_code}, Response: {token_response.text}")
-            return Response(
-                {'error': 'Failed to retrieve token'},
-                status=token_response.status_code
-            )
-
-    def get(self, request):
-        # GET 요청에서 'code' 파라미터를 받음
-        auth_code = request.GET.get('code')
-
-        if not auth_code:
-            return Response({'error': 'No auth code received'}, status=status.HTTP_400_BAD_REQUEST)
-
-        print(f"Received auth code via GET: {auth_code}")
-
-        # 여기에 GET 요청을 처리하는 로직을 추가할 수 있습니다.
-        return Response({'message': 'GET request received successfully', 'auth_code': auth_code},
-                        status=status.HTTP_200_OK)
+# def seongmin(request):
+#     print("hi")
