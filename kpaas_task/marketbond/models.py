@@ -428,6 +428,11 @@ class MarketBondInquirePrice(models.Model):
     bond_mxpr = models.CharField(max_length=112, verbose_name="채권상한가")
     bond_llam = models.CharField(max_length=112, verbose_name="채권하한가")
 
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=["stck_bsop_date"], name="unique_daily_price")
+        ]
+
 
 # 장내채권현재가(체결)
 class MarketBondInquireCCNL(models.Model):
