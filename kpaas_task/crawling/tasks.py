@@ -1,4 +1,6 @@
-import os
+import os, sys
+from .OTC_bond_scrapy import django_setup
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../crawling/')))
 
 from billiard.context import Process
 
@@ -11,11 +13,11 @@ from .models import OTC_Bond, OTC_Bond_Holding, OTC_Bond_Expired, OtcBondPreData
 from django.utils import timezone
 from datetime import timedelta
 
-
-
+import django
 def crawling_start():
     settings = Settings()
-    settings_file_path = os.path.join(os.path.dirname(__file__), 'OTC_bond_scrapy', 'settings.py')
+    # settings_file_path = os.path.join(os.path.dirname(__file__), 'OTC_bond_scrapy', 'settings.py')
+    settings_file_path = 'crawling.OTC_bond_scrapy.settings'
     settings.setmodule(settings_file_path, priority='project')
 
     process = CrawlerProcess(settings)
@@ -34,6 +36,8 @@ def crawling():
 
 @shared_task
 def holding_to_expired():
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.production')
+    django.setup()
     expired = OTC_Bond_Holding.objects.filter(expire_date__lt=timezone.now())
     for instance in expired:
         OTC_Bond_Expired.objects.create(
@@ -54,6 +58,8 @@ def calculate_avg(mode, instances):
 # 일별/주별/월별 시가/듀레이션 데이터 저장
 @shared_task
 def pre_data_pipeline():
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.production')
+    django.setup()
     # 오늘의 장외 채권 목록 전부를 가져옴
     bonds = OTC_Bond.objects.filter(add_date=timezone.now())
     for bond in bonds:
