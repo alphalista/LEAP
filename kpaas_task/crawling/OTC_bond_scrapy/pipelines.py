@@ -16,6 +16,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'
 import crawling.OTC_bond_scrapy.django_setup
 from crawling.models import OTC_Bond
 from asgiref.sync import sync_to_async
+from django.utils import timezone
 
 class OtcBondScrapyPipeline:
     # def __init__(self):
@@ -61,6 +62,7 @@ class OtcBondScrapyPipeline:
             # self.conn.commit()
 
             # django db 연관
+            # 날짜도 업데이트
             await sync_to_async(OTC_Bond.objects.update_or_create)(
                 code=item['bond_code'],  # pk로 설정된 필터 조건
                 defaults={  # 업데이트 또는 생성할 데이터
@@ -78,7 +80,8 @@ class OtcBondScrapyPipeline:
                     'interest_percentage': item['interest_percentage'],
                     'nxtm_int_dfrm_dt': item['nxt_int_date'],
                     'expt_income': item['expt_income'],
-                    'duration': item['duration']
+                    'duration': item['duration'],
+                    'add_date': timezone.now()
                 }
             )
             print('The End djangoDB')
