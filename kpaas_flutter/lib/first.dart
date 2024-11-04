@@ -13,8 +13,8 @@ Future<void> main() async {
   final javaScriptAppKey = dotenv.env['KAKAO_JAVASCRIPT_APP_KEY'];
 
   KakaoSdk.init(
-    nativeAppKey: kakaoNativeAppKey,
-    javaScriptAppKey: javaScriptAppKey,
+    nativeAppKey: kakaoNativeAppKey!,
+    javaScriptAppKey: javaScriptAppKey!,
   );
 
   FlutterNativeSplash.remove();
@@ -23,24 +23,18 @@ Future<void> main() async {
 }
 
 Future<void> sendGetRequest(BuildContext context) async {
-  final kakaoRestApiKey = dotenv.env['KAKAO_REST_API_KEY'];
-  const redirectUri = 'http://localhost:3000/auth/login/kakao-callback';
   final Dio dio = Dio();
 
   try {
-    // 카카오 인증을 위한 AuthCodeClient 사용
-    String authCode = await AuthCodeClient.instance.authorize(
-      clientId: kakaoRestApiKey!,
-      redirectUri: redirectUri,
-    );
+    // 카카오 계정으로 로그인 시도
+    OAuthToken token = await UserApi.instance.loginWithKakaoAccount();
+    print('카카오 계정으로 로그인 성공, 엑세스 토큰: ${token.accessToken}');
 
-    print('카카오 계정으로 로그인 성공, 인증 코드: $authCode');
-
-    // 인증 코드를 Django 백엔드로 전송
+    // 백엔드로 액세스 토큰 전송
     final response = await dio.post(
-      'http://localhost:3000/auth/login/kakao-callback',  // DRF 엔드포인트
+      'http://127.0.0.1:8000/auth/login/kakao-callback',  // Django 백엔드 엔드포인트
       data: {
-        'code': authCode,  // 인증 코드 전송
+        'access_token': token.accessToken,  // 액세스 토큰 전송
       },
     );
 
@@ -55,7 +49,7 @@ Future<void> sendGetRequest(BuildContext context) async {
 
   Navigator.pushReplacement(
     context,
-    MaterialPageRoute(builder: (context) => MainPage()), // MyApp으로 이동
+    MaterialPageRoute(builder: (context) => MainPage()), // 메인 페이지로 이동
   );
 }
 
