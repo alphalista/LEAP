@@ -8,6 +8,8 @@ from .OTC_bond_scrapy.spiders import shinhanSpider, miraeassetSpider, daishinSpi
 from scrapy.settings import Settings
 from .models import OTC_Bond, OTC_Bond_Holding, OTC_Bond_Expired, OtcBondPreDataDays, OtcBondPreDataWeeks, \
     OtcBondPreDataMonths
+from django.utils import timezone
+from datetime import timedelta
 
 
 
