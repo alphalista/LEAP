@@ -11,7 +11,17 @@ from .serializers import OTC_Bond_Serializer, OTC_Bond_Interest_Serializer, OTC_
 
 class OTC_Bond_All(viewsets.ReadOnlyModelViewSet):
     queryset = OTC_Bond.objects.filter(add_date=timezone.now())
+    # queryset = OTC_Bond.objects.all()
     serializer_class = OTC_Bond_Serializer
+
+    def get_queryset(self):
+        query = self.request.query_params.get('query')
+        if query:
+            bond_code_search = self.queryset.filter(code__icontains=query)
+            prdt_name_search = self.queryset.filter(prdt_name__icontains=query)
+            join = bond_code_search | prdt_name_search
+            return join.distinct()
+        return self.queryset
 
 class OTC_Bond_Interest_view(viewsets.ModelViewSet):
     serializer_class = OTC_Bond_Interest_Serializer
