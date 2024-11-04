@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'NaviBar/home.dart';
 import 'NaviBar/etbond.dart';
 import 'NaviBar/otcbond.dart';
@@ -9,9 +11,22 @@ import 'NaviBar/calculator.dart';
 import 'NaviBar/news.dart';
 import 'apiconnectiontest/data_controller.dart';
 import 'apiconnectiontest/dummy_data.dart';
+import 'package:kpaas_flutter/first.dart';
 
-void main() {
-  runApp(MainPage());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: "assets/config/.env");
+  final kakaoNativeAppKey = dotenv.env['KAKAO_NATIVE_APP_KEY'];
+  final javaScriptAppKey = dotenv.env['KAKAO_JAVASCRIPT_APP_KEY'];
+
+  KakaoSdk.init(
+    nativeAppKey: kakaoNativeAppKey!,
+    javaScriptAppKey: javaScriptAppKey!,
+  );
+
+  await Future.delayed(const Duration(seconds: 10));
+  runApp(MyFirstApp());
 }
 
 class MainPage extends StatelessWidget {

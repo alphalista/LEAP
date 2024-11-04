@@ -5,23 +5,6 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:dio/dio.dart';
 import 'main.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await dotenv.load(fileName: "assets/config/.env");
-  final kakaoNativeAppKey = dotenv.env['KAKAO_NATIVE_APP_KEY'];
-  final javaScriptAppKey = dotenv.env['KAKAO_JAVASCRIPT_APP_KEY'];
-
-  KakaoSdk.init(
-    nativeAppKey: kakaoNativeAppKey!,
-    javaScriptAppKey: javaScriptAppKey!,
-  );
-
-  FlutterNativeSplash.remove();
-  await Future.delayed(const Duration(seconds: 10));
-  runApp(MyApp());
-}
-
 Future<void> sendGetRequest(BuildContext context) async {
   final Dio dio = Dio();
 
@@ -54,9 +37,10 @@ Future<void> sendGetRequest(BuildContext context) async {
 }
 
 
-class MyApp extends StatelessWidget {
+class MyFirstApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    print("MyFirstApp 위젯이 렌더링되었습니다."); // 확인용 출력
     return MaterialApp(
       home: Scaffold(
         backgroundColor: Colors.grey[300], // 외부 배경 색상
