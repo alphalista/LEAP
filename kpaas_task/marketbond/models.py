@@ -385,7 +385,7 @@ class MarketBondInquireAskingPrice(models.Model):
     class Meta:
         constraints = [
             UniqueConstraint(
-                fields=["aspr_acpt_hour", "code"], name="unique_daily_item_chart_price"
+                fields=["aspr_acpt_hour", "code"], name="unique_asking_price"
             )
         ]
 
@@ -470,3 +470,10 @@ class MarketBondInquireDailyPrice(models.Model):
         constraints = [
             UniqueConstraint(fields=["code", "stck_bsop_date"], name="unique_daily_price")
         ]
+
+class MarketBondCmb(models.Model):
+    # You can adjust these fields based on the actual fields you need from the other models
+    code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    issue_info_data = models.ForeignKey(MarketBondIssueInfo, on_delete=models.CASCADE)
+    inquire_price_data = models.ForeignKey(MarketBondInquirePrice, on_delete=models.CASCADE)
+    inquire_asking_price_data = models.ForeignKey(MarketBondInquireAskingPrice, on_delete=models.CASCADE)

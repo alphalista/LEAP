@@ -194,6 +194,13 @@ CELERY_BEAT_SCHEDULE = {
             'expires': 60 * 59
         }
     },
+    'combine_task': {
+        'task': 'marketbond.tasks.combine',
+        'schedule': 60 * 15,
+        'options': {
+            'expires': 60 * 14
+        }
+    },
     'naver_news_task': {
         'task': 'news.tasks.naver_news',
         'schedule': 60 * 15,

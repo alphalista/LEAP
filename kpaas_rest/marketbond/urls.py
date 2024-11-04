@@ -1,4 +1,5 @@
 from rest_framework.routers import DefaultRouter
+from django.urls import path, include
 
 from .views import (
     MarketBondIssueInfoViewSet,
@@ -11,10 +12,12 @@ from .views import (
     MarketBondInquireDailyPriceViewSet,
     MarketBondViewSet,
     ClickCountViewSet,
+    MarketBondCmbViewSet,
 )
 
 router = DefaultRouter()
 router.register('marketbond', MarketBondViewSet, basename='marketbond')
+router.register('combined', MarketBondCmbViewSet, basename='combined')
 router.register('issue-info', MarketBondIssueInfoViewSet, basename='marketbondissueinfo')
 router.register('search-info', MarketBondSearchInfoViewSet, basename='marketbondsearchinfo')
 router.register('inquire-asking-price', MarketBondInquireAskingPriceViewSet, basename='marketbondinquireaskingprice')
