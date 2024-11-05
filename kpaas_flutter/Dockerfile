@@ -12,6 +12,13 @@ ENV PATH="/usr/local/flutter/bin:${PATH}"
 # Flutter 권한 설정
 RUN chown -R root:root /usr/local/flutter && chmod -R 777 /usr/local/flutter
 
+# 일반 사용자 추가 및 flutteruser 권한으로 안전 디렉토리 설정
+RUN useradd -ms /bin/bash flutteruser
+USER flutteruser
+
+# Flutter 디렉토리를 안전한 디렉토리로 설정
+RUN git config --global --add safe.directory /usr/local/flutter
+
 # Flutter 웹 활성화 및 설치 확인
 RUN git -C /usr/local/flutter reset --hard && \
     flutter channel stable && \
@@ -19,14 +26,22 @@ RUN git -C /usr/local/flutter reset --hard && \
     flutter config --enable-web && \
     flutter doctor
 
-# Flutter 웹 빌드
+# 앱 파일 복사 및 권한 설정
 WORKDIR /app
-COPY . .
-RUN chown -R root:root /app && chmod -R 777 /app
-RUN flutter build web --release
+COPY . /app
+USER root
+RUN chown -R flutteruser:flutteruser /app
+USER flutteruser
 
-# Nginx로 서빙
+# Flutter 웹 빌드
+RUN flutter build web --release --base-href "/web/"
+
+# 2. Nginx로 서빙
 FROM nginx:alpine
-COPY --from=build /app/build/web /usr/share/nginx/html
+COPY --from=build /app/build/web /usr/share/nginx/html/web
+
+# 커스텀 Nginx 설정 복사
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
