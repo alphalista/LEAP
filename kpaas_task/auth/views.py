@@ -1,3 +1,5 @@
+from http.client import responses
+
 from django.http import HttpResponse
 import requests
 from django.http import JsonResponse
@@ -26,8 +28,23 @@ def kakao_callback(request):
     
     if response.status_code == 200:
         try:
+            # ID 토큰 인증을 토대로 다시 요청
+            createUser(response.json().get('id_token'))
             return JsonResponse(response.json())
         except ValueError:
             return JsonResponse({"error": "Invalid JSON response", "content": response.text}, status=500)
     else:
         return JsonResponse({"response": response.text, "hhhh":data}, status=response.status_code,)
+
+
+def createUser(id_token):
+    headers = {
+        'Content-type': 'application/x-www-form-urlencoded;charset=utf-8'
+    }
+    data = {
+        'id_token' : id_token,
+    }
+    response = requests.post('https://kauth.kakao.com/oauth/tokeninfo', data=data, headers=headers)
+    if response.status_code == 200:
+        # 여기서부터 유저를 만들면 됨
+        pass
