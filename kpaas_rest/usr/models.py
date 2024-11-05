@@ -2,3 +2,9 @@ from django.db import models
 
 # Create your models here.
 
+class Users(models.Model):
+    user_pk = models.CharField(max_length=100, primary_key=True)
+    nickname = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'users'

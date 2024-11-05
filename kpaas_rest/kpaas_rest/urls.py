@@ -37,5 +37,6 @@ urlpatterns = [
         path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
         # 크롤링 장외 채권 api
         path('otcbond/', include("crawled_OtcBond.urls")),
+        path('user/', include('usr.urls')),
     ])),
 ]
