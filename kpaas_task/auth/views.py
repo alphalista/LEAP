@@ -1,11 +1,14 @@
 from http.client import responses
 
+from django.core.files.storage import default_storage
 from django.http import HttpResponse
 import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.middleware.csrf import get_token
 from config.settings.base import KAKAO_CLIENT_SECRET, KAKAO_REST_API_KEY
+
+from usr.models import Users
 
 def kakao_callback(request):
     code = request.GET.get('code')
@@ -47,4 +50,16 @@ def createUser(id_token):
     response = requests.post('https://kauth.kakao.com/oauth/tokeninfo', data=data, headers=headers)
     if response.status_code == 200:
         # 여기서부터 유저를 만들면 됨
-        pass
+        email_pk = response.json().get('email')
+        instance = Users.objects.filter(user_id=email_pk)
+        if not instance:
+            u = {
+                'user_id' : email_pk,
+                'nickname': ''
+            }
+            url_dev = 'http://localhost:8080'
+            url = 'https://leapbond.com'
+            end = '/api/user/'
+            requests.post(url + end, data=u, headers=headers)
+    # raise Exception
+
