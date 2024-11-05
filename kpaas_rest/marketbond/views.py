@@ -2,6 +2,11 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import OuterRef, Subquery, CharField
+from typing import Any
+
+from rest_framework import generics
+
 
 import datetime
 
@@ -15,6 +20,7 @@ from .models import (
     MarketBondInquirePrice,
     MarketBondInquireCCNL,
     MarketBondInquireDailyPrice,
+    MarketBondCmb,
     ClickCount,
 )
 
@@ -29,6 +35,7 @@ from .serializer import (
     MarketBondInquirePriceSerializer,
     MarketBondInquireCCNLSerializer,
     MarketBondInquireDailyPriceSerializer,
+    MarketBondCmbSerializer,
     ClickCountSerializer,
 )
 
@@ -37,6 +44,11 @@ from rest_framework import viewsets, status
 
 
 # Create your views here.
+
+class MarketBondCmbViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = MarketBondCmb.objects.all()
+    serializer_class = MarketBondCmbSerializer
+
 
 class MarketBondViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MarketBondIssueInfo.objects.none()  # 임의의 빈 쿼리셋
@@ -60,14 +72,12 @@ class MarketBondViewSet(viewsets.ReadOnlyModelViewSet):
         code = MarketBondCode.objects.filter(code=pdno).first()
         if pdno is not None:
             issue_info_query = MarketBondIssueInfo.objects.filter(code=code).first()
-            inquire_price_query = MarketBondInquirePrice.objects.filter(code=code)
-            inquire_asking_price_query = MarketBondInquireAskingPrice.objects.filter(code=code)
-            # Serialize issue_info_query if it exists
-            issue_info_data = MarketBondIssueInfoSerializer(issue_info_query).data if issue_info_query else None
+            inquire_price_query = MarketBondInquirePrice.objects.filter(code=code).first()
+            inquire_asking_price_query = MarketBondInquireAskingPrice.objects.filter(code=code).order_by('-id').first()
 
-            # Serialize the inquire price and asking price querysets
-            inquire_price_data = MarketBondInquirePriceSerializer(inquire_price_query, many=True).data
-            inquire_asking_price_data = MarketBondInquireAskingPriceSerializer(inquire_asking_price_query, many=True).data
+            issue_info_data = MarketBondIssueInfoSerializer(issue_info_query).data if issue_info_query else None
+            inquire_price_data = MarketBondInquirePriceSerializer(inquire_price_query).data if inquire_price_query else None
+            inquire_asking_price_data = MarketBondInquireAskingPriceSerializer(inquire_asking_price_query).data if inquire_asking_price_query else None
 
             # Create the response data dictionary
             data = {

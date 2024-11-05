@@ -382,6 +382,13 @@ class MarketBondInquireAskingPrice(models.Model):
     shnu_ernn_rate4 = models.CharField(max_length=84, verbose_name="매수2 수익 비율4")
     shnu_ernn_rate5 = models.CharField(max_length=84, verbose_name="매수2 수익 비율5")
 
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=["aspr_acpt_hour", "code"], name="unique_asking_price"
+            )
+        ]
+
 
 # 장내채권 평균단가조회
 # 추가(수정)필요
@@ -428,6 +435,11 @@ class MarketBondInquirePrice(models.Model):
     bond_mxpr = models.CharField(max_length=112, verbose_name="채권상한가")
     bond_llam = models.CharField(max_length=112, verbose_name="채권하한가")
 
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=["code"], name="unique_price")
+        ]
+
 
 # 장내채권현재가(체결)
 class MarketBondInquireCCNL(models.Model):
@@ -456,5 +468,12 @@ class MarketBondInquireDailyPrice(models.Model):
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=["stck_bsop_date"], name="unique_daily_price")
+            UniqueConstraint(fields=["code", "stck_bsop_date"], name="unique_daily_price")
         ]
+
+class MarketBondCmb(models.Model):
+    # You can adjust these fields based on the actual fields you need from the other models
+    code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    issue_info_data = models.ForeignKey(MarketBondIssueInfo, on_delete=models.CASCADE)
+    inquire_price_data = models.ForeignKey(MarketBondInquirePrice, on_delete=models.CASCADE)
+    inquire_asking_price_data = models.ForeignKey(MarketBondInquireAskingPrice, on_delete=models.CASCADE)

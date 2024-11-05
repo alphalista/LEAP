@@ -9,7 +9,9 @@ from .models import (
     MarketBondInquireDailyItemChartPrice,
     MarketBondInquirePrice,
     MarketBondInquireCCNL,
-    MarketBondInquireDailyPrice, ClickCount,
+    MarketBondInquireDailyPrice,
+    MarketBondCmb,
+    ClickCount,
 )
 
 
@@ -86,6 +88,17 @@ class MarketBondSerializer(serializers.Serializer):
     issue_info_data = MarketBondIssueInfoSerializer(read_only=True)
     inquire_price_data = MarketBondInquirePriceSerializer(read_only=True)
     inquire_asking_price_data = MarketBondInquireAskingPriceSerializer(read_only=True)
+
+
+class MarketBondCmbSerializer(serializers.ModelSerializer):
+    code = MarketBondCodeSerializer()
+    issue_info_data = MarketBondIssueInfoSerializer()
+    inquire_price_data = MarketBondInquirePriceSerializer()
+    inquire_asking_price_data = MarketBondInquireAskingPriceSerializer()
+    class Meta:
+        model = MarketBondCmb
+        fields = "__all__"
+
 
 class ClickCountSerializer(serializers.ModelSerializer):
     market_bond_code = MarketBondCodeSerializer(read_only=True)
