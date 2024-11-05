@@ -13,7 +13,11 @@ ENV PATH="/usr/local/flutter/bin:${PATH}"
 RUN chown -R root:root /usr/local/flutter && chmod -R 777 /usr/local/flutter
 
 # Flutter 웹 활성화 및 설치 확인
-RUN flutter channel stable && flutter upgrade && flutter config --enable-web && flutter doctor
+RUN git -C /usr/local/flutter reset --hard && \
+    flutter channel stable && \
+    flutter upgrade && \
+    flutter config --enable-web && \
+    flutter doctor
 
 # Flutter 웹 빌드
 WORKDIR /app
