@@ -12,11 +12,11 @@ from rest_framework import viewsets
 
 # Create your views here.
 
-class SearchKeywordViewSet(viewsets.ReadOnlyModelViewSet):
+class SearchKeywordViewSet(viewsets.ModelViewSet):
     queryset = SearchKeyword.objects.all()
     serializer_class = SearchKeywordSerializer
 
 
-class NaverNewsViewSet(viewsets.ReadOnlyModelViewSet):
+class NaverNewsViewSet(viewsets.ModelViewSet):
     queryset = NaverNews.objects.all()
     serializer_class = NaverNewsSerializer

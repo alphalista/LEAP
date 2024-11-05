@@ -7,7 +7,10 @@ from django.db.models import UniqueConstraint
 
 class SearchKeyword(models.Model):
     search_keyword = models.CharField(max_length=200, verbose_name="검색 키워드")
-
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=["search_keyword"], name="unique_keyword")
+        ]
 
 # 네이버 뉴스 API
 class NaverNews(models.Model):
