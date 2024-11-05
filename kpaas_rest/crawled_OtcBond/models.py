@@ -1,6 +1,15 @@
 from django.db import models
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 # Create your models here.
+
+# 유저 앱의 모델과 같은 테이블 바라보게 함
+class Users(models.Model):
+    user_id = models.CharField(max_length=100, primary_key=True)
+    nickname = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'users'
+        managed = False
 
 class OTC_Bond(models.Model):
     issu_istt_name = models.CharField(max_length=100)
@@ -27,14 +36,14 @@ class OTC_Bond(models.Model):
 
 # 장외 관심 채권
 class OTC_Bond_Interest(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('user_id', 'bond_code')
 
 class OTC_Bond_Holding(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='holding_bonds')
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='holding_bonds')
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE, related_name='holding_bonds')
     price_per_10 = models.CharField(max_length=100) # 1만원 채권당 매수단가
     quantity = models.CharField(max_length=100)
@@ -45,7 +54,7 @@ class OTC_Bond_Holding(models.Model):
         unique_together = ('user_id', 'bond_code')
 
 class OTC_Bond_Expired(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expired_bonds')
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='expired_bonds')
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE, related_name='expired_bonds')
     class Meta:
         db_table = 'OTC_Bond_Expired'
