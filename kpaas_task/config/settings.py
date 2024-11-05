@@ -210,7 +210,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     'holding_to_expired': {
         'task': 'crawling.tasks.holding_to_expired',
-        'schedule': 60 * 1,
+        'schedule': crontab(minute='0', hour='0'),
         'options': {
             'expires': 60 * 2
         }
