@@ -53,13 +53,17 @@ def createUser(id_token):
         email_pk = response.json().get('email')
         instance = Users.objects.filter(user_id=email_pk)
         if not instance:
-            u = {
-                'user_id' : email_pk,
-                'nickname': ''
-            }
-            url_dev = 'http://localhost:8080'
-            url = 'https://leapbond.com'
-            end = '/api/user/'
-            requests.post(url + end, data=u, headers=headers)
+            # u = {
+            #     'user_id' : email_pk,
+            #     'nickname': ''
+            # }
+            # url_dev = 'http://localhost:8080'
+            # url = 'https://leapbond.com'
+            # end = '/api/user/'
+            # requests.post(url + end, data=u, headers=headers)
+            Users.objects.create(
+                user_id=email_pk,
+                nickname=''
+            )
     # raise Exception
 
