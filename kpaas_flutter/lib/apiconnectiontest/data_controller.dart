@@ -39,10 +39,13 @@ class DataController extends GetxController {
   Future<Map<String, dynamic>> fetchEtBondData(String url) async {
     isLoading(true);
     try {
+      // Fetch data using apiService
       final response = await apiService.fetchData(url);
-      if (response.statusCode == 200 && response.data is Map) {
-        var data = response.data;
-        market_bond_code.assignAll(data['results']);
+
+      // Check if the response is valid and contains a map
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        var data = response.data as Map<String, dynamic>;
+        market_bond_code.assignAll(data['results'] ?? []);
         market_bond_nextPage.value = data['next'] ?? '';
         market_bond_prevPage.value = data['previous'] ?? '';
         return data;
@@ -75,6 +78,34 @@ class DataController extends GetxController {
     } catch (e) {
       if (e is DioException) {
         print('Error fetching otcBond data: ${e.message}');
+        print('Error status code: ${e.response?.statusCode}');
+        print('Error response data: ${e.response?.data}');
+      } else {
+        print('Unexpected error: $e');
+      }
+      return {};
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchOtcDailyBondData(String url) async {
+    isLoading(true);
+    try {
+      final response = await apiService.fetchData(url);
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        var data = response.data;
+        otc_bond_code.assignAll(data['results'] ?? []);
+        market_bond_nextPage.value = data['next'] ?? '';
+        market_bond_prevPage.value = data['previous'] ?? '';
+        return data;
+      } else {
+        print('Failed to load new bond data');
+        return {};
+      }
+    } catch (e) {
+      if (e is DioException) {
+        print('Error fetching new bond data: ${e.message}');
         print('Error status code: ${e.response?.statusCode}');
         print('Error response data: ${e.response?.data}');
       } else {
