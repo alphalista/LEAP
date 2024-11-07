@@ -26,7 +26,7 @@ Future<void> main() async {
   );
 
   await Future.delayed(const Duration(seconds: 10));
-  runApp(MyFirstApp());
+  runApp(MainPage());
 }
 
 class MainPage extends StatelessWidget {
@@ -72,13 +72,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> fetchBondData() async {
     try {
-      final etResponse = await dataController.fetchEtBondData("https://leapbond.com/api/marketbond/issue-info/");
-      etBondData = etResponse['results'] ?? [];
-      nextEtBondUrl = etResponse['next'] ?? '';
+      final etResponse = await dataController.fetchEtBondData("https://leapbond.com/api/marketbond/combined/");
+      if (etResponse.isNotEmpty) {
+        etBondData = etResponse['results'] ?? [];
+        nextEtBondUrl = etResponse['next'] ?? '';
+      }
 
       final otcResponse = await dataController.fetchOtcBondData("https://leapbond.com/api/otcbond/otc-bond-all/");
-      otcBondData = otcResponse['results'] ?? [];
-      nextOtcBondUrl = otcResponse['next'] ?? "";
+      if (otcResponse.isNotEmpty) {
+        otcBondData = otcResponse['results'] ?? [];
+        nextOtcBondUrl = otcResponse['next'] ?? "";
+      }
 
       setState(() {});
     } catch (e) {
