@@ -1,9 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class OtcBondDescriptionPage extends StatefulWidget {
   final Map<String, dynamic> bondData;
   const OtcBondDescriptionPage({Key? key, required this.bondData}) : super(key: key);
+
 
   @override
   _OtcBondDescriptionPageState createState() => _OtcBondDescriptionPageState();
@@ -22,17 +24,50 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
   // 수익 데이터
   final List<String> profitLeftColumnData = ['이자율', '세전 수익률', '세후 수익률', '예상 수익금'];
   List<String> profitRightColumnData = [];
+  bool isLoading = true;
+  Map<String, dynamic> bondDailyData = {};
 
-  // 시가와 듀레이션 데이터
-  final List<_ChartData> weeklyMarketPriceData = [
-    _ChartData('일', 9442),
-    _ChartData('월', 9433),
-    _ChartData('화', 9434),
-    _ChartData('수', 9440),
-    _ChartData('목', 9393),
-    _ChartData('금', 9437),
-    _ChartData('토', 9482),
-  ];
+  List<_ChartData> weeklyMarketPriceData = [];
+  List<_ChartData> chartData = [];
+
+  Future<void> fetchBondDetails() async {
+    final url = 'https://leapbond.com/api/otcbond/days/${widget.bondData['prdt_type_cd']}';
+    try {
+      final response = await Dio().get(url);
+      if (response.statusCode == 200) {
+        print("Response data: ${response.data}"); // 데이터 확인
+        setState(() {
+          bondDailyData = response.data;
+
+          // 주간 시장 가격 데이터를 가져와서 weeklyMarketPriceData에 할당
+          if (bondDailyData['results'] != null) {
+            weeklyMarketPriceData = (bondDailyData['results'] as List).map((item) {
+              print("Weekly data item: $item"); // 각 항목 출력
+              return _ChartData(
+                item['add_date'] ?? 'N/A',  // 날짜
+                double.tryParse(item['price'].toString()) ?? 0.0,  // 가격
+              );
+            }).toList();
+          }
+
+          chartData = weeklyMarketPriceData; // 초기 차트 데이터를 주간 시장 가격으로 설정
+          isLoading = false;
+        });
+      } else {
+        print("Failed to fetch bond data: ${response.statusMessage}");
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Error fetching bond data: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+
 
   final List<_ChartData> monthlyMarketPriceData = [
     _ChartData('11월', 11555),
@@ -74,7 +109,6 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
     _ChartData('10월', 7.04),
   ];
 
-  List<_ChartData> chartData = [];
 
   String formatDate(String date) {
     if (date.length == 8) {
