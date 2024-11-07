@@ -190,7 +190,7 @@ class _EtBondPageState extends State<EtBondPage> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => EtBondDescriptionPage(
-                          pdno: bondData[actualIndex]['pdno'],
+                          pdno: bondData[actualIndex]['issue_info_data']?['pdno'],
                         ),
                       ),
                     );
@@ -215,7 +215,7 @@ class _EtBondPageState extends State<EtBondPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          bondData[actualIndex]['prdt_name'] ?? 'N/A',
+                          bondData[actualIndex]['issue_info_data']?['prdt_name'] ?? 'N/A',
                           style: const TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
@@ -240,7 +240,7 @@ class _EtBondPageState extends State<EtBondPage> {
                                       ),
                                     ),
                                     Text(
-                                      bondData[actualIndex]['total_askp_rsqn']  ?? 'N/A',  // 잔존 수량
+                                      bondData[actualIndex]['inquire_asking_price_data']?['total_askp_rsqn']  ?? 'N/A',  // 잔존 수량
                                       style: const TextStyle(
                                         fontSize: 20,
                                         color: Colors.black,
@@ -279,8 +279,8 @@ class _EtBondPageState extends State<EtBondPage> {
                                       ),
                                     ),
                                     Text(
-                                      (bondData[actualIndex]['kbp_crdt_grad_text'] != null && bondData[actualIndex]['kbp_crdt_grad_text'].toString().isNotEmpty)
-                                          ? bondData[actualIndex]['kbp_crdt_grad_text']
+                                      (bondData[actualIndex]['issue_info_data']?['kbp_crdt_grad_text'] != null && bondData[actualIndex]['issue_info_data']!['kbp_crdt_grad_text'].toString().isNotEmpty)
+                                          ? bondData[actualIndex]['issue_info_data']['kbp_crdt_grad_text']
                                           : '무위험',
                                       style: const TextStyle(
                                         fontSize: 20,
@@ -297,7 +297,7 @@ class _EtBondPageState extends State<EtBondPage> {
                                       ),
                                     ),
                                     Text(
-                                      formatDate(bondData[actualIndex]['expd_dt']) ?? 'N/A',  // 만기일
+                                      formatDate(bondData[actualIndex]['issue_info_data']?['expd_dt']) ?? 'N/A',  // 만기일
                                       style: const TextStyle(
                                         fontSize: 20,
                                         color: Colors.black,
@@ -318,7 +318,7 @@ class _EtBondPageState extends State<EtBondPage> {
                                     ),
                                   ),
                                   Text(
-                                    '${bondData[actualIndex]['YTM_after_tax'] ?? 'N/A'}%',  // 세후 수익률
+                                    '${((double.tryParse(bondData[actualIndex]['inquire_price_data']?['ernn_rate']?.toString() ?? '0.0'))! * 0.846).toStringAsFixed(2)}%',  // 세후 수익률
                                     style: const TextStyle(
                                       fontSize: 20,
                                       color: Colors.black,
@@ -334,7 +334,7 @@ class _EtBondPageState extends State<EtBondPage> {
                                     ),
                                   ),
                                   Text(
-                                    formatDate(bondData[actualIndex]['issu_dt']),
+                                    formatDate(bondData[actualIndex]['issue_info_data']?['issu_dt']),
                                     style: const TextStyle(
                                       fontSize: 20,
                                       color: Colors.black,
@@ -442,3 +442,4 @@ double exptIncome(
         (sellPrice + totInterest - tax - price).toStringAsFixed(2));
   }
 }
+
