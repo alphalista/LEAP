@@ -521,3 +521,65 @@ class MarketBondCmb(models.Model):
     issue_info_data = models.ForeignKey(MarketBondIssueInfo, on_delete=models.CASCADE)
     inquire_price_data = models.ForeignKey(MarketBondInquirePrice, on_delete=models.CASCADE)
     inquire_asking_price_data = models.ForeignKey(MarketBondInquireAskingPrice, on_delete=models.CASCADE)
+
+
+class Users(models.Model):
+    user_id = models.CharField(max_length=100, primary_key=True)
+    nickname = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'users'
+        managed = False
+
+# 장내 관심, 보유, 만기, 일별, 주별, 월별 모델
+class ET_Bond_Interest(models.Model): # TODO POST 요청 문제 해결 필요
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
+    # pk가 id이기 때문에 칼럼에는 id가 들어옵니다.
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user_id', 'bond_code')
+        db_table = 'ET_Bond_Interest'
+
+class ET_Bond_Holding(models.Model): # TODO POST 요청 문제 해결 필요
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='holding_bonds')
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE, related_name='holding_bonds')
+    price_per_10 = models.CharField(max_length=100) # 1만원 채권당 매수단가
+    quantity = models.CharField(max_length=100)
+    purchase_date = models.CharField(max_length=100)
+    expire_date = models.DateField()
+    class Meta:
+        db_table = 'ET_Bond_Holding'
+        unique_together = ('user_id', 'bond_code')
+
+class ET_Bond_Expired(models.Model): # ReadOnly
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='expired_bonds')
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE, related_name='expired_bonds')
+    class Meta:
+        db_table = 'ET_Bond_Expired'
+
+class EtBondPreDataDays(models.Model): # ReadOnly
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE, related_name='pre_data_set')
+    add_date = models.DateField(auto_now_add=True)
+    duration = models.CharField(max_length=100)
+    price = models.CharField(max_length=100)
+    class Meta:
+        db_table = 'EtBondPreData'
+
+class EtBondPreDataWeeks(models.Model): # ReadOnly
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE, related_name='pre_data_weeks_set')
+    add_date = models.DateField(auto_now_add=True)
+    duration = models.CharField(max_length=100)
+    price = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'EtBondPreDataWeeks'
+
+class EtBondPreDataMonths(models.Model): # ReadOnly
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE, related_name='pre_data_months_set')
+    add_date = models.DateField(auto_now_add=True)
+    duration = models.CharField(max_length=100)
+    price = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'EtBondPreDataMonths'

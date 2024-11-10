@@ -1,6 +1,7 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 
+from .models import ET_Bond_Holding
 from .views import (
     MarketBondIssueInfoViewSet,
     MarketBondSearchInfoViewSet,
@@ -13,6 +14,7 @@ from .views import (
     MarketBondViewSet,
     ClickCountViewSet,
     MarketBondCmbViewSet,
+    ET_Bond_Interest_view,
 )
 
 router = DefaultRouter()
@@ -30,4 +32,24 @@ router.register('click-count', ClickCountViewSet, basename='marketbondclickcount
 
 
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('', include(router.urls)),
+    path('interest/<str:user_id>/', ET_Bond_Interest_view.as_view({
+        'get': 'list',
+        'post': 'create',
+        'put': 'update',
+        'delete': 'destroy'
+    }), name='interest'),
+    path('interest/<str:user_id>/<str:bond_code>/', ET_Bond_Interest_view.as_view({
+        'delete': 'destroy'
+    }), name='interest_delete'),
+    # path('holding/<str:user_id>/', ET_Bond_Holding_view.as_view({
+    #     'get': 'list',
+    #     'post': 'create',
+    #     'put': 'update',
+    #     'delete': 'destroy'
+    # })),
+    # path('holding/<str:user_id>/<str:bond_code>/', ET_Bond_Holding_view.as_view({
+    #     'delete': 'destroy'
+    # }))
+]
