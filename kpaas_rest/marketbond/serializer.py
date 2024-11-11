@@ -198,15 +198,14 @@ class ET_Bond_Interest_Serializer(serializers.ModelSerializer):
         model = ET_Bond_Interest
         fields = "__all__"
 
-# class ET_Bond_Holding_Serializer(serializers.ModelSerializer):
-#     def to_representation(self, instance):
-#         # ET_Bond의 id를 시리얼라이저를 통해 해결
-#         data = super().to_representation(instance)
-#         bond_info = instance.bond_code
-#         data.pop('bond_code')
-#         data['bond_code'] = bond_info.code
-#         return data
-#
-#     class Meta:
-#         model = ET_Bond_Holding
-#         fields = "__all__"
+class ET_Bond_Holding_Serializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        bond_info = instance.bond_code
+        data.pop('bond_code')
+        data['bond_code'] = bond_info.code
+        return data
+
+    class Meta:
+        model = ET_Bond_Holding
+        fields = "__all__"

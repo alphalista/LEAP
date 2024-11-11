@@ -24,6 +24,7 @@ from .models import (
     MarketBondInquireDailyPrice,
     MarketBondCmb,
     ClickCount, ET_Bond_Interest, Users,
+    ET_Bond_Holding
 )
 
 from .serializer import (
@@ -39,6 +40,7 @@ from .serializer import (
     MarketBondInquireDailyPriceSerializer,
     MarketBondCmbSerializer,
     ClickCountSerializer, ET_Bond_Interest_Serializer,
+    ET_Bond_Holding_Serializer
 )
 
 
@@ -267,41 +269,27 @@ class ET_Bond_Interest_view(viewsets.ModelViewSet):
 
 
 
-# class ET_Bond_Holding_view(viewsets.ModelViewSet):
-#     # GET 요청은 성공
-#     # POST 요청 성공
-#     # DELETE 요청 성공
-#     serializer_class = ET_Bond_Holding_Serializer
-#     def get_queryset(self):
-#         # GET 요청일 때 user_id를 인수로 받습니다.
-#         user_id = self.kwargs.get('user_id')
-#         target = ET_Bond_Holding.objects.filter(user_id=user_id)
-#         # target의 ET_Bond의 값은 ET_Bond의 id 값이 노출됨
-#         # 시리얼라이저의 to_representation()로 해결
-#         return target
-#
-#     def create(self, request, *args, **kwargs):
-#         data = request.data.copy()
-#         try:
-#             bond_instance = MarketBondCode.objects.get(code=data['bond_code'])
-#             data['bond_code'] = int(bond_instance.id)
-#         except MarketBondCode.DoesNotExist:
-#             return Response({"bond_code": "해당 bond_code가 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
-#         serializer = self.get_serializer(data=data)
-#         serializer.is_valid(raise_exception=True)
-#         serializer.save()
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-#
-#     # delete 요청시 pk를 이용해 객체를 가져옴
-#     def destroy(self, request, *args, **kwargs):
-#         try:
-#             bond_instance = MarketBondCode.objects.get(code=self.kwargs.get('bond_code'))
-#             instance = self.get_queryset().filter(user_id=self.kwargs.get('user_id')).filter(bond_code=bond_instance.id)
-#             if instance:
-#                 self.perform_destroy(instance)
-#                 return Response(status=status.HTTP_204_NO_CONTENT)
-#             else: return Response(status=status.HTTP_404_NOT_FOUND)
-#         except MarketBondCode.DoesNotExist:
-#             return Response({"ERROR": "요청하신 채권 코드가 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
-#         except Users.DoesNotExist:
-#             return Response({"ERROR": "요청하신 유저가 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
+class ET_Bond_Holding_view(viewsets.ModelViewSet):
+    serializer_class = ET_Bond_Holding_Serializer
+    # GET은 성공
+    def get_queryset(self):
+        # GET 요청일 때 user_id를 인수로 받습니다.
+        user_id = self.kwargs.get('user_id')
+        target = ET_Bond_Holding.objects.filter(user_id=user_id)
+        # target의 ET_Bond의 값은 ET_Bond의 id 값이 노출됨
+        # 시리얼라이저의 to_representation()로 해결
+        return target
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        try:
+            bond_instance = MarketBondCode.objects.get(code=data['bond_code'])
+            data['bond_code'] = int(bond_instance.id)
+        except MarketBondCode.DoesNotExist:
+            return Response({"bond_code": "해당 bond_code가 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+

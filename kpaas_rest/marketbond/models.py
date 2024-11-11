@@ -550,7 +550,7 @@ class ET_Bond_Holding(models.Model): # TODO POST 요청 문제 해결 필요
     expire_date = models.DateField()
     class Meta:
         db_table = 'ET_Bond_Holding'
-        unique_together = ('user_id', 'bond_code')
+        unique_together = ('user_id', 'bond_code', 'price_per_10')
 
 class ET_Bond_Expired(models.Model): # ReadOnly
     user_id = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='expired_bonds')
