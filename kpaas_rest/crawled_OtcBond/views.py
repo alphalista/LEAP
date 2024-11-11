@@ -1,9 +1,11 @@
 from django.shortcuts import render
 
 # Create your views here.
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from django.utils import timezone
 import os, sys
+
+from rest_framework.response import Response
 
 from .models import OTC_Bond, OtcBondPreDataWeeks, OTC_Bond_Interest, OTC_Bond_Holding, OTC_Bond_Expired, OtcBondPreDataDays, OtcBondPreDataMonths
 from .serializers import OTC_Bond_Serializer, OTC_Bond_Interest_Serializer, OTC_Bond_Holding_Serializer, OTC_Bond_Expired_Serializer, OTC_Bond_Days_Serializer, OTC_Bond_Weeks_Serializer, OTC_Bond_Months_Serializer
@@ -40,6 +42,15 @@ class OTC_Bond_Holding_view(viewsets.ModelViewSet):
         if user_id is not None:
             return OTC_Bond_Holding.objects.filter(user_id=user_id)
         return OTC_Bond_Holding.objects.all()
+
+    def destroy(self, request, *args, **kwargs):
+        id = self.kwargs.get('ins_id')
+        try:
+            ins = OTC_Bond_Holding.objects.get(pk=id)
+            ins.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except OTC_Bond_Holding.DoesNotExist:
+            return Response('OTC_Bond_Holding does not exist', status=404)
 
 class OTC_Bond_Expired_view(viewsets.ReadOnlyModelViewSet):
     serializer_class = OTC_Bond_Expired_Serializer
