@@ -558,28 +558,30 @@ class ET_Bond_Expired(models.Model): # ReadOnly
     class Meta:
         db_table = 'ET_Bond_Expired'
 
-class EtBondPreDataDays(models.Model): # ReadOnly
-    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE, related_name='pre_data_set')
+class MarketBondPreDataDays(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
     add_date = models.DateField(auto_now_add=True)
     duration = models.CharField(max_length=100)
     price = models.CharField(max_length=100)
     class Meta:
-        db_table = 'EtBondPreData'
+        db_table = "MarketBondPreDataDays"
+        managed = False
 
-class EtBondPreDataWeeks(models.Model): # ReadOnly
-    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE, related_name='pre_data_weeks_set')
+class MarketBondPreDataWeeks(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    add_date = models.DateField(auto_now_add=True)
+    duration = models.CharField(max_length=100)
+    price = models.CharField(max_length=100)
+    class Meta:
+        db_table = "MarketBondPreDataWeeks"
+        managed = False
+
+class MarketBondPreDataMonths(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
     add_date = models.DateField(auto_now_add=True)
     duration = models.CharField(max_length=100)
     price = models.CharField(max_length=100)
 
     class Meta:
-        db_table = 'EtBondPreDataWeeks'
-
-class EtBondPreDataMonths(models.Model): # ReadOnly
-    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE, related_name='pre_data_months_set')
-    add_date = models.DateField(auto_now_add=True)
-    duration = models.CharField(max_length=100)
-    price = models.CharField(max_length=100)
-
-    class Meta:
-        db_table = 'EtBondPreDataMonths'
+        db_table = "MarketBondPreDataMonths"
+        managed = False

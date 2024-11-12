@@ -24,7 +24,7 @@ from .models import (
     MarketBondInquireDailyPrice,
     MarketBondCmb,
     ClickCount, ET_Bond_Interest, Users,
-    ET_Bond_Holding
+    ET_Bond_Holding, MarketBondPreDataDays, MarketBondPreDataWeeks, MarketBondPreDataMonths
 )
 
 from .serializer import (
@@ -40,7 +40,10 @@ from .serializer import (
     MarketBondInquireDailyPriceSerializer,
     MarketBondCmbSerializer,
     ClickCountSerializer, ET_Bond_Interest_Serializer,
-    ET_Bond_Holding_Serializer
+    ET_Bond_Holding_Serializer,
+    Market_Bond_Days_Serializer,
+    Market_Bond_Weeks_Serializer,
+    Market_Bond_Months_Serializer
 )
 
 
@@ -293,3 +296,41 @@ class ET_Bond_Holding_view(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+class EtBondPreDataDaysView(viewsets.ReadOnlyModelViewSet):
+    serializer_class = Market_Bond_Days_Serializer
+    def get_queryset(self):
+        real_bond_code = self.kwargs.get('bond_code')
+        ins_id = None
+        try:
+            ins_id = MarketBondCode.objects.get(code=real_bond_code).id
+        except MarketBondCode.DoesNotExist:
+            return Response({"Error": "유효한 채권 코드가 아닙니다."} ,status=status.HTTP_404_NOT_FOUND)
+
+        day_instances = MarketBondPreDataDays.objects.filter(bond_code=ins_id).order_by('add_date')
+        return day_instances
+
+class EtBondPreDataWeeksView(viewsets.ReadOnlyModelViewSet):
+    serializer_class = Market_Bond_Weeks_Serializer
+    def get_queryset(self):
+        real_bond_code = self.kwargs.get('bond_code')
+        ins_id = None
+        try:
+            ins_id = MarketBondCode.objects.get(code=real_bond_code).id
+        except MarketBondCode.DoesNotExist:
+            return Response({"Error": "유효한 채권 코드가 아닙니다."} ,status=status.HTTP_404_NOT_FOUND)
+
+        day_instances = MarketBondPreDataWeeks.objects.filter(bond_code=ins_id).order_by('add_date')
+        return day_instances
+
+class EtBondPreDataMonthsView(viewsets.ReadOnlyModelViewSet):
+    serializer_class = Market_Bond_Months_Serializer
+    def get_queryset(self):
+        real_bond_code = self.kwargs.get('bond_code')
+        ins_id = None
+        try:
+            ins_id = MarketBondCode.objects.get(code=real_bond_code).id
+        except MarketBondCode.DoesNotExist:
+            return Response({"Error": "유효한 채권 코드가 아닙니다."} ,status=status.HTTP_404_NOT_FOUND)
+
+        day_instances = MarketBondPreDataMonths.objects.filter(bond_code=ins_id).order_by('add_date')
+        return day_instances

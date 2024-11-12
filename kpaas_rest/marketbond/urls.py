@@ -15,7 +15,10 @@ from .views import (
     ClickCountViewSet,
     MarketBondCmbViewSet,
     ET_Bond_Interest_view,
-    ET_Bond_Holding_view
+    ET_Bond_Holding_view,
+    EtBondPreDataDaysView,
+    EtBondPreDataWeeksView,
+    EtBondPreDataMonthsView
 )
 
 router = DefaultRouter()
@@ -51,5 +54,14 @@ urlpatterns = [
     })),
     path('holding/<str:user_id>/<int:pk>/', ET_Bond_Holding_view.as_view({
         'delete': 'destroy'
-    }))
+    })),
+    path('days/<str:bond_code>/', EtBondPreDataDaysView.as_view({
+        'get': 'list',
+    })),
+    path('weeks/<str:bond_code>/', EtBondPreDataWeeksView.as_view({
+        'get': 'list',
+    })),
+    path('months/<str:bond_code>/', EtBondPreDataMonthsView.as_view({
+        'get': 'list',
+    })),
 ]
