@@ -82,7 +82,7 @@ def pre_data_pipeline():
             duration_avg = calculate_avg('duration', pre_week_data)
             price_avg = calculate_avg('price', pre_week_data)
             # 주별 데이터 저장
-            pre = OtcBondPreDataDays.objects.filter(bond_code=bond.code).order_by('add_date')
+            pre = OtcBondPreDataWeeks.objects.filter(bond_code=bond.code).order_by('add_date')
             if len(pre) >= 8: pre.first().delete() # 8주 데이터 넘어가면 데이터 삭제
             OtcBondPreDataWeeks.objects.create(
                 bond_code=bond.code,
