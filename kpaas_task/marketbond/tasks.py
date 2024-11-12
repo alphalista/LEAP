@@ -279,8 +279,8 @@ def pre_data_pipeline():
         price = str(MarketBondInquirePrice.objects.get(code=bond.code).bond_prpr)
         MarketBondPreDataDays.objects.create(
             code=bond.code,
-            duration=bond.duration,
-            price=bond.price_per_10,
+            duration=duration,
+            price=price,
         )
         # 주별 데이터 추가
         today_weekday = timezone.now().weekday()
