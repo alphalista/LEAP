@@ -104,3 +104,17 @@ def pre_data_pipeline():
                 duration=str(duration_avg),
                 price=str(price_avg),
             )
+
+# 트렌딩 채권 조사 후 저장
+# 트렌딩이기에 1시간마다 돌릴 예정
+@shared_task
+def otc_bond_trending_pipeline():
+    # 오늘 날짜의 채권들을 가져옴
+    # trending_bond = [(bond_code, price_delta)] -> price_delta기준 오름차순
+    # 상위 5개 추출
+    # - 채권 위험도가 장내의 경우 BBB까지, 장외의 경우 보통위험까지만 트렌딩 알고리즘에 들어가도록 한다.
+    # - 채권 가격이 떨어진 채권들 중 가장 많이 떨어진 채권 상위 10개 정도 추출한 후, 이 10개는 수익률이 높은 순으로 정렬하여 보여준다. (task로 처리 후 api로 쏴줌)
+    trending_bonds = []
+    bonds = OTC_Bond.objects.filter(add_date=timezone.now())
+    for bond in bonds:
+        pass
