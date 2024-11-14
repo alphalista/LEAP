@@ -36,5 +36,8 @@ urlpatterns = [
     })),
     path('months/<str:bond_code>/', OTC_Bond_Months_View.as_view({
         'get': 'list'
+    })),
+    path('filter/', OtcBondFilterView.as_view({
+        'get': 'list'
     }))
 ]
