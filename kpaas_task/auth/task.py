@@ -4,11 +4,9 @@ import os
 import requests
 
 env = environ.Env()
-# environ.Env.read_env(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), '.env'))
+environ.Env.read_env(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env'))
 
-# 기본 경로 설정
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-# 기본 환경변수 파일 로드
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 KAKAO_CLIENT_SECRET = env('KAKAO_CLIENT_SECRET')

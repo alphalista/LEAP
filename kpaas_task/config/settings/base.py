@@ -13,6 +13,9 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # 보안 키
 SECRET_KEY = env('SECRET_KEY')
+KAKAO_ADMIN_KEY = env('KAKAO_ADMIN_KEY')
+KAKAO_REST_API_KEY = env('KAKAO_REST_API_KEY')
+KAKAO_CLIENT_SECRET = env('KAKAO_CLIENT_SECRET')
 
 # 기본 디버그 모드 (세부 설정 파일에서 수정)
 DEBUG = True
@@ -37,6 +40,7 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django_celery_results',
     'crawling',
+    'usr',
 ]
 
 MIDDLEWARE = [

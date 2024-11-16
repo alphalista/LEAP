@@ -477,3 +477,28 @@ class MarketBondCmb(models.Model):
     issue_info_data = models.ForeignKey(MarketBondIssueInfo, on_delete=models.CASCADE)
     inquire_price_data = models.ForeignKey(MarketBondInquirePrice, on_delete=models.CASCADE)
     inquire_asking_price_data = models.ForeignKey(MarketBondInquireAskingPrice, on_delete=models.CASCADE)
+
+class MarketBondPreDataDays(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    add_date = models.DateField(auto_now_add=True)
+    duration = models.CharField(max_length=100)
+    price = models.CharField(max_length=100)
+    class Meta:
+        db_table = "MarketBondPreDataDays"
+
+class MarketBondPreDataWeeks(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    add_date = models.DateField(auto_now_add=True)
+    duration = models.CharField(max_length=100)
+    price = models.CharField(max_length=100)
+    class Meta:
+        db_table = "MarketBondPreDataWeeks"
+
+class MarketBondPreDataMonths(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    add_date = models.DateField(auto_now_add=True)
+    duration = models.CharField(max_length=100)
+    price = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = "MarketBondPreDataMonths"

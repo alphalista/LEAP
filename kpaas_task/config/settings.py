@@ -16,11 +16,11 @@ import environ
 
 env = environ.Env()
 
-environ.Env.read_env(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), '.env'))
+environ.Env.read_env(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env'))
 
-KAKAO_ADMIN_KEY = env('KAKAO_ADMIN_KEY')
-KAKAO_REST_API_KEY = env('KAKAO_REST_API_KEY')
-KAKAO_CLIENT_SECRET = env('KAKAO_CLIENT_SECRET')
+# KAKAO_ADMIN_KEY = env('KAKAO_ADMIN_KEY')
+# KAKAO_REST_API_KEY = env('KAKAO_REST_API_KEY')
+# KAKAO_CLIENT_SECRET = env('KAKAO_CLIENT_SECRET')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -55,6 +55,8 @@ INSTALLED_APPS = [
     'django_filters',
     'django_celery_beat',
     'django_celery_results',
+    'auth',
+    'usr',
 ]
 
 MIDDLEWARE = [
@@ -227,6 +229,14 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='57', hour='23'),
         'options': {
             'expires': 60 * 5
+        }
+    },
+    # 채권 양이 많기 때문에 1시간으로 보고 스케쥴러 설정
+    'marketBond_pre_data_pipeline': {
+        'task': 'marketbond.tasks.pre_data_pipeline',
+        'schedule': crontab(minute='0', hour='23'),
+        'options': {
+            'expires': 60 * 30
         }
     }
 }

@@ -24,7 +24,7 @@ Future<void> main() async {
 
 Future<void> sendGetRequest(BuildContext context) async {
   final kakaoRestApiKey = dotenv.env['KAKAO_REST_API_KEY'];
-  const redirectUri = 'http://localhost:3000/auth/login/kakao-callback';
+  const redirectUri = 'http://127.0.0.1:8000/auth/login/kakao-callback';
   final Dio dio = Dio();
 
   try {
@@ -38,7 +38,7 @@ Future<void> sendGetRequest(BuildContext context) async {
 
     // 인증 코드를 Django 백엔드로 전송
     final response = await dio.post(
-      'http://localhost:3000/auth/login/kakao-callback',  // DRF 엔드포인트
+      'http://127.0.0.1:8000/auth/login/kakao-callback',  // DRF 엔드포인트
       data: {
         'code': authCode,  // 인증 코드 전송
       },

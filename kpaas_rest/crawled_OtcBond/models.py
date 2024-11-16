@@ -51,7 +51,7 @@ class OTC_Bond_Holding(models.Model):
     expire_date = models.DateField()
     class Meta:
         db_table = 'OTC_Bond_Holding'
-        unique_together = ('user_id', 'bond_code')
+        unique_together = ('user_id', 'bond_code', 'price_per_10')
 
 class OTC_Bond_Expired(models.Model):
     user_id = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='expired_bonds')
