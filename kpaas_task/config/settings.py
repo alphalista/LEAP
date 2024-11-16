@@ -230,6 +230,14 @@ CELERY_BEAT_SCHEDULE = {
         'options': {
             'expires': 60 * 5
         }
+    },
+    # 채권 양이 많기 때문에 1시간으로 보고 스케쥴러 설정
+    'marketBond_pre_data_pipeline': {
+        'task': 'marketbond.tasks.pre_data_pipeline',
+        'schedule': crontab(minute='0', hour='23'),
+        'options': {
+            'expires': 60 * 30
+        }
     }
 }
 

@@ -5,10 +5,10 @@ urlpatterns = [
     path('', UserViewSet.as_view({
         'get': 'list',
         'post': 'create',
-        'put': 'update',
-        'patch': 'partial_update',
     })),
     path('<str:pk>/', UserViewSet.as_view({
-        'delete': 'destroy'
+        'delete': 'destroy',
+        'put': 'update',
+        'patch': 'partial_update',
     }))
 ]

@@ -13,7 +13,8 @@ from .models import (
     MarketBondInquireCCNL,
     MarketBondInquireDailyPrice,
     MarketBondCmb,
-    ClickCount,
+    ClickCount, ET_Bond_Interest, ET_Bond_Holding,
+    MarketBondPreDataDays, MarketBondPreDataWeeks, MarketBondPreDataMonths
 )
 
 
@@ -176,3 +177,52 @@ class ClickCountSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClickCount
         fields = "__all__"
+
+
+class ET_Bond_Interest_Serializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        # ET_Bond의 id를 시리얼라이저를 통해 해결
+        data = super().to_representation(instance)
+        bond_info = instance.bond_code
+        data.pop('bond_code')
+        data['bond_code'] = bond_info.code
+        return data
+
+    # def validate_bond_code(self, value):
+    #     try:
+    #         market_bond = MarketBondCode.objects.get(code=value)
+    #     except MarketBondCode.DoesNotExist:
+    #         raise serializers.ValidationError("해당 bond_code가 존재하지 않습니다.")
+    #     return market_bond.pk
+
+    class Meta:
+        model = ET_Bond_Interest
+        fields = "__all__"
+
+class ET_Bond_Holding_Serializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        bond_info = instance.bond_code
+        data.pop('bond_code')
+        data['bond_code'] = bond_info.code
+        return data
+
+    class Meta:
+        model = ET_Bond_Holding
+        fields = "__all__"
+
+
+class Market_Bond_Days_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = MarketBondPreDataDays
+        fields = '__all__'
+
+class Market_Bond_Weeks_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = MarketBondPreDataWeeks
+        fields = '__all__'
+
+class Market_Bond_Months_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = MarketBondPreDataMonths
+        fields = '__all__'
