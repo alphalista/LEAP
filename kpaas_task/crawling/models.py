@@ -88,3 +88,14 @@ class OtcBondPreDataMonths(models.Model):
     class Meta:
         db_table = 'OtcBondPreDataMonths'
         managed = False
+
+# 장외 채권 트렌딩 채권 저장 모델입니다. (Managed)
+class OtcBondTrending(models.Model):
+    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
+    YTM = models.CharField(max_length=100)
+    add_date = models.DateField(auto_now_add=True)
+
+class HowManyInterest(models.Model):
+    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
+    interest = models.IntegerField()
+    danger_degree = models.CharField(max_length=100)
