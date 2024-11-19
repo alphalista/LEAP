@@ -46,6 +46,7 @@ from .serializer import (
     Market_Bond_Months_Serializer
 )
 
+from .filters import MarketBondCmbFilter
 
 from rest_framework import viewsets, status
 
@@ -55,6 +56,11 @@ from rest_framework import viewsets, status
 class MarketBondCmbViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MarketBondCmb.objects.all()
     serializer_class = MarketBondCmbSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = MarketBondCmbFilter
+    filterset_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__nice_crdt_grad_text']  # 정확한 값 매칭
+    search_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name']  # 부분 문자열 검색
+    ordering_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__srfc_inrt', 'inquire_price_data__bond_prpr', 'inquire_asking_price_data__bidp_rsqn1']  # 정렬 가능한 필드
 
 
 class MarketBondViewSet(viewsets.ReadOnlyModelViewSet):
