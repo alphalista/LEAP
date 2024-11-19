@@ -95,7 +95,13 @@ class OtcBondTrending(models.Model):
     YTM = models.CharField(max_length=100)
     add_date = models.DateField(auto_now_add=True)
 
+    class Meta:
+        db_table = 'OtcBondTrending'
+
 class HowManyInterest(models.Model):
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
     interest = models.IntegerField()
     danger_degree = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'HowManyInterest'
