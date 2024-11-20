@@ -28,3 +28,10 @@ spec:
             name: django-rest
             port:
               number: 8000
+      - path: /web
+        pathType: Prefix
+        backend:
+          service:
+            name: fltr
+            port:
+              number: 80

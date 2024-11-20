@@ -12,11 +12,14 @@ from celery import shared_task
 @shared_task(rate_limit='10/s')
 def fetch_naver_news(kwd):
     try:
-        collector = GetNewsData(kwd)
+        kw = SearchKeyword.objects.filter(search_keyword=kwd).first()
+        collector = GetNewsData(kwd, kw)
         res = collector.get_naver_news_data()
-        serializer = NaverNewsSerializer(res)
+        serializer = NaverNewsSerializer(data=res, many=True)
         if serializer.is_valid():
             serializer.save()
+        else:
+            print(serializer.errors)
     except Exception as e:
         print(e)
 

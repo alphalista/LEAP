@@ -418,6 +418,13 @@ class MarketBondInquireAskingPrice(models.Model):
     shnu_ernn_rate5 = models.CharField(max_length=84, verbose_name="매수2 수익 비율5")
 
 
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=["aspr_acpt_hour", "code"], name="unique_asking_price"
+            )
+        ]
+
 # 장내채권 평균단가조회
 # 추가(수정)필요
 class MarketBondAvgUnit(models.Model):
@@ -463,6 +470,10 @@ class MarketBondInquirePrice(models.Model):
     bond_mxpr = models.CharField(max_length=112, verbose_name="채권상한가")
     bond_llam = models.CharField(max_length=112, verbose_name="채권하한가")
 
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=["code"], name="unique_price")
+        ]
 
 # 장내채권현재가(체결)
 class MarketBondInquireCCNL(models.Model):
@@ -491,7 +502,7 @@ class MarketBondInquireDailyPrice(models.Model):
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=["stck_bsop_date"], name="unique_daily_price")
+            UniqueConstraint(fields=["code", "stck_bsop_date"], name="unique_daily_price")
         ]
 
 
@@ -502,3 +513,75 @@ class ClickCount(models.Model):
     def increment(self):
         self.count += 1
         self.save()
+
+
+class MarketBondCmb(models.Model):
+    # You can adjust these fields based on the actual fields you need from the other models
+    code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    issue_info_data = models.ForeignKey(MarketBondIssueInfo, on_delete=models.CASCADE)
+    inquire_price_data = models.ForeignKey(MarketBondInquirePrice, on_delete=models.CASCADE)
+    inquire_asking_price_data = models.ForeignKey(MarketBondInquireAskingPrice, on_delete=models.CASCADE)
+
+
+class Users(models.Model):
+    user_id = models.CharField(max_length=100, primary_key=True)
+    nickname = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'users'
+        managed = False
+
+# 장내 관심, 보유, 만기, 일별, 주별, 월별 모델
+class ET_Bond_Interest(models.Model): # TODO POST 요청 문제 해결 필요
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
+    # pk가 id이기 때문에 칼럼에는 id가 들어옵니다.
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user_id', 'bond_code')
+        db_table = 'ET_Bond_Interest'
+
+class ET_Bond_Holding(models.Model): # TODO POST 요청 문제 해결 필요
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='holding_bonds')
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE, related_name='holding_bonds')
+    price_per_10 = models.CharField(max_length=100) # 1만원 채권당 매수단가
+    quantity = models.CharField(max_length=100)
+    purchase_date = models.CharField(max_length=100)
+    expire_date = models.DateField()
+    class Meta:
+        db_table = 'ET_Bond_Holding'
+        unique_together = ('user_id', 'bond_code', 'price_per_10')
+
+class ET_Bond_Expired(models.Model): # ReadOnly
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='expired_bonds')
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE, related_name='expired_bonds')
+    class Meta:
+        db_table = 'ET_Bond_Expired'
+
+class MarketBondPreDataDays(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    add_date = models.DateField(auto_now_add=True)
+    duration = models.CharField(max_length=100)
+    price = models.CharField(max_length=100)
+    class Meta:
+        db_table = "MarketBondPreDataDays"
+        managed = False
+
+class MarketBondPreDataWeeks(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    add_date = models.DateField(auto_now_add=True)
+    duration = models.CharField(max_length=100)
+    price = models.CharField(max_length=100)
+    class Meta:
+        db_table = "MarketBondPreDataWeeks"
+        managed = False
+
+class MarketBondPreDataMonths(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    add_date = models.DateField(auto_now_add=True)
+    duration = models.CharField(max_length=100)
+    price = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = "MarketBondPreDataMonths"
+        managed = False

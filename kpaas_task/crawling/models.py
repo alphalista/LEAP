@@ -38,7 +38,7 @@ class OTC_Bond(models.Model):
     expt_income = models.CharField(max_length=100)
     # duration 추가
     duration = models.CharField(max_length=100)
-    add_date = models.DateField(auto_now_add=True)
+    add_date = models.DateField(blank=True, null=True)
 
 # OTC_Bond_Holding 테이블을 참조하도록하여 rest에서 생성한 같은 테이블을 바라보도록 함
 class OTC_Bond_Holding(models.Model):

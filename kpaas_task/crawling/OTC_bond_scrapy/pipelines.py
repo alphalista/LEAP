@@ -9,24 +9,25 @@ from django_celery_results.utils import now_localtime
 from itemadapter import ItemAdapter
 import datetime
 from dateutil.relativedelta import relativedelta
-import mysql.connector
+# import mysql.connector
 from twisted.spread.pb import portno
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 import crawling.OTC_bond_scrapy.django_setup
 from crawling.models import OTC_Bond
 from asgiref.sync import sync_to_async
+from django.utils import timezone
 
 class OtcBondScrapyPipeline:
-    def __init__(self):
-        print('start')
-        try:
-            self.conn = mysql.connector.connect(user='root', password='ytk-10122713', database='bonddb',
-                                                host='localhost', port='3306')
-            self.myCursor = self.conn.cursor()
-            print('INFO', 'SUCCESS')
-        except Exception as e:
-            print('ERROR:', e)
+    # def __init__(self):
+    #     print('start')
+    #     try:
+    #         self.conn = mysql.connector.connect(user='root', password='ytk-10122713', database='bonddb',
+    #                                             host='localhost', port='3306')
+    #         self.myCursor = self.conn.cursor()
+    #         print('INFO', 'SUCCESS')
+    #     except Exception as e:
+    #         print('ERROR:', e)
 
     async def process_item(self, item, spider):
         if spider.name == 'miraeassetSpider' or spider.name == 'shinhanSpider' or spider.name == 'daishinSpider' or spider.name == 'kiwoomSpider':
@@ -49,41 +50,19 @@ class OtcBondScrapyPipeline:
                 mat_date.replace('.', ''),
                 int(int_cycle)
             )
-            self.myCursor.execute(
-                'insert into bonddb.Bonds(trading_company_name, bond_code, bond_name, danger_degree,' +
-                'pub_date, mat_date, YTM, YTM_after_tax, price_per_10, bond_type, int_pay_class, int_pay_cycle,' +
-                'interest_percentage, nxt_int_date, expt_income, duration) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-                , (item['trading_company_name'], item['bond_code'], item['bond_name'], item['danger_degree'], item['pub_date'],
-                   item['mat_date'], item['YTM'],item['YTM_after_tax'], item['price_per_10'], item['bond_type'],
-                   item['int_pay_class'], item['int_pay_cycle'], item['interest_percentage'], item['nxt_int_date'], item['expt_income'],
-                   item['duration'])
-            )
-            self.conn.commit()
+            # self.myCursor.execute(
+            #     'insert into bonddb.Bonds(trading_company_name, bond_code, bond_name, danger_degree,' +
+            #     'pub_date, mat_date, YTM, YTM_after_tax, price_per_10, bond_type, int_pay_class, int_pay_cycle,' +
+            #     'interest_percentage, nxt_int_date, expt_income, duration) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+            #     , (item['trading_company_name'], item['bond_code'], item['bond_name'], item['danger_degree'], item['pub_date'],
+            #        item['mat_date'], item['YTM'],item['YTM_after_tax'], item['price_per_10'], item['bond_type'],
+            #        item['int_pay_class'], item['int_pay_cycle'], item['interest_percentage'], item['nxt_int_date'], item['expt_income'],
+            #        item['duration'])
+            # )
+            # self.conn.commit()
 
             # django db 연관
-            print('start djangoDB')
-            # await sync_to_async(OTC_Bond.objects.create)(
-            #     trading_company_name = item['trading_company_name'],
-            #     bond_code = item['bond_code'],
-            #     bond_name = item['bond_name'],
-            #     danger_degree = item['danger_degree'],
-            #     pub_date = item['pub_date'],
-            #     mat_date = item['mat_date'],
-            #     YTM = item['YTM'],
-            #     YTM_after_tax = item['YTM_after_tax'],
-            #     price_per_10 = item['price_per_10'],
-            #     bond_type = item['bond_type'],
-            #     int_pay_class = item['int_pay_class'],
-            #     int_pay_cycle = item['int_pay_cycle'],
-            #     interest_percentage = item['interest_percentage'],
-            #     nxt_int_date = item['nxt_int_date'],
-            #     expt_income = item['expt_income'],
-            #     duration = item['duration']
-            # )
-            # exists = await sync_to_async(OTC_Bond.objects.filter(pk=item['bond_code']).exists)()
-            # if exists:
-            #     inst = await sync_to_async(OTC_Bond.objects.get)(pk=item['bond_code'])
-            #     item['duration'] = self.duration(float(item['interest_percentage']), float(inst.interest_percentage), float(item['price_per_10']), float(inst.price_per_10))
+            # 날짜도 업데이트
             await sync_to_async(OTC_Bond.objects.update_or_create)(
                 code=item['bond_code'],  # pk로 설정된 필터 조건
                 defaults={  # 업데이트 또는 생성할 데이터
@@ -101,7 +80,8 @@ class OtcBondScrapyPipeline:
                     'interest_percentage': item['interest_percentage'],
                     'nxtm_int_dfrm_dt': item['nxt_int_date'],
                     'expt_income': item['expt_income'],
-                    'duration': item['duration']
+                    'duration': item['duration'],
+                    'add_date': timezone.now()
                 }
             )
             print('The End djangoDB')
