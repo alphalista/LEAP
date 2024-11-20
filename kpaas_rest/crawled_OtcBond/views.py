@@ -9,7 +9,7 @@ import os, sys
 
 from rest_framework.response import Response
 
-from .models import OTC_Bond, OtcBondPreDataWeeks, OTC_Bond_Interest, OTC_Bond_Holding, OTC_Bond_Expired, OtcBondPreDataDays, OtcBondPreDataMonths
+from .models import OTC_Bond, OtcBondPreDataWeeks, OTC_Bond_Interest, OTC_Bond_Holding, OTC_Bond_Expired, OtcBondPreDataDays, OtcBondPreDataMonths, HowManyInterest
 from .serializers import OTC_Bond_Serializer, OTC_Bond_Interest_Serializer, OTC_Bond_Holding_Serializer, OTC_Bond_Expired_Serializer, OTC_Bond_Days_Serializer, OTC_Bond_Weeks_Serializer, OTC_Bond_Months_Serializer
 
 
@@ -41,6 +41,22 @@ class OTC_Bond_Interest_view(viewsets.ModelViewSet):
         if user_id is not None:
             return OTC_Bond_Interest.objects.filter(user_id=user_id)
         return OTC_Bond_Interest.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        try:
+            ins = HowManyInterest.objects.get(bond_code=request.data.get('bond_code'))
+            HowManyInterest.objects.update_or_create(
+                bond_code=request.data.get('bond_code'),
+                defaults={
+                    'interest': ins.interest + 1
+                }
+            )
+        except HowManyInterest.DoesNotExist:
+            HowManyInterest.objects.create(bond_code=request.data.get('bond_code'), interest=1)
+        serializer = OTC_Bond_Interest_Serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class OTC_Bond_Holding_view(viewsets.ModelViewSet):
     serializer_class = OTC_Bond_Holding_Serializer
