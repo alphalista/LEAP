@@ -10,12 +10,8 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 # 데이터베이스 설정, 세부 설정 파일에서 덮어씌워질 수 있음
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': env('DATABASE_NAME_DEV'),
-        'USER': env('DATABASE_USER_DEV'),
-        'PASSWORD': env('DATABASE_PASSWORD_DEV'),
-        'HOST': env('DATABASE_HOST_DEV'),
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 

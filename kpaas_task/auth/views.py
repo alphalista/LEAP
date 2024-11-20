@@ -6,10 +6,15 @@ import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.middleware.csrf import get_token
-from config.settings.base import KAKAO_CLIENT_SECRET, KAKAO_REST_API_KEY
+from config.settings.base import KAKAO_CLIENT_SECRET, KAKAO_REST_API_KEY, NAVER_CLIEND_ID, NAVER_CLIENT_SECRET
 
 from usr.models import Users
 
+import requests
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
 def kakao_callback(request):
     code = request.GET.get('code')
     redirect_uri = 'http://127.0.0.1:8000/auth/login/kakao-callback'
@@ -67,3 +72,81 @@ def createUser(id_token):
             )
     # raise Exception
 
+class NaverLogin:
+    def __init__(self, code, state):
+        self.code = code
+        self.state = state
+        self.token_url = 'https://nid.naver.com/oauth2.0/token'
+        self.me_url = 'https://openapi.naver.com/v1/nid/me'
+        self.data = {
+            'client_id': NAVER_CLIEND_ID,
+            'client_secret': NAVER_CLIENT_SECRET,
+        }
+
+    def issue_token(self):
+        self.data['grant_type'] = 'authorization_code'
+        self.data['code'] = self.code
+        self.data['state'] = self.state
+        response = requests.post(self.token_url, data=self.data)
+
+        if response.status_code == 200:
+            data = response.json()
+            return data
+        else:
+            return {'error': response.status_code}
+
+    def refresh_token(self, refresh_token):
+        self.data['grant_type'] = 'refresh_token'
+        self.data['refresh_token'] = refresh_token
+        response = requests.post(self.token_url, data=self.data)
+
+        if response.status_code == 200:
+            data = response.json()
+            return data
+        else:
+            return {'error': response.status_code}
+
+    def delete_token(self, access_token):
+        self.data['grant_type'] = 'delete'
+        self.data['access_token'] = access_token
+        self.data['service_provider'] = 'NAVER'
+        response = requests.post(self.token_url, data=self.data)
+
+        if response.status_code == 200:
+            data = response.json()
+            return data
+        else:
+            return {'error': response.status_code}
+
+
+
+# Naver LoginURL
+# uri = "https://nid.naver.com/oauth2.0/authorize"
+# data = {
+#     'response_type': 'code',
+#     'client_id': NAVER_CLIEND_ID,
+#     'redirect_uri': 'http://leapbond.com/auth/navercb',
+#     'state': 'test',
+# }
+
+class NaverCallbackAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        code = request.GET.get('code', None)
+        state = request.GET.get('state', None)
+        print(code, state)
+        lg = NaverLogin(code, state)
+        data = lg.issue_token()
+
+        return JsonResponse(data)
+
+class NaverUserAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        access_token = request.GET.get('access_token', None)
+        if access_token is None:
+            access_token = request.GET.get('access_token', None)
+        headers = {
+            'Authorization': 'Bearer ' + access_token,
+        }
+        response = requests.get('https://openapi.naver.com/v1/nid/me', headers=headers)
+        data = response.json()
+        return JsonResponse(data)
