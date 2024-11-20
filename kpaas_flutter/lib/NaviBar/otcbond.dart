@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kpaas_flutter/otcBondDescription.dart';
 import 'package:kpaas_flutter/MyPage/myPage_main.dart';
-
 import '../apiconnectiontest/data_controller.dart';
+import 'package:kpaas_flutter/dialog.dart';
 
 class OtcBondPage extends StatefulWidget {
   final List<dynamic> initialBondData;
@@ -20,12 +20,80 @@ class _OtcBondPageState extends State<OtcBondPage> {
   List<dynamic> bondData = [];
   String? nextUrl;
   bool isLoading = false;
+  final List<Map<String, dynamic>> buttonData = [
+    {
+      'label': '전체',
+      'onPressed': () {},
+      'hasSelected': false,
+    },
+    {
+      'label': '만기일',
+      'onPressed': null,
+      'hasSelected': false,
+    },
+    {
+      'label': '신용등급',
+      'onPressed': null,
+      'hasSelected': false,
+    },
+    {
+      'label': '수익율',
+      'onPressed': () {},
+      'hasSelected': false,
+    },
+    {
+      'label': '이자율',
+      'onPressed': () {},
+      'hasSelected': false,
+    },
+  ];
+
 
   @override
   void initState() {
     super.initState();
     bondData = widget.initialBondData;
     nextUrl = widget.initialNextUrl;
+
+    buttonData[1]['onPressed'] = () async {
+      String? result = await showExpdDateDialog(context);
+      if (result != null) {
+        setState(() {
+          buttonData[1]['label'] = result;
+          buttonData[1]['hasSelected'] = true;
+        });
+      }
+    };
+
+    buttonData[2]['onPressed'] = () async {
+      String? result = await showOtcBondDangerDialog(context);
+      if (result != null) {
+        setState(() {
+          buttonData[2]['label'] = result;
+          buttonData[2]['hasSelected'] = true;
+        });
+      }
+    };
+
+    buttonData[3]['onPressed'] = () async {
+      String? result = await showEarnRateDialog(context);
+      if (result != null) {
+        setState(() {
+          buttonData[3]['label'] = result;
+          buttonData[3]['hasSelected'] = true;
+        });
+      }
+    };
+
+    buttonData[4]['onPressed'] = () async {
+      String? result = await showInterestRateDialog(context);
+      if (result != null) {
+        setState(() {
+          buttonData[4]['label'] = result;
+          buttonData[4]['hasSelected'] = true;
+        });
+      }
+    };
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
@@ -84,20 +152,14 @@ class _OtcBondPageState extends State<OtcBondPage> {
       });
     }
   }
-
-
-    final List<Map<String, dynamic>> buttonData = [
-      {'label': '전체', 'onPressed': () => print("채권 종류 1 선택")},
-      {'label': '위험도', 'onPressed': () => print("채권 종류 2 선택")},
-      {'label': '신용 등급', 'onPressed': () => print("채권 종류 3 선택")},
-      {'label': '수익율', 'onPressed': () => print("채권 종류 4 선택")},
-      {'label': '잔존 수량', 'onPressed': () => print("채권 종류 5 선택")},
-    ];
-
     int selectedButtonIndex = 0;
 
     @override
     Widget build(BuildContext context) {
+      bool anyButtonSelected = buttonData.skip(1).any((button) => button['hasSelected'] == true);
+      final List<String> originalLabels = [
+        '전체', '만기일', '신용등급', '수익율', '이자율'
+      ];
       return Scaffold(
         backgroundColor: const Color(0xFFF1F1F9),
         appBar: AppBar(
@@ -168,31 +230,37 @@ class _OtcBondPageState extends State<OtcBondPage> {
                     bool isSelected = selectedButtonIndex == index;
 
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0,
-                          vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
                       child: ElevatedButton(
                         onPressed: () {
                           setState(() {
                             selectedButtonIndex = index;
-                            button['onPressed'](); // 각 버튼의 기능 호출
+                            if (index == 0) {
+                              // Reset all hasSelected values to false and restore original labels
+                              for (int i = 0; i < buttonData.length; i++) {
+                                buttonData[i]['hasSelected'] = false;
+                                buttonData[i]['label'] = originalLabels[i];
+                              }
+                            }
+                            button['onPressed']();
                           });
                         },
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size(0, 50),
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 8, horizontal: 20),
-                          backgroundColor: isSelected
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+                          backgroundColor: index == 0
                               ? Colors.blueAccent
-                              : Colors.white,
+                              : (button['hasSelected'] == true ? Colors.blueAccent : Colors.white),
                           side: const BorderSide(
                             color: Color(0xFFD2E1FC),
                           ),
                         ),
-                        child: Text(
+                        child: index == 0 && anyButtonSelected
+                            ? const Icon(Icons.arrow_back, color: Colors.white)
+                            : Text(
                           button['label'],
                           style: TextStyle(
-                            color: isSelected ? Colors.white : Colors
-                                .blueAccent,
+                            color: index == 0 ? Colors.white : (button['hasSelected'] == true ? Colors.white : Colors.blueAccent),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -229,7 +297,7 @@ class _OtcBondPageState extends State<OtcBondPage> {
                       );
                     },
                     child: Container(
-                      height: 200,
+                      constraints: const BoxConstraints(minHeight: 200),
                       margin: const EdgeInsets.symmetric(
                           vertical: 13, horizontal: 30),
                       padding: const EdgeInsets.all(16),
