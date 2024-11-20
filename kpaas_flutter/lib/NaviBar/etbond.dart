@@ -3,6 +3,7 @@ import 'package:kpaas_flutter/etBondDescription.dart';
 import 'package:kpaas_flutter/MyPage/myPage_main.dart';
 import 'package:get/get.dart';
 import '../apiconnectiontest/data_controller.dart';
+import 'package:kpaas_flutter/dialog.dart';
 
 class EtBondPage extends StatefulWidget {
   final List<dynamic> initialBondData;
@@ -15,16 +16,100 @@ class EtBondPage extends StatefulWidget {
 }
 
 class _EtBondPageState extends State<EtBondPage> {
+
   final ScrollController _scrollController = ScrollController();
   List<dynamic> bondData = [];
   String? nextUrl;
   bool isLoading = false;
+
+  final List<Map<String, dynamic>> buttonData = [
+    {
+      'label': '전체',
+      'onPressed': () {},
+      'hasSelected': false,
+    },
+    {
+      'label': '만기일',
+      'onPressed': null,
+      'hasSelected': false,
+    },
+    {
+      'label': '신용등급',
+      'onPressed': null,
+      'hasSelected': false,
+    },
+    {
+      'label': '수익율',
+      'onPressed': () {},
+      'hasSelected': false,
+    },
+    {
+      'label': '잔존수량',
+      'onPressed': () {},
+      'hasSelected': false,
+    },
+    {
+      'label': '이자율',
+      'onPressed': () {},
+      'hasSelected': false,
+    },
+  ];
 
   @override
   void initState() {
     super.initState();
     bondData = widget.initialBondData;
     nextUrl = widget.initialNextUrl;
+
+    buttonData[1]['onPressed'] = () async {
+      String? result = await showExpdDateDialog(context);
+      if (result != null) {
+        setState(() {
+          buttonData[1]['label'] = result;
+          buttonData[1]['hasSelected'] = true;
+        });
+      }
+    };
+
+    buttonData[2]['onPressed'] = () async {
+      String? result = await showEtBondDangerDialog(context);
+      if (result != null) {
+        setState(() {
+          buttonData[2]['label'] = result;
+          buttonData[2]['hasSelected'] = true;
+        });
+      }
+    };
+
+    buttonData[3]['onPressed'] = () async {
+      String? result = await showEarnRateDialog(context);
+      if (result != null) {
+        setState(() {
+          buttonData[3]['label'] = result;
+          buttonData[3]['hasSelected'] = true;
+        });
+      }
+    };
+
+    buttonData[4]['onPressed'] = () async {
+      String? result = await showRemainderDialog(context);
+      if (result != null) {
+        setState(() {
+          buttonData[4]['label'] = result;
+          buttonData[4]['hasSelected'] = true;
+        });
+      }
+    };
+
+    buttonData[5]['onPressed'] = () async {
+      String? result = await showInterestRateDialog(context);
+      if (result != null) {
+        setState(() {
+          buttonData[5]['label'] = result;
+          buttonData[5]['hasSelected'] = true;
+        });
+      }
+    };
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent && !isLoading) {
@@ -46,7 +131,6 @@ class _EtBondPageState extends State<EtBondPage> {
     });
 
     try {
-      // Assuming you have a function in DataController to fetch the data
       final dataController = Get.find<DataController>();
       final response = await dataController.fetchEtBondData(nextUrl!);
       setState(() {
@@ -64,22 +148,18 @@ class _EtBondPageState extends State<EtBondPage> {
 
   @override
   void dispose() {
-    _scrollController.dispose();  // 스크롤 컨트롤러 해제
+    _scrollController.dispose();
     super.dispose();
   }
-
-  final List<Map<String, dynamic>> buttonData = [
-    {'label': '전체', 'onPressed': () => print("채권 종류 1 선택")},
-    {'label': '위험도', 'onPressed': () => print("채권 종류 2 선택")},
-    {'label': '신용 등급', 'onPressed': () => print("채권 종류 3 선택")},
-    {'label': '수익율', 'onPressed': () => print("채권 종류 4 선택")},
-    {'label': '잔존 수량', 'onPressed': () => print("채권 종류 5 선택")},
-  ];
 
   int selectedButtonIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    bool anyButtonSelected = buttonData.skip(1).any((button) => button['hasSelected'] == true);
+    final List<String> originalLabels = [
+      '전체', '만기일', '신용등급', '수익율', '잔존수량', '이자율'
+    ];
     return Scaffold(
       backgroundColor: const Color(0xFFF1F1F9),
       appBar: AppBar(
@@ -108,7 +188,7 @@ class _EtBondPageState extends State<EtBondPage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => MyPage()),
+                MaterialPageRoute(builder: (context) => const MyPage()),
               );
             },
           ),
@@ -123,7 +203,7 @@ class _EtBondPageState extends State<EtBondPage> {
               child: TextField(
                 decoration: InputDecoration(
                   hintText: '채권 검색...',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide.none,
@@ -143,7 +223,6 @@ class _EtBondPageState extends State<EtBondPage> {
                 children: buttonData.asMap().entries.map((entry) {
                   int index = entry.key;
                   Map<String, dynamic> button = entry.value;
-                  bool isSelected = selectedButtonIndex == index;
 
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
@@ -151,21 +230,32 @@ class _EtBondPageState extends State<EtBondPage> {
                       onPressed: () {
                         setState(() {
                           selectedButtonIndex = index;
-                          button['onPressed'](); // 각 버튼의 기능 호출
+                          if (index == 0) {
+                            // Reset all hasSelected values to false and restore original labels
+                            for (int i = 0; i < buttonData.length; i++) {
+                              buttonData[i]['hasSelected'] = false;
+                              buttonData[i]['label'] = originalLabels[i];
+                            }
+                          }
+                          button['onPressed']();
                         });
                       },
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(0, 50),
                         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: isSelected ? Colors.blueAccent : Colors.white,
+                        backgroundColor: index == 0
+                            ? Colors.blueAccent
+                            : (button['hasSelected'] == true ? Colors.blueAccent : Colors.white),
                         side: const BorderSide(
                           color: Color(0xFFD2E1FC),
                         ),
                       ),
-                      child: Text(
+                      child: index == 0 && anyButtonSelected
+                          ? const Icon(Icons.arrow_back, color: Colors.white)
+                          : Text(
                         button['label'],
                         style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.blueAccent,
+                          color: index == 0 ? Colors.white : (button['hasSelected'] == true ? Colors.white : Colors.blueAccent),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -191,13 +281,13 @@ class _EtBondPageState extends State<EtBondPage> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => EtBondDescriptionPage(
-                          pdno: bondData[actualIndex]['pdno'],
+                          pdno: bondData[actualIndex]['issue_info_data']?['pdno'],
                         ),
                       ),
                     );
                   },
                   child: Container(
-                    height: 200,
+                    constraints: const BoxConstraints(minHeight: 200),
                     margin: const EdgeInsets.symmetric(vertical: 13, horizontal: 30),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -216,7 +306,7 @@ class _EtBondPageState extends State<EtBondPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          bondData[actualIndex]['prdt_name'] ?? 'N/A',
+                          bondData[actualIndex]['issue_info_data']?['prdt_name'] ?? 'N/A',
                           style: const TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
@@ -241,7 +331,7 @@ class _EtBondPageState extends State<EtBondPage> {
                                       ),
                                     ),
                                     Text(
-                                      bondData[actualIndex]['total_askp_rsqn']  ?? 'N/A',  // 잔존 수량
+                                      bondData[actualIndex]['inquire_asking_price_data']?['total_askp_rsqn']  ?? 'N/A',  // 잔존 수량
                                       style: const TextStyle(
                                         fontSize: 20,
                                         color: Colors.black,
@@ -280,8 +370,8 @@ class _EtBondPageState extends State<EtBondPage> {
                                       ),
                                     ),
                                     Text(
-                                      (bondData[actualIndex]['nice_crdt_grad_text'] != null && bondData[actualIndex]['nice_crdt_grad_text'].toString().isNotEmpty)
-                                          ? bondData[actualIndex]['nice_crdt_grad_text']
+                                      (bondData[actualIndex]['issue_info_data']?['kbp_crdt_grad_text'] != null && bondData[actualIndex]['issue_info_data']!['kbp_crdt_grad_text'].toString().isNotEmpty)
+                                          ? bondData[actualIndex]['issue_info_data']['kbp_crdt_grad_text']
                                           : '무위험',
                                       style: const TextStyle(
                                         fontSize: 20,
@@ -298,7 +388,7 @@ class _EtBondPageState extends State<EtBondPage> {
                                       ),
                                     ),
                                     Text(
-                                      formatDate(bondData[actualIndex]['expd_dt']) ?? 'N/A',  // 만기일
+                                      formatDate(bondData[actualIndex]['issue_info_data']?['expd_dt']) ?? 'N/A',  // 만기일
                                       style: const TextStyle(
                                         fontSize: 20,
                                         color: Colors.black,
@@ -319,7 +409,7 @@ class _EtBondPageState extends State<EtBondPage> {
                                     ),
                                   ),
                                   Text(
-                                    '${bondData[actualIndex]['YTM_after_tax'] ?? 'N/A'}%',  // 세후 수익률
+                                    '${((double.tryParse(bondData[actualIndex]['inquire_asking_price_data']?['shnu_ernn_rate5']?.toString() ?? '0.0'))! * 0.846).toStringAsFixed(2)}%',  // 세후 수익률
                                     style: const TextStyle(
                                       fontSize: 20,
                                       color: Colors.black,
@@ -335,7 +425,7 @@ class _EtBondPageState extends State<EtBondPage> {
                                     ),
                                   ),
                                   Text(
-                                    formatDate(bondData[actualIndex]['issu_dt']),
+                                    formatDate(bondData[actualIndex]['issue_info_data']?['issu_dt']),
                                     style: const TextStyle(
                                       fontSize: 20,
                                       color: Colors.black,
@@ -412,6 +502,7 @@ int getRemainingInterestPeriod(
 /// - [sellPrice]: 자료형: int, 매도 포지션 한정 인수이며, 매도 가격을 말합니다.
 ///
 /// @return 자료형: double, 소수점 2자리까지 표기된 예상 수익금이 반환됩니다.
+
 double exptIncome(
     int positionMode,
     double pricePer10,
@@ -443,3 +534,4 @@ double exptIncome(
         (sellPrice + totInterest - tax - price).toStringAsFixed(2));
   }
 }
+

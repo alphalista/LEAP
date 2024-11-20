@@ -54,12 +54,28 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(left: 20.0),
-                      child: Text(
-                        '장외 채권 설정',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 15.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Icon(
+                              Icons.arrow_back, // 원하는 아이콘 (BackButton과 동일한 모양)
+                              size: 20, // 아이콘 크기 조정
+                            ),
+                          ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.only(left: 20.0),
+                          child: Text(
+                            '장외 채권 설정',
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
                     ),
                     Padding(
                       padding: const EdgeInsets.only(right: 20.0),

@@ -17,12 +17,74 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
   String selectedPeriod = '주별';
   bool isLoading = true;
   Map<String, dynamic> bondDetails = {};
+  String getKbpCreditGradeText(Map<String, dynamic> data) {
+    final value = data['issue_info_data']?['kbp_crdt_grad_text'];
+    return (value == null || value == '') ? '무위험' : value;
+  }
+
+  String getBondInterestMethodText(String? code) {
+    switch (code) {
+      case '01':
+        return '발행일';
+      case '02':
+        return '만기일';
+      case '03':
+        return '특정일';
+      default:
+        return 'N/A';
+    }
+  }
+
+  List<String> leftColumnData = ['발행일', '만기일', '채권 종류', '위험도', '이자 지급 구분', '차기 이자 지급일', '이자 지급 주기'];
+  List<String> rightColumnData = ['N/A', '54.12.05', '국채', '무위험', '복리채', '24.11.03', '1개월']; // 초기값 설정
 
   late List<QuoteData> quoteData;
   late QuoteDataSource quoteDataSource;
 
-  List<String> leftColumnData = ['발행일', '만기일', '채권 종류', '위험도', '이자 지급 구분', '차기 이자 지급일', '이자 지급 주기'];
-  List<String> rightColumnData = ['23.12.17', '54.12.05', '국채', '무위험', '복리채', '24.11.03', '1개월'];
+  @override
+  void initState() {
+    super.initState();
+    fetchBondDetails();
+    chartData = weeklyMarketPriceData;
+    quoteData = getQuoteData();
+    quoteDataSource = QuoteDataSource(quoteData);
+  }
+
+  Future<void> fetchBondDetails() async {
+    final url = 'https://leapbond.com/api/marketbond/marketbond/data/?pdno=${widget.pdno}';
+    try {
+      final response = await Dio().get(url);
+      if (response.statusCode == 200) {
+        setState(() {
+          bondDetails = response.data;
+          isLoading = false; // 데이터를 가져오면 로딩 상태를 false로 변경
+
+          quoteData = getQuoteData();
+          quoteDataSource = QuoteDataSource(quoteData);
+
+          rightColumnData = [
+            formatDate(bondDetails['issue_info_data']?['issu_dt']),  // 발행일
+            formatDate(bondDetails['issue_info_data']?['expd_dt']),  // 만기일
+            bondDetails['issue_info_data']?['bond_clsf_kor_name'] ?? 'N/A', // 채권 종류
+            getKbpCreditGradeText(bondDetails),  // 위험도 (데이터 없음 예시로 설정)
+            getBondInterestMethodText(bondDetails['issue_info_data']?['bond_int_dfrm_mthd_cd']),  // 이자 지급 구분
+            formatDate(bondDetails['issue_info_data']?['nxtm_int_dfrm_dt']),  // 차기 이자 지급일
+            "${bondDetails['issue_info_data']?['int_dfrm_mcnt']}개월" ?? 'N/A',
+          ];
+        });
+      } else {
+        print("Failed to fetch bond data: ${response.statusMessage}");
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Error fetching bond data: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   final List<String> profitLeftColumnData = ['이자율', '세전 수익률', '세후 수익률', '예상 수익금'];
   final List<String> profitRightColumnData = ['4.63%', '3.94%', '3.27%', '12402.0'];
@@ -79,20 +141,20 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
 
   List<_ChartData> chartData = [];
 
-  @override
-  void initState() {
-    super.initState();
-    chartData = weeklyMarketPriceData;
-    quoteData = getQuoteData();
-    quoteDataSource = QuoteDataSource(quoteData);
-  }
-
   void _updateTextContent(String type) {
     setState(() {
       selectedText = type;
       if (type == '정보') {
         leftColumnData = ['발행일', '만기일', '채권 종류', '위험도', '이자 지급 구분', '차기 이자 지급일', '이자 지급 주기'];
-        rightColumnData = ['23.12.17', '54.12.05', '국채', '무위험', '복리채', '24.11.03', '1개월'];
+        rightColumnData = [
+          formatDate(bondDetails['issue_info_data']?['issu_dt']),  // 발행일
+          formatDate(bondDetails['issue_info_data']?['expd_dt']),  // 만기일
+          bondDetails['issue_info_data']?['bond_clsf_kor_name'] ?? 'N/A', // 채권 종류
+          getKbpCreditGradeText(bondDetails),  // 위험도 (데이터 없음 예시로 설정)
+          getBondInterestMethodText(bondDetails['issue_info_data']?['bond_int_dfrm_mthd_cd']),  // 이자 지급 구분
+          formatDate(bondDetails['issue_info_data']?['nxtm_int_dfrm_dt']),  // 차기 이자 지급일
+          bondDetails['issue_info_data']?['int_dfrm_mcnt'] ?? 'N/A',
+        ];
       } else if (type == '수익') {
         leftColumnData = profitLeftColumnData;
         rightColumnData = profitRightColumnData;
@@ -119,27 +181,11 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
     });
   }
 
-  Future<void> fetchBondDetails() async {
-    final url = 'https://leapbond.com/api/marketbond/marketbond/data/?pdno=${widget.pdno}';
-    try {
-      final response = await Dio().get(url);
-      if (response.statusCode == 200) {
-        setState(() {
-          bondDetails = response.data;
-          isLoading = false; // 데이터를 가져오면 로딩 상태를 false로 변경
-        });
-      } else {
-        print("Failed to fetch bond data: ${response.statusMessage}");
-        setState(() {
-          isLoading = false;
-        });
-      }
-    } catch (e) {
-      print("Error fetching bond data: $e");
-      setState(() {
-        isLoading = false;
-      });
+  String formatDate(String date) {
+    if (date.length == 8) {
+      return '${date.substring(0, 4)} - ${date.substring(4, 6)} - ${date.substring(6, 8)}';
     }
+    return date;
   }
 
 
@@ -152,7 +198,9 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
         child: Container(
           width: 500,
           color: const Color(0xFFF1F1F9),
-          child: Column(
+          child: isLoading
+              ? const CircularProgressIndicator()
+              :Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
@@ -185,7 +233,6 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
                                 int currentPage = 0; // 현재 페이지 상태
                                 bool showFinalMessage = false; // 최종 메시지 표시 여부
 
-                                // 각 페이지별 TextEditingController 선언
                                 TextEditingController firstController = TextEditingController();
                                 TextEditingController secondController = TextEditingController();
                                 TextEditingController thirdController = TextEditingController();
@@ -424,7 +471,7 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
                     ),
                   ],
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -432,25 +479,25 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '국민주택1종23-02',
-                          style: TextStyle(
+                          bondDetails['issue_info_data']['prdt_name'] ?? 'N/A',
+                          style: const TextStyle(
                             fontSize: 25,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 35),
+                        const SizedBox(height: 35),
                         Text(
-                          "(KR101501DD21)",
-                          style: TextStyle(
+                            "(${widget.pdno})" ?? 'N/A',
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
-                    Align(
+                    const Align(
                       alignment: Alignment.bottomRight,
                       child: Text(
-                        "9410.0",
+                        "0000.0",
                         style: TextStyle(
                           fontSize: 35,
                           fontWeight: FontWeight.bold,
@@ -521,13 +568,13 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
                 ),
                 child: selectedText == '호가'
                     ? SfDataGrid(
-                      source: QuoteDataSource(quoteData),
-                      columnWidthMode: ColumnWidthMode.fill,
-                      gridLinesVisibility: GridLinesVisibility.none,
-                      headerGridLinesVisibility: GridLinesVisibility.none,
-                      headerRowHeight: 30,
-                      rowHeight: 22.0,
-                      columns: <GridColumn>[
+                  source: QuoteDataSource(quoteData),
+                  columnWidthMode: ColumnWidthMode.fill,
+                  gridLinesVisibility: GridLinesVisibility.none,
+                  headerGridLinesVisibility: GridLinesVisibility.none,
+                  headerRowHeight: 30,
+                  rowHeight: 22.0,
+                  columns: <GridColumn>[
                     GridColumn(
                         columnName: '매도 수익율',
                         label: Container(
@@ -573,9 +620,9 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
                               '매수 수익율',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ))),
-                                      ],
-                                    )
-                : Row(
+                  ],
+                )
+                    : Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -714,15 +761,65 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
     );
   }
   List<QuoteData> getQuoteData() {
+    final askingPriceData = bondDetails['inquire_asking_price_data'] ?? {};
+
     return [
-      QuoteData('6.415', '67000', '10025.0', '', ''),
-      QuoteData('6.422', '25677', '10024.0', '', ''),
-      QuoteData('6.424', '115000', '10023.0', '', ''),
-      QuoteData('6.430', '28945', '10020.0', '', ''),
-      QuoteData('', '', '10019.9', '93', '6.439'),
-      QuoteData('', '', '10019.0', '2200', '6.445'),
-      QuoteData('', '', '10018.9', '6000', '6.450'),
-      QuoteData('', '', '10018.8', '200', '6.451'),
+      QuoteData(
+        askingPriceData['seln_ernn_rate2'] ?? 'N/A',
+        askingPriceData['askp_rsqn2'] ?? 'N/A',
+        askingPriceData['bond_askp2'] ?? 'N/A',
+        '',
+        '',
+      ),
+      QuoteData(
+        askingPriceData['seln_ernn_rate3'] ?? 'N/A',
+        askingPriceData['askp_rsqn3'] ?? 'N/A',
+        askingPriceData['bond_askp3'] ?? 'N/A',
+        '',
+        '',
+      ),
+      QuoteData(
+        askingPriceData['seln_ernn_rate4'] ?? 'N/A',
+        askingPriceData['askp_rsqn4'] ?? 'N/A',
+        askingPriceData['bond_askp4'] ?? 'N/A',
+        '',
+        '',
+      ),
+      QuoteData(
+        askingPriceData['seln_ernn_rate5'] ?? 'N/A',
+        askingPriceData['askp_rsqn5'] ?? 'N/A',
+        askingPriceData['bond_askp5'] ?? 'N/A',
+        '',
+        '',
+      ),
+      QuoteData(
+        '',
+        '',
+        askingPriceData['bond_bidp2'] ?? 'N/A',
+        askingPriceData['bidp_rsqn2'] ?? 'N/A',
+        askingPriceData['shnu_ernn_rate2'] ?? 'N/A',
+      ),
+      QuoteData(
+        '',
+        '',
+        askingPriceData['bond_bidp3'] ?? 'N/A',
+        askingPriceData['bidp_rsqn3'] ?? 'N/A',
+        askingPriceData['shnu_ernn_rate3'] ?? 'N/A',
+      ),
+      QuoteData(
+        '',
+        '',
+        askingPriceData['bond_bidp4'] ?? 'N/A',
+        askingPriceData['bidp_rsqn4'] ?? 'N/A',
+        askingPriceData['shnu_ernn_rate4'] ?? 'N/A',
+      ),
+      QuoteData(
+        '',
+        '',
+        askingPriceData['bond_bidp5'] ?? 'N/A',
+        askingPriceData['bidp_rsqn5'] ?? 'N/A',
+        askingPriceData['shnu_ernn_rate5'] ?? 'N/A',
+      ),
     ];
   }
 }
