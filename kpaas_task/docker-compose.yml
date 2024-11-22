@@ -2,12 +2,11 @@ version: '3'
 
 services:
   web:
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000 --settings=config.settings.production
+    build: ../kpaas_rest/
     volumes:
-      - .:/code
+      - ../kpaas_rest/:/rest
     ports:
-      - "8080:8000"
+      - "8000:8000"
     depends_on:
       - db
       - redis
@@ -37,7 +36,7 @@ services:
     build: .
     command: celery -A config worker -l info
     volumes:
-      - .:/code
+      - .:/task
     depends_on:
       - redis
       - web
@@ -46,7 +45,7 @@ services:
     build: .
     command: celery -A config beat -l info
     volumes:
-      - .:/code
+      - .:/task
     depends_on:
       - redis
       - web
