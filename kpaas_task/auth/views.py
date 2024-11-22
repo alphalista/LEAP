@@ -10,11 +10,16 @@ from config.settings.base import KAKAO_CLIENT_SECRET, KAKAO_REST_API_KEY, NAVER_
 
 from usr.models import Users
 
+from django.contrib.auth.models import User
+from usr.models import Profile
+
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.views import APIView
+
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.serializers import TokenObtainSerializer
 def kakao_callback(request):
     code = request.GET.get('code')
     redirect_uri = 'http://127.0.0.1:8000/auth/login/kakao-callback'
@@ -73,7 +78,7 @@ def createUser(id_token):
     # raise Exception
 
 class NaverLogin:
-    def __init__(self, code, state):
+    def __init__(self, code=None, state=None):
         self.code = code
         self.state = state
         self.token_url = 'https://nid.naver.com/oauth2.0/token'
@@ -88,7 +93,7 @@ class NaverLogin:
         self.data['code'] = self.code
         self.data['state'] = self.state
         response = requests.post(self.token_url, data=self.data)
-
+        print(response.json())
         if response.status_code == 200:
             data = response.json()
             return data
@@ -118,6 +123,54 @@ class NaverLogin:
         else:
             return {'error': response.status_code}
 
+class NaverUserManager:
+    def __init__(self, access_token, refresh_token):
+        self.access_token = access_token
+        self.refresh_token = refresh_token
+
+    def validate_token(self):
+        headers = {
+            'Authorization': 'Bearer ' + self.access_token,
+        }
+        response = requests.get('https://openapi.naver.com/v1/nid/me', headers=headers)
+        data = response.json()
+        if data['message'] == 'success':
+            return True
+        else:
+            return False
+
+    def get_user_info(self):
+        headers = {
+            'Authorization': 'Bearer ' + self.access_token,
+        }
+        response = requests.get('https://openapi.naver.com/v1/nid/me', headers=headers)
+        data = response.json()
+        return data
+
+    def create_user(self):
+        data = self.get_user_info()
+        if data['message'] == 'success':
+            res = data['response']
+            id = res['id']
+            email_pk = res['email']
+            profile_image = res['profile_image']
+            name = res['name']
+
+            instance = User.objects.filter(username=email_pk).first()
+            if not instance:
+                instance = User.objects.create(
+                    username=email_pk
+                )
+                instance.set_unusable_password()
+                instance.save()
+                profile = Profile.objects.create(user=instance, name=name)
+                profile.save()
+            tkn_manager = DrfToken()
+            access_token, refresh_token = tkn_manager.create_token(user=instance)
+
+            return {'access_token': access_token, 'refresh_token': refresh_token}
+
+        return None
 
 
 # Naver LoginURL
@@ -133,13 +186,15 @@ class NaverCallbackAPIView(APIView):
     def get(self, request, *args, **kwargs):
         code = request.GET.get('code', None)
         state = request.GET.get('state', None)
-        print(code, state)
         lg = NaverLogin(code, state)
         data = lg.issue_token()
-
-        return JsonResponse(data)
+        print(data)
+        user_manager = NaverUserManager(data['access_token'], data['refresh_token'])
+        res = user_manager.create_user()
+        return JsonResponse(res)
 
 class NaverUserAPIView(APIView):
+    # get token
     def get(self, request, *args, **kwargs):
         access_token = request.GET.get('access_token', None)
         if access_token is None:
@@ -150,3 +205,38 @@ class NaverUserAPIView(APIView):
         response = requests.get('https://openapi.naver.com/v1/nid/me', headers=headers)
         data = response.json()
         return JsonResponse(data)
+
+        # refresh token
+    def put(self, request, *args, **kwargs):
+        access_token = request.GET.get('access_token', None)
+        refresh_token = request.GET.get('refresh_token', None)
+        if access_token is None:
+            access_token = request.GET.get('access_token', None)
+        headers = {
+            'Authorization': 'Bearer ' + access_token,
+        }
+        lg = NaverLogin()
+        data = lg.refresh_token(refresh_token)
+        access_token = data['access_token']
+
+    # delete token
+    def delete(self, request, *args, **kwargs):
+        access_token = request.GET.get('access_token', None)
+        if access_token is None:
+            access_token = request.GET.get('access_token', None)
+        headers = {
+            'Authorization': 'Bearer ' + access_token,
+        }
+        response = requests.delete('https://openapi.naver.com/v1/nid/me', headers=headers)
+
+
+
+class DrfToken:
+    def __init__(self):
+        pass
+
+    def create_token(self, user):
+        token = RefreshToken.for_user(user)
+        refresh_token = str(token)
+        access_token = str(token.access_token)
+        return access_token, refresh_token

@@ -5,7 +5,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # 개발용 Static 파일 경로
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # 데이터베이스 설정, 세부 설정 파일에서 덮어씌워질 수 있음
 DATABASES = {

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'crawling',
     'usr',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -102,6 +103,12 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
 
 from celery.schedules import crontab
 
