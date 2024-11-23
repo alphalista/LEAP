@@ -51,14 +51,12 @@ class OTC_Bond_Holding(models.Model):
 
     class Meta:
         db_table = 'OTC_Bond_Holding'
-        managed = False
 
 class OTC_Bond_Expired(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
     class Meta:
         db_table = 'OTC_Bond_Expired'
-        managed = False
 
 class OtcBondPreDataDays(models.Model):
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
@@ -67,7 +65,6 @@ class OtcBondPreDataDays(models.Model):
     price = models.CharField(max_length=100)
     class Meta:
         db_table = 'OtcBondPreData'
-        managed = False
 
 class OtcBondPreDataWeeks(models.Model):
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
@@ -77,7 +74,6 @@ class OtcBondPreDataWeeks(models.Model):
 
     class Meta:
         db_table = 'OtcBondPreDataWeeks'
-        managed = False
 
 class OtcBondPreDataMonths(models.Model):
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
@@ -87,7 +83,6 @@ class OtcBondPreDataMonths(models.Model):
 
     class Meta:
         db_table = 'OtcBondPreDataMonths'
-        managed = False
 
 # 장외 채권 트렌딩 채권 저장 모델입니다. (Managed)
 class OtcBondTrending(models.Model):

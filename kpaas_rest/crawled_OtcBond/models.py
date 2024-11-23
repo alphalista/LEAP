@@ -52,12 +52,14 @@ class OTC_Bond_Holding(models.Model):
     class Meta:
         db_table = 'OTC_Bond_Holding'
         unique_together = ('user_id', 'bond_code', 'price_per_10')
+        managed = False
 
 class OTC_Bond_Expired(models.Model):
     user_id = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='expired_bonds')
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE, related_name='expired_bonds')
     class Meta:
         db_table = 'OTC_Bond_Expired'
+        managed = False
 
 class OtcBondPreDataDays(models.Model):
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE, related_name='pre_data_set')
@@ -66,6 +68,7 @@ class OtcBondPreDataDays(models.Model):
     price = models.CharField(max_length=100)
     class Meta:
         db_table = 'OtcBondPreData'
+        managed = False
 
 class OtcBondPreDataWeeks(models.Model):
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE, related_name='pre_data_weeks_set')
@@ -75,6 +78,7 @@ class OtcBondPreDataWeeks(models.Model):
 
     class Meta:
         db_table = 'OtcBondPreDataWeeks'
+        managed = False
 
 class OtcBondPreDataMonths(models.Model):
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE, related_name='pre_data_months_set')
@@ -84,6 +88,7 @@ class OtcBondPreDataMonths(models.Model):
 
     class Meta:
         db_table = 'OtcBondPreDataMonths'
+        managed = False
 
 
 class HowManyInterest(models.Model):

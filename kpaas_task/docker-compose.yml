@@ -4,7 +4,7 @@ services:
   web:
     build: ../kpaas_rest/
     volumes:
-      - ../kpaas_rest/:/rest
+      - ../kpaas_rest/:/code
     ports:
       - "8000:8000"
     depends_on:
@@ -37,7 +37,7 @@ services:
     build: .
     command: celery -A config worker -l info
     volumes:
-      - .:/task
+      - .:/code
     depends_on:
       - redis
       - web
@@ -46,7 +46,7 @@ services:
     build: .
     command: celery -A config beat -l info
     volumes:
-      - .:/task
+      - .:/code
     depends_on:
       - redis
       - web

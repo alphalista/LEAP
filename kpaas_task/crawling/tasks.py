@@ -60,8 +60,7 @@ def calculate_avg(mode, instances):
 # 일별/주별/월별 시가/듀레이션 데이터 저장
 @shared_task
 def pre_data_pipeline():
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.production')
-    django.setup()
+    print('start pipeline')
     # 오늘의 장외 채권 목록 전부를 가져옴
     bonds = OTC_Bond.objects.filter(add_date=timezone.now())
     for bond in bonds:
