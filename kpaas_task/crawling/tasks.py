@@ -69,7 +69,7 @@ def pre_data_pipeline():
             pre_data.first().delete() # 가장 오래된 데이터 삭제
         # 이전 데이터 테이블에 오늘 데이터 추가
         OtcBondPreDataDays.objects.create(
-            bond_code=bond.code,
+            bond_code=OTC_Bond.objects.get(code=bond.code),
             duration=bond.duration,
             price=bond.price_per_10,
         )
@@ -83,10 +83,10 @@ def pre_data_pipeline():
             duration_avg = calculate_avg('duration', pre_week_data)
             price_avg = calculate_avg('price', pre_week_data)
             # 주별 데이터 저장
-            pre = OtcBondPreDataWeeks.objects.filter(bond_code=bond.code).order_by('add_date')
+            pre = OtcBondPreDataWeeks.objects.filter(code=bond.code).order_by('add_date')
             if len(pre) >= 8: pre.first().delete() # 8주 데이터 넘어가면 데이터 삭제
             OtcBondPreDataWeeks.objects.create(
-                bond_code=bond.code,
+                bond_code=OTC_Bond.objects.get(bond_code=bond.code),
                 duration=str(duration_avg),
                 price=str(price_avg),
             )
@@ -101,7 +101,7 @@ def pre_data_pipeline():
             pre = OtcBondPreDataMonths.objects.filter(bond_code=bond.code).order_by('add_date')
             if len(pre) >= 12: pre.first().delete()  # 12달 데이터 넘어가면 데이터 삭제
             OtcBondPreDataMonths.objects.create(
-                bond_code=bond.code,
+                bond_code=OTC_Bond.objects.get(code=bond.code),
                 duration=str(duration_avg),
                 price=str(price_avg),
             )

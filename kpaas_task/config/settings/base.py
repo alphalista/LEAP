@@ -162,7 +162,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     'pre_data_pipeline': {
         'task': 'crawling.tasks.pre_data_pipeline',
-        'schedule': crontab(minute='27', hour='01'),
+        'schedule': crontab(minute='57', hour='23'),
         'options': {
             'expires': 60 * 5
         }
