@@ -174,6 +174,13 @@ CELERY_BEAT_SCHEDULE = {
         'options': {
             'expires': 60 * 30
         }
+    },
+    'OtcBond_trending': {
+        'task': 'crawling.tasks.otc_bond_trending_pipeline',
+        'schedule': 60 * 5,
+        'options': {
+            'expires': 60 * 1
+        }
     }
 }
 

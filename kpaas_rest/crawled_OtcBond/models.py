@@ -99,3 +99,12 @@ class HowManyInterest(models.Model):
     class Meta:
         db_table = 'HowManyInterest'
         managed = False
+
+class OtcBondTrending(models.Model):
+    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
+    YTM = models.CharField(max_length=100)
+    add_date = models.DateField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'OtcBondTrending'
+        managed = False

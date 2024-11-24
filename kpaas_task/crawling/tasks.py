@@ -83,10 +83,10 @@ def pre_data_pipeline():
             duration_avg = calculate_avg('duration', pre_week_data)
             price_avg = calculate_avg('price', pre_week_data)
             # 주별 데이터 저장
-            pre = OtcBondPreDataWeeks.objects.filter(code=bond.code).order_by('add_date')
+            pre = OtcBondPreDataWeeks.objects.filter(bond_code=bond.code).order_by('add_date')
             if len(pre) >= 8: pre.first().delete() # 8주 데이터 넘어가면 데이터 삭제
             OtcBondPreDataWeeks.objects.create(
-                bond_code=OTC_Bond.objects.get(bond_code=bond.code),
+                bond_code=OTC_Bond.objects.get(code=bond.code),
                 duration=str(duration_avg),
                 price=str(price_avg),
             )
@@ -111,6 +111,7 @@ def pre_data_pipeline():
 # 필터 필요함
 @shared_task
 def otc_bond_trending_pipeline():
+    OtcBondTrending.objects.all().delete() # 매번 데이터가 바뀌므로 데이터 삭제 진행
     grading = ['AAA', 'AA+', 'AA', 'AA-', 'BBB', '매우낮은위험', '낮은위험', '보통위험']
     ins_count = 10
     howManyInterestLen = len(HowManyInterest.objects.filter(danger_degree__in=grading))
@@ -118,15 +119,15 @@ def otc_bond_trending_pipeline():
     ins = OTC_Bond.objects.filter(nice_crdt_grad_text__in=grading).order_by('-YTM')[:OTC_Bond_need]
     for each in ins:
         OtcBondTrending.objects.update_or_create(
-            bond_code=each.code,
+            bond_code=each,
             defaults={
                 'YTM': each.YTM
             }
         )
-    ins = HowManyInterest.objects.filter(danger_degree__in=grading).order_by('-interest')[:ins_count]
+    ins = HowManyInterest.objects.filter(danger_degree__in=grading).order_by('-interest')[:howManyInterestLen]
     for each in ins:
         OtcBondTrending.objects.update_or_create(
-            bond_code=each.bond_code,
+            bond_code=each,
             defaults={
                 'YTM': each.bond_code.YTM
             }

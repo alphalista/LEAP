@@ -9,8 +9,11 @@ import os, sys
 
 from rest_framework.response import Response
 
-from .models import OTC_Bond, OtcBondPreDataWeeks, OTC_Bond_Interest, OTC_Bond_Holding, OTC_Bond_Expired, OtcBondPreDataDays, OtcBondPreDataMonths, HowManyInterest
-from .serializers import OTC_Bond_Serializer, OTC_Bond_Interest_Serializer, OTC_Bond_Holding_Serializer, OTC_Bond_Expired_Serializer, OTC_Bond_Days_Serializer, OTC_Bond_Weeks_Serializer, OTC_Bond_Months_Serializer
+from .models import OTC_Bond, OtcBondPreDataWeeks, OTC_Bond_Interest, OTC_Bond_Holding, OTC_Bond_Expired, \
+    OtcBondPreDataDays, OtcBondPreDataMonths, HowManyInterest, OtcBondTrending
+from .serializers import OTC_Bond_Serializer, OTC_Bond_Interest_Serializer, OTC_Bond_Holding_Serializer, \
+    OTC_Bond_Expired_Serializer, OTC_Bond_Days_Serializer, OTC_Bond_Weeks_Serializer, OTC_Bond_Months_Serializer, \
+    OTC_Bond_Trending_Serializer
 
 
 from django.db.models import IntegerField, DateField, Value
@@ -46,7 +49,7 @@ class OTC_Bond_Interest_view(viewsets.ModelViewSet):
         try:
             ins = HowManyInterest.objects.get(bond_code=request.data.get('bond_code'))
             HowManyInterest.objects.update_or_create(
-                bond_code=request.data.get('bond_code'),
+                bond_code=OTC_Bond.objects.get(code=request.data.get('bond_code')),
                 defaults={
                     'interest': ins.interest + 1
                 }
@@ -162,3 +165,8 @@ class OtcBondFilterView(viewsets.ReadOnlyModelViewSet):
             return query
 
         return OTC_Bond.objects.all()
+
+
+class OtcBondTrendingView(viewsets.ReadOnlyModelViewSet):
+    queryset = OtcBondTrending.objects.all().order_by('-YTM')
+    serializer_class = OTC_Bond_Trending_Serializer
