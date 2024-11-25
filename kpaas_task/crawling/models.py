@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from usr.models import Users
 
 # Create your models here.
 
@@ -42,7 +42,7 @@ class OTC_Bond(models.Model):
 
 # OTC_Bond_Holding 테이블을 참조하도록하여 rest에서 생성한 같은 테이블을 바라보도록 함
 class OTC_Bond_Holding(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
     price_per_10 = models.CharField(max_length=100)  # 1만원 채권당 매수단가
     quantity = models.CharField(max_length=100)
@@ -53,7 +53,7 @@ class OTC_Bond_Holding(models.Model):
         db_table = 'OTC_Bond_Holding'
 
 class OTC_Bond_Expired(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
     class Meta:
         db_table = 'OTC_Bond_Expired'
@@ -100,3 +100,11 @@ class HowManyInterest(models.Model):
 
     class Meta:
         db_table = 'HowManyInterest'
+
+# 장외 관심 채권
+class OTC_Bond_Interest(models.Model):
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
+    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user_id', 'bond_code')
