@@ -153,9 +153,31 @@ CELERY_BEAT_SCHEDULE = {
             'expires': 60 * 1
         }
     },
-    'delete_crawled_data': {
-        'task': 'crawling.tasks.delete_crawled_data',
-        'schedule': crontab(minute=0, hour=0),
+    'holding_to_expired': {
+        'task': 'crawling.tasks.holding_to_expired',
+        'schedule': crontab(minute='0', hour='0'),
+        'options': {
+            'expires': 60 * 2
+        }
+    },
+    'pre_data_pipeline': {
+        'task': 'crawling.tasks.pre_data_pipeline',
+        'schedule': crontab(minute='57', hour='23'),
+        'options': {
+            'expires': 60 * 5
+        }
+    },
+    # 채권 양이 많기 때문에 1시간으로 보고 스케쥴러 설정
+    'marketBond_pre_data_pipeline': {
+        'task': 'marketbond.tasks.pre_data_pipeline',
+        'schedule': crontab(minute='0', hour='23'),
+        'options': {
+            'expires': 60 * 30
+        }
+    },
+    'OtcBond_trending': {
+        'task': 'crawling.tasks.otc_bond_trending_pipeline',
+        'schedule': 60 * 5,
         'options': {
             'expires': 60 * 1
         }

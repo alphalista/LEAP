@@ -39,5 +39,8 @@ urlpatterns = [
     })),
     path('filter/', OtcBondFilterView.as_view({
         'get': 'list'
+    })),
+    path('trending/', OtcBondTrendingView.as_view({
+        'get': 'list'
     }))
 ]

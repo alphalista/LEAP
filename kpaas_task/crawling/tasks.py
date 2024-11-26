@@ -9,11 +9,13 @@ from scrapy.crawler import CrawlerProcess
 from .OTC_bond_scrapy.spiders import shinhanSpider, miraeassetSpider, daishinSpider, kiwoomSpider
 from scrapy.settings import Settings
 from .models import OTC_Bond, OTC_Bond_Holding, OTC_Bond_Expired, OtcBondPreDataDays, OtcBondPreDataWeeks, \
-    OtcBondPreDataMonths
+    OtcBondPreDataMonths, OtcBondTrending, HowManyInterest
 from django.utils import timezone
 from datetime import timedelta
 
 import django
+
+
 def crawling_start():
     settings = Settings()
     # settings_file_path = os.path.join(os.path.dirname(__file__), 'OTC_bond_scrapy', 'settings.py')
@@ -58,8 +60,7 @@ def calculate_avg(mode, instances):
 # 일별/주별/월별 시가/듀레이션 데이터 저장
 @shared_task
 def pre_data_pipeline():
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.production')
-    django.setup()
+    print('start pipeline')
     # 오늘의 장외 채권 목록 전부를 가져옴
     bonds = OTC_Bond.objects.filter(add_date=timezone.now())
     for bond in bonds:
@@ -68,7 +69,7 @@ def pre_data_pipeline():
             pre_data.first().delete() # 가장 오래된 데이터 삭제
         # 이전 데이터 테이블에 오늘 데이터 추가
         OtcBondPreDataDays.objects.create(
-            bond_code=bond.code,
+            bond_code=OTC_Bond.objects.get(code=bond.code),
             duration=bond.duration,
             price=bond.price_per_10,
         )
@@ -85,7 +86,7 @@ def pre_data_pipeline():
             pre = OtcBondPreDataWeeks.objects.filter(bond_code=bond.code).order_by('add_date')
             if len(pre) >= 8: pre.first().delete() # 8주 데이터 넘어가면 데이터 삭제
             OtcBondPreDataWeeks.objects.create(
-                bond_code=bond.code,
+                bond_code=OTC_Bond.objects.get(code=bond.code),
                 duration=str(duration_avg),
                 price=str(price_avg),
             )
@@ -100,21 +101,37 @@ def pre_data_pipeline():
             pre = OtcBondPreDataMonths.objects.filter(bond_code=bond.code).order_by('add_date')
             if len(pre) >= 12: pre.first().delete()  # 12달 데이터 넘어가면 데이터 삭제
             OtcBondPreDataMonths.objects.create(
-                bond_code=bond.code,
+                bond_code=OTC_Bond.objects.get(code=bond.code),
                 duration=str(duration_avg),
                 price=str(price_avg),
             )
 
 # 트렌딩 채권 조사 후 저장
-# 트렌딩이기에 1시간마다 돌릴 예정
+# 트렌딩이기에 5분마다 돌릴 예정
+# 필터 필요함
 @shared_task
 def otc_bond_trending_pipeline():
-    # 오늘 날짜의 채권들을 가져옴
-    # trending_bond = [(bond_code, price_delta)] -> price_delta기준 오름차순
-    # 상위 5개 추출
-    # - 채권 위험도가 장내의 경우 BBB까지, 장외의 경우 보통위험까지만 트렌딩 알고리즘에 들어가도록 한다.
-    # - 채권 가격이 떨어진 채권들 중 가장 많이 떨어진 채권 상위 10개 정도 추출한 후, 이 10개는 수익률이 높은 순으로 정렬하여 보여준다. (task로 처리 후 api로 쏴줌)
-    trending_bonds = []
-    bonds = OTC_Bond.objects.filter(add_date=timezone.now())
-    for bond in bonds:
-        pass
+    OtcBondTrending.objects.all().delete() # 매번 데이터가 바뀌므로 데이터 삭제 진행
+    grading = ['AAA', 'AA+', 'AA', 'AA-', 'BBB', '매우낮은위험', '낮은위험', '보통위험']
+    ins_count = 10
+    howManyInterestLen = len(HowManyInterest.objects.filter(danger_degree__in=grading))
+    OTC_Bond_need = max(0, ins_count - howManyInterestLen)
+    ins = OTC_Bond.objects.filter(nice_crdt_grad_text__in=grading).order_by('-YTM')[:OTC_Bond_need]
+    for each in ins:
+        OtcBondTrending.objects.update_or_create(
+            bond_code=each,
+            defaults={
+                'YTM': each.YTM
+            }
+        )
+    ins = HowManyInterest.objects.filter(danger_degree__in=grading).order_by('-interest')[:howManyInterestLen]
+    for each in ins:
+        OtcBondTrending.objects.update_or_create(
+            bond_code=each,
+            defaults={
+                'YTM': each.bond_code.YTM
+            }
+        )
+
+
+
