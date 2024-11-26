@@ -7,6 +7,9 @@ celerybeat*
 
 ConfigMap.yaml
 
+selfsigned.crt
+selfsigned.key
+
 migrations/00*
 
 ### Django ###

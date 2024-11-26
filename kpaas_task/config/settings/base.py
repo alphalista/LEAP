@@ -115,35 +115,35 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'marketbond.tasks.market_bond_issue_info',
         'schedule': crontab(minute=5, hour=0),
         'options': {
-            'expires': 60 * 19
+            'expires': 60 * 60
         }
     },
     'market_bond_inquire_asking_price_task': {
         'task': 'marketbond.tasks.market_bond_inquire_asking_price',
         'schedule': crontab(minute='*/30', hour='9-16'),
         'options': {
-            'expires': 60 * 38
+            'expires': 60 * 60
         }
     },
     'market_bond_inquire_daily_itemchartprice': {
         'task': 'marketbond.tasks.market_bond_inquire_daily_itemchartprice',
-        'schedule': crontab(minute=30, hour=0),
+        'schedule': crontab(minute=0, hour=1),
         'options': {
-            'expires': 60 * 19
+            'expires': 60 * 60
         }
     },
     'market_bond_inquire_price': {
         'task': 'marketbond.tasks.market_bond_inquire_price',
         'schedule': crontab(minute='*/30', hour='9-16'),
         'options': {
-            'expires': 60 * 38
+            'expires': 60 * 60
         }
     },
     'naver_news_task': {
         'task': 'news.tasks.naver_news',
-        'schedule': 60 * 15,
+        'schedule': 60 * 60,
         'options': {
-            'expires': 60 * 14
+            'expires': 60 * 60
         }
     },
     'crawling': {
@@ -180,6 +180,13 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': 60 * 5,
         'options': {
             'expires': 60 * 1
+        }
+    },
+    'combine_data': {
+        'task': 'marketbond.tasks.combine',
+        'schedule': 60 * 30,
+        'options': {
+            'expires': 60 * 60
         }
     }
 }
