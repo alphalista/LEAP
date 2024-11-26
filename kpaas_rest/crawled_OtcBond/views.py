@@ -1,5 +1,6 @@
 from calendar import month
 
+from dateutil.relativedelta import relativedelta
 from django.shortcuts import render
 
 # Create your views here.
@@ -148,7 +149,8 @@ class OtcBondFilterView(viewsets.ReadOnlyModelViewSet):
             else:
                 try:
                     data = int(data)
-                    future = timezone.now() + timedelta(days=365*data)
+                    if data == '6': future = timezone.now() + relativedelta(months=6) # 6개월 이내 만기일을 일컫습니다.
+                    else : future = timezone.now() + timedelta(days=365*data)
                     return query.filter(date_field__lte=future).order_by('-date_field')
                 except ValueError:
                     return OTC_Bond.objects.all()
