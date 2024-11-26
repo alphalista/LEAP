@@ -50,8 +50,8 @@ class KiwoomspiderSpider(scrapy.Spider):
         item['bond_type'] = response.xpath('//*[contains(@class, \'modal-body-container\')]/div/section/div[2]/div/table/tbody/tr[1]/td[1]/text()').extract_first()
         item['pub_date'] = response.xpath('//*[contains(@class, \'modal-body-container\')]/div/section/div[2]/div/table/tbody/tr[2]/td[1]/text()').extract_first().strip().replace('.', '')
         item['interest_percentage'] = response.xpath('//*[contains(@class, \'modal-body-container\')]/div/section/div[2]/div/table/tbody/tr[4]/td[1]/text()').extract_first().replace('%', '')
-        item['danger_degree'] = response.xpath('//*[contains(@class, \'modal-body-container\')]/div/section/div[2]/div/table/tbody/tr[8]/td[2]/text()').extract_first()
+        item['danger_degree'] = response.xpath('//*[contains(@class, \'modal-body-container\')]/div/section/div[2]/div/table/tbody/tr[8]/td[2]/text()').extract_first().replace(' ', '')
         # item['nxt_int_date'] = response.xpath('//*[contains(@class, \'modal-body-container\')]/div/section/div[2]/div/table/tbody/tr[8]/td[2]/text()').extract_first()
-        print(item)
+        # print(item)
         yield item
 

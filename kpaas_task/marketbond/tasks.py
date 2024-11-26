@@ -278,7 +278,7 @@ def pre_data_pipeline():
         # price: 일별 현재가의 price를 가져옴
         price = str(MarketBondInquirePrice.objects.get(code=bond.code).bond_prpr)
         MarketBondPreDataDays.objects.create(
-            code=bond.code,
+            bond_code=MarketBondCode.objects.get(code=bond.code),
             duration=duration,
             price=price,
         )
@@ -295,7 +295,7 @@ def pre_data_pipeline():
             pre = MarketBondPreDataWeeks.objects.filter(bond_code=bond.code).order_by('add_date')
             if len(pre) >= 8: pre.first().delete() # 8주 데이터 넘어가면 데이터 삭제
             MarketBondPreDataWeeks.objects.create(
-                bond_code=bond.code,
+                bond_code=MarketBondCode.objects.get(code=bond.code),
                 duration=str(duration_avg),
                 price=str(price_avg),
             )
@@ -310,7 +310,7 @@ def pre_data_pipeline():
             pre = MarketBondPreDataMonths.objects.filter(bond_code=bond.code).order_by('add_date')
             if len(pre) >= 12: pre.first().delete()  # 12달 데이터 넘어가면 데이터 삭제
             MarketBondPreDataMonths.objects.create(
-                bond_code=bond.code,
+                bond_code=MarketBondCode.objects.get(code=bond.code),
                 duration=str(duration_avg),
                 price=str(price_avg),
             )
