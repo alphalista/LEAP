@@ -60,8 +60,10 @@ def createUser(id_token):
     response = requests.post('https://kauth.kakao.com/oauth/tokeninfo', data=data, headers=headers)
     if response.status_code == 200:
         # 여기서부터 유저를 만들면 됨
-        email_pk = response.json().get('email')
-        instance = Users.objects.filter(user_id=email_pk)
+        sub = response.json().get('sub')
+        email = response.json().get('email')
+
+        instance = Users.objects.filter(user_id=sub)
         if not instance:
             # u = {
             #     'user_id' : email_pk,
@@ -72,8 +74,9 @@ def createUser(id_token):
             # end = '/api/user/'
             # requests.post(url + end, data=u, headers=headers)
             Users.objects.create(
-                user_id=email_pk,
-                nickname=''
+                user_id=sub,
+                email=email,
+                nickname='',
             )
     # raise Exception
 
