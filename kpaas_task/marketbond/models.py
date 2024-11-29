@@ -1,6 +1,5 @@
 from django.db import models
 from django.db.models import UniqueConstraint
-from django.contrib.auth.models import User
 
 
 # Create your models here.
@@ -504,6 +503,3 @@ class MarketBondPreDataMonths(models.Model):
     class Meta:
         db_table = "MarketBondPreDataMonths"
 
-class MarketBondInterest(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
