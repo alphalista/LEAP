@@ -40,7 +40,7 @@ class OTC_Bond_Interest_view(viewsets.ModelViewSet):
     serializer_class = OTC_Bond_Interest_Serializer
 
     def get_queryset(self):
-        user_id = self.kwargs.get('user_id')
+        user_id = self.request.user.user_id
         if user_id is not None:
             return OTC_Bond_Interest.objects.filter(user_id=user_id)
         return OTC_Bond_Interest.objects.all()
@@ -65,7 +65,7 @@ class OTC_Bond_Holding_view(viewsets.ModelViewSet):
     serializer_class = OTC_Bond_Holding_Serializer
 
     def get_queryset(self):
-        user_id = self.kwargs.get('user_id')
+        user_id = self.request.user.user_id
         if user_id is not None:
             return OTC_Bond_Holding.objects.filter(user_id=user_id)
         return OTC_Bond_Holding.objects.all()
@@ -83,7 +83,7 @@ class OTC_Bond_Expired_view(viewsets.ReadOnlyModelViewSet):
     serializer_class = OTC_Bond_Expired_Serializer
 
     def get_queryset(self):
-        user_id = self.kwargs.get('user_id')
+        user_id = self.request.user.user_id
         if user_id is not None:
             return OTC_Bond_Expired.objects.filter(user_id=user_id)
         return OTC_Bond_Expired.objects.all()

@@ -10,9 +10,6 @@ from config.settings.base import KAKAO_CLIENT_SECRET, KAKAO_REST_API_KEY, NAVER_
 
 from usr.models import Users
 
-from django.contrib.auth.models import User
-from usr.models import Profile
-
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -49,19 +46,53 @@ def kakao_callback(request):
     else:
         return JsonResponse({"response": response.text, "hhhh":data}, status=response.status_code,)
 
+def kakao_refresh(request):
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        return JsonResponse({"error": "Missing Authorization Header"}, status=400)
+    prefix, refresh_token = auth_header.split(' ')
+    if prefix.lower() != 'bearer':
+        return JsonResponse({"error": "Invalid Bearer Token"}, status=400)
+
+    headers = {
+        'Content-type': 'application/x-www-form-urlencoded;charset=utf-8'
+    }
+    data = {
+        'grant_type': 'refresh_token',
+        'client_id': KAKAO_REST_API_KEY,
+        'refresh_token': refresh_token,
+    }
+    response = requests.post('https://kauth.kakao.com/oauth/token', data=data, headers=headers)
+    if response.status_code == 200:
+        return JsonResponse(response.json())
+    return JsonResponse({"response": response.text, "hhhh":data}, status=response.status_code,)
+
+def kakao_logout(request):
+    access_token = request.headers.get('Authorization', None)
+    headers = {
+        'Authorization': access_token,
+    }
+    response = requests.post('https://kapi.kakao.com/v1/user/unlink', headers=headers)
+    if response.status_code == 200:
+        return JsonResponse(response.json())
+    return JsonResponse({"error": "kakao logout fild", "content": response.text}, status=response.status_code,)
+
+
 
 def createUser(id_token):
     headers = {
         'Content-type': 'application/x-www-form-urlencoded;charset=utf-8'
     }
     data = {
-        'id_token' : id_token,
+        'id_token': id_token,
     }
     response = requests.post('https://kauth.kakao.com/oauth/tokeninfo', data=data, headers=headers)
     if response.status_code == 200:
         # 여기서부터 유저를 만들면 됨
-        email_pk = response.json().get('email')
-        instance = Users.objects.filter(user_id=email_pk)
+        sub = id_token.json().get('sub')
+        email = id_token.json().get('email')
+
+        instance = Users.objects.filter(user_id=sub)
         if not instance:
             # u = {
             #     'user_id' : email_pk,
@@ -72,8 +103,9 @@ def createUser(id_token):
             # end = '/api/user/'
             # requests.post(url + end, data=u, headers=headers)
             Users.objects.create(
-                user_id=email_pk,
-                nickname=''
+                user_id=sub,
+                email=email,
+                nickname='',
             )
     # raise Exception
 
@@ -156,19 +188,19 @@ class NaverUserManager:
             profile_image = res['profile_image']
             name = res['name']
 
-            instance = User.objects.filter(username=email_pk).first()
-            if not instance:
-                instance = User.objects.create(
-                    username=email_pk
-                )
-                instance.set_unusable_password()
-                instance.save()
-                profile = Profile.objects.create(user=instance, name=name)
-                profile.save()
+            # instance = User.objects.filter(username=email_pk).first()
+            # if not instance:
+            #     instance = User.objects.create(
+            #         username=email_pk
+            #     )
+            #     instance.set_unusable_password()
+            #     instance.save()
+                # profile = Profile.objects.create(user=instance, name=name)
+                # profile.save()
             tkn_manager = DrfToken()
-            access_token, refresh_token = tkn_manager.create_token(user=instance)
+            # access_token, refresh_token = tkn_manager.create_token(user=instance)
 
-            return {'access_token': access_token, 'refresh_token': refresh_token}
+            # return {'access_token': access_token, 'refresh_token': refresh_token}
 
         return None
 

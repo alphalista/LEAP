@@ -38,21 +38,21 @@ router.register('click-count', ClickCountViewSet, basename='marketbondclickcount
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('interest/<str:user_id>/', ET_Bond_Interest_view.as_view({
+    path('interest/', ET_Bond_Interest_view.as_view({
         'get': 'list',
         'post': 'create',
         'put': 'update',
         'delete': 'destroy'
     }), name='interest'),
-    path('interest/<str:user_id>/<str:bond_code>/', ET_Bond_Interest_view.as_view({
+    path('interest/<str:bond_code>/', ET_Bond_Interest_view.as_view({
         'delete': 'destroy'
     }), name='interest_delete'),
-    path('holding/<str:user_id>/', ET_Bond_Holding_view.as_view({
+    path('holding/', ET_Bond_Holding_view.as_view({
         'get': 'list',
         'post': 'create',
         'put': 'update',
     })),
-    path('holding/<str:user_id>/<int:pk>/', ET_Bond_Holding_view.as_view({
+    path('holding/<int:pk>/', ET_Bond_Holding_view.as_view({
         'delete': 'destroy'
     })),
     path('days/<str:bond_code>/', EtBondPreDataDaysView.as_view({

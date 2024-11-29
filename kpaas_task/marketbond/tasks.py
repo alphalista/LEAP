@@ -144,19 +144,22 @@ def market_search_bond_info():
 
 @shared_task()
 def handle_combine(pdno):
-    code = MarketBondCode.objects.filter(code=pdno).first()
-    if pdno is not None:
-        issue_info_data = MarketBondIssueInfo.objects.filter(code=code).first()
-        inquire_price_data = MarketBondInquirePrice.objects.filter(code=code).order_by('-id').first()
-        inquire_asking_price_data = MarketBondInquireAskingPrice.objects.filter(code=code).order_by('-id').first()
+    try:
+        code = MarketBondCode.objects.filter(code=pdno).first()
+        if pdno is not None:
+            issue_info_data = MarketBondIssueInfo.objects.filter(code=code).first()
+            inquire_price_data = MarketBondInquirePrice.objects.filter(code=code).order_by('-id').first()
+            inquire_asking_price_data = MarketBondInquireAskingPrice.objects.filter(code=code).order_by('-id').first()
 
-        market_bond_c = MarketBondCmb.objects.create(
-            code=code,
-            issue_info_data=issue_info_data,
-            inquire_price_data=inquire_price_data,
-            inquire_asking_price_data=inquire_asking_price_data,
-        )
-        print(pdno, 'combine done')
+            market_bond_c = MarketBondCmb.objects.create(
+                code=code,
+                issue_info_data=issue_info_data,
+                inquire_price_data=inquire_price_data,
+                inquire_asking_price_data=inquire_asking_price_data,
+            )
+            print(pdno, 'combine done')
+    except Exception as e:
+        print(e)
 @shared_task()
 def combine():
     try:
