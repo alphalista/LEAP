@@ -16,6 +16,8 @@ SECRET_KEY = env('SECRET_KEY')
 KAKAO_ADMIN_KEY = env('KAKAO_ADMIN_KEY')
 KAKAO_REST_API_KEY = env('KAKAO_REST_API_KEY')
 KAKAO_CLIENT_SECRET = env('KAKAO_CLIENT_SECRET')
+NAVER_CLIEND_ID = env('NAVER_CLIENT_ID')
+NAVER_CLIENT_SECRET = env('NAVER_CLIENT_SECRET')
 
 # 기본 디버그 모드 (세부 설정 파일에서 수정)
 DEBUG = True
@@ -41,6 +43,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'crawling',
     'usr',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -74,6 +77,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
+AUTH_USER_MODEL = 'usr.Users'
+
 # Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Seoul'
@@ -100,6 +105,12 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTStatelessUserAuthentication',
+    )
+}
 
 from celery.schedules import crontab
 

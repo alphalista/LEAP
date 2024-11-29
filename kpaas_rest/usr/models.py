@@ -1,10 +1,11 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser, User
 
 # Create your models here.
 
-class Users(models.Model):
+class Users(AbstractUser):
     user_id = models.CharField(max_length=100, primary_key=True)
-    nickname = models.CharField(max_length=100,  blank=True, null=True)
+    nickname = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         db_table = 'users'

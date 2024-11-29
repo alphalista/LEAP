@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import UniqueConstraint
-
+from usr.models import Users
 
 # Create your models here.
 # Duplicated model kpaas_task
@@ -523,13 +523,6 @@ class MarketBondCmb(models.Model):
     inquire_asking_price_data = models.ForeignKey(MarketBondInquireAskingPrice, on_delete=models.CASCADE)
 
 
-class Users(models.Model):
-    user_id = models.CharField(max_length=100, primary_key=True)
-    nickname = models.CharField(max_length=100)
-
-    class Meta:
-        db_table = 'users'
-        managed = False
 
 # 장내 관심, 보유, 만기, 일별, 주별, 월별 모델
 class ET_Bond_Interest(models.Model): # TODO POST 요청 문제 해결 필요
@@ -542,8 +535,8 @@ class ET_Bond_Interest(models.Model): # TODO POST 요청 문제 해결 필요
         db_table = 'ET_Bond_Interest'
 
 class ET_Bond_Holding(models.Model): # TODO POST 요청 문제 해결 필요
-    user_id = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='holding_bonds')
-    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE, related_name='holding_bonds')
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
     price_per_10 = models.CharField(max_length=100) # 1만원 채권당 매수단가
     quantity = models.CharField(max_length=100)
     purchase_date = models.CharField(max_length=100)
@@ -553,8 +546,8 @@ class ET_Bond_Holding(models.Model): # TODO POST 요청 문제 해결 필요
         unique_together = ('user_id', 'bond_code', 'price_per_10')
 
 class ET_Bond_Expired(models.Model): # ReadOnly
-    user_id = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='expired_bonds')
-    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE, related_name='expired_bonds')
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
     class Meta:
         db_table = 'ET_Bond_Expired'
 

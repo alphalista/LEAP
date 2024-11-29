@@ -46,4 +46,4 @@ class MarketBondCmbFilter(FilterSet):
 
     class Meta:
         model = MarketBondCmb
-        fields = ['maturity_5_years', 'maturity_3_years', 'maturity_1_year', 'maturity_6_months']
+        fields = []

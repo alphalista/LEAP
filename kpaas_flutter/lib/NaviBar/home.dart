@@ -569,10 +569,10 @@ class _HomePageState extends State<HomePage> {
                         softWrap: false,
                       ),
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => OtcBondDescriptionPage())
-                        );
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(builder: (context) => OtcBondDescriptionPage())
+                        // );
                       },
                     ),
                   ),
