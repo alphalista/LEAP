@@ -16,6 +16,8 @@ SECRET_KEY = env('SECRET_KEY')
 KAKAO_ADMIN_KEY = env('KAKAO_ADMIN_KEY')
 KAKAO_REST_API_KEY = env('KAKAO_REST_API_KEY')
 KAKAO_CLIENT_SECRET = env('KAKAO_CLIENT_SECRET')
+NAVER_CLIEND_ID = env('NAVER_CLIENT_ID')
+NAVER_CLIENT_SECRET = env('NAVER_CLIENT_SECRET')
 
 # 기본 디버그 모드 (세부 설정 파일에서 수정)
 DEBUG = True
@@ -41,6 +43,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'crawling',
     'usr',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -74,6 +77,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
+AUTH_USER_MODEL = 'usr.Users'
+
 # Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Seoul'
@@ -101,6 +106,12 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTStatelessUserAuthentication',
+    )
+}
+
 from celery.schedules import crontab
 
 CELERY_BEAT_SCHEDULE = {
@@ -115,35 +126,35 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'marketbond.tasks.market_bond_issue_info',
         'schedule': crontab(minute=5, hour=0),
         'options': {
-            'expires': 60 * 19
+            'expires': 60 * 60
         }
     },
     'market_bond_inquire_asking_price_task': {
         'task': 'marketbond.tasks.market_bond_inquire_asking_price',
         'schedule': crontab(minute='*/30', hour='9-16'),
         'options': {
-            'expires': 60 * 38
+            'expires': 60 * 60
         }
     },
     'market_bond_inquire_daily_itemchartprice': {
         'task': 'marketbond.tasks.market_bond_inquire_daily_itemchartprice',
-        'schedule': crontab(minute=30, hour=0),
+        'schedule': crontab(minute=0, hour=1),
         'options': {
-            'expires': 60 * 19
+            'expires': 60 * 60
         }
     },
     'market_bond_inquire_price': {
         'task': 'marketbond.tasks.market_bond_inquire_price',
         'schedule': crontab(minute='*/30', hour='9-16'),
         'options': {
-            'expires': 60 * 38
+            'expires': 60 * 60
         }
     },
     'naver_news_task': {
         'task': 'news.tasks.naver_news',
-        'schedule': 60 * 15,
+        'schedule': 60 * 60,
         'options': {
-            'expires': 60 * 14
+            'expires': 60 * 60
         }
     },
     'crawling': {
@@ -153,11 +164,40 @@ CELERY_BEAT_SCHEDULE = {
             'expires': 60 * 1
         }
     },
-    'delete_crawled_data': {
-        'task': 'crawling.tasks.delete_crawled_data',
-        'schedule': crontab(minute=0, hour=0),
+    'holding_to_expired': {
+        'task': 'crawling.tasks.holding_to_expired',
+        'schedule': crontab(minute='0', hour='0'),
+        'options': {
+            'expires': 60 * 2
+        }
+    },
+    'pre_data_pipeline': {
+        'task': 'crawling.tasks.pre_data_pipeline',
+        'schedule': crontab(minute='57', hour='23'),
+        'options': {
+            'expires': 60 * 5
+        }
+    },
+    # 채권 양이 많기 때문에 1시간으로 보고 스케쥴러 설정
+    'marketBond_pre_data_pipeline': {
+        'task': 'marketbond.tasks.pre_data_pipeline',
+        'schedule': crontab(minute='0', hour='23'),
+        'options': {
+            'expires': 60 * 30
+        }
+    },
+    'OtcBond_trending': {
+        'task': 'crawling.tasks.otc_bond_trending_pipeline',
+        'schedule': 60 * 5,
         'options': {
             'expires': 60 * 1
+        }
+    },
+    'combine_data': {
+        'task': 'marketbond.tasks.combine',
+        'schedule': 60 * 30,
+        'options': {
+            'expires': 60 * 60
         }
     }
 }

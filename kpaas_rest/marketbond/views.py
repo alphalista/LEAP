@@ -46,6 +46,7 @@ from .serializer import (
     Market_Bond_Months_Serializer
 )
 
+from .filters import MarketBondCmbFilter
 
 from rest_framework import viewsets, status
 
@@ -55,6 +56,11 @@ from rest_framework import viewsets, status
 class MarketBondCmbViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MarketBondCmb.objects.all()
     serializer_class = MarketBondCmbSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = MarketBondCmbFilter
+    filterset_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__nice_crdt_grad_text']  # 정확한 값 매칭
+    search_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name']  # 부분 문자열 검색
+    ordering_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__srfc_inrt', 'inquire_price_data__bond_prpr', 'inquire_asking_price_data__bidp_rsqn1']  # 정렬 가능한 필드
 
 
 class MarketBondViewSet(viewsets.ReadOnlyModelViewSet):
@@ -238,7 +244,7 @@ class ET_Bond_Interest_view(viewsets.ModelViewSet):
     serializer_class = ET_Bond_Interest_Serializer
     def get_queryset(self):
         # GET 요청일 때 user_id를 인수로 받습니다.
-        user_id = self.kwargs.get('user_id')
+        user_id = self.request.user.user_id
         target = ET_Bond_Interest.objects.filter(user_id=user_id)
         # target의 ET_Bond의 값은 ET_Bond의 id 값이 노출됨
         # 시리얼라이저의 to_representation()로 해결
@@ -260,7 +266,7 @@ class ET_Bond_Interest_view(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         try:
             bond_instance = MarketBondCode.objects.get(code=self.kwargs.get('bond_code'))
-            instance = self.get_queryset().filter(user_id=self.kwargs.get('user_id')).filter(bond_code=bond_instance.id)
+            instance = self.get_queryset().filter(user_id=self.request.user.user_id).filter(bond_code=bond_instance.id)
             if instance:
                 self.perform_destroy(instance)
                 return Response(status=status.HTTP_204_NO_CONTENT)
@@ -277,7 +283,7 @@ class ET_Bond_Holding_view(viewsets.ModelViewSet):
     # GET은 성공
     def get_queryset(self):
         # GET 요청일 때 user_id를 인수로 받습니다.
-        user_id = self.kwargs.get('user_id')
+        user_id = self.request.user.user_id
         target = ET_Bond_Holding.objects.filter(user_id=user_id)
         # target의 ET_Bond의 값은 ET_Bond의 id 값이 노출됨
         # 시리얼라이저의 to_representation()로 해결

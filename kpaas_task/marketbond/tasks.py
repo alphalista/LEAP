@@ -144,19 +144,22 @@ def market_search_bond_info():
 
 @shared_task()
 def handle_combine(pdno):
-    code = MarketBondCode.objects.filter(code=pdno).first()
-    if pdno is not None:
-        issue_info_data = MarketBondIssueInfo.objects.filter(code=code).first()
-        inquire_price_data = MarketBondInquirePrice.objects.filter(code=code).order_by('-id').first()
-        inquire_asking_price_data = MarketBondInquireAskingPrice.objects.filter(code=code).order_by('-id').first()
+    try:
+        code = MarketBondCode.objects.filter(code=pdno).first()
+        if pdno is not None:
+            issue_info_data = MarketBondIssueInfo.objects.filter(code=code).first()
+            inquire_price_data = MarketBondInquirePrice.objects.filter(code=code).order_by('-id').first()
+            inquire_asking_price_data = MarketBondInquireAskingPrice.objects.filter(code=code).order_by('-id').first()
 
-        market_bond_c = MarketBondCmb.objects.create(
-            code=code,
-            issue_info_data=issue_info_data,
-            inquire_price_data=inquire_price_data,
-            inquire_asking_price_data=inquire_asking_price_data,
-        )
-        print(pdno, 'combine done')
+            market_bond_c = MarketBondCmb.objects.create(
+                code=code,
+                issue_info_data=issue_info_data,
+                inquire_price_data=inquire_price_data,
+                inquire_asking_price_data=inquire_asking_price_data,
+            )
+            print(pdno, 'combine done')
+    except Exception as e:
+        print(e)
 @shared_task()
 def combine():
     try:
@@ -278,7 +281,7 @@ def pre_data_pipeline():
         # price: 일별 현재가의 price를 가져옴
         price = str(MarketBondInquirePrice.objects.get(code=bond.code).bond_prpr)
         MarketBondPreDataDays.objects.create(
-            code=bond.code,
+            bond_code=MarketBondCode.objects.get(code=bond.code),
             duration=duration,
             price=price,
         )
@@ -295,7 +298,7 @@ def pre_data_pipeline():
             pre = MarketBondPreDataWeeks.objects.filter(bond_code=bond.code).order_by('add_date')
             if len(pre) >= 8: pre.first().delete() # 8주 데이터 넘어가면 데이터 삭제
             MarketBondPreDataWeeks.objects.create(
-                bond_code=bond.code,
+                bond_code=MarketBondCode.objects.get(code=bond.code),
                 duration=str(duration_avg),
                 price=str(price_avg),
             )
@@ -310,7 +313,7 @@ def pre_data_pipeline():
             pre = MarketBondPreDataMonths.objects.filter(bond_code=bond.code).order_by('add_date')
             if len(pre) >= 12: pre.first().delete()  # 12달 데이터 넘어가면 데이터 삭제
             MarketBondPreDataMonths.objects.create(
-                bond_code=bond.code,
+                bond_code=MarketBondCode.objects.get(code=bond.code),
                 duration=str(duration_avg),
                 price=str(price_avg),
             )
