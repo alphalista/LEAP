@@ -17,7 +17,7 @@ from .serializers import OTC_Bond_Serializer, OTC_Bond_Interest_Serializer, OTC_
     OTC_Bond_Trending_Serializer
 
 
-from django.db.models import IntegerField, DateField, Value
+from django.db.models import IntegerField, DateField, Value, FloatField
 from django.db.models.functions import Cast, Substr, Concat, Replace
 
 from datetime import timedelta, datetime
@@ -56,7 +56,7 @@ class OTC_Bond_Interest_view(viewsets.ModelViewSet):
                 }
             )
         except HowManyInterest.DoesNotExist:
-            HowManyInterest.objects.create(bond_code=request.data.get('bond_code'), interest=1)
+            HowManyInterest.objects.create(bond_code=OTC_Bond.objects.get(code=request.data.get('bond_code')), interest=1)
         serializer = OTC_Bond_Interest_Serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -129,8 +129,11 @@ class OtcBondFilterView(viewsets.ReadOnlyModelViewSet):
         if self.request.query_params.get('YTM'): # 수익률
             data = self.request.query_params.get('YTM')
             query = OTC_Bond.objects.filter(add_date=timezone.now())
-            if data == 'asc': return query.order_by('YTM')
-            elif data == 'desc': return query.order_by('-YTM')
+            query = query.annotate(
+                YTM_int=Cast('YTM', FloatField()),
+            )
+            if data == 'asc': return query.order_by('YTM_int')
+            elif data == 'desc': return query.order_by('-YTM_int')
         elif self.request.query_params.get('expd'): # 만기일
             data = self.request.query_params.get('expd')
             query = OTC_Bond.objects.annotate(

@@ -14,7 +14,9 @@ from .models import (
     MarketBondInquireDailyPrice,
     MarketBondCmb,
     ClickCount, ET_Bond_Interest, ET_Bond_Holding,
-    MarketBondPreDataDays, MarketBondPreDataWeeks, MarketBondPreDataMonths
+    MarketBondPreDataDays, MarketBondPreDataWeeks, MarketBondPreDataMonths,
+    MarketBondHowManyInterest,
+    MarketBondTrending
 )
 
 
@@ -225,4 +227,9 @@ class Market_Bond_Weeks_Serializer(serializers.ModelSerializer):
 class Market_Bond_Months_Serializer(serializers.ModelSerializer):
     class Meta:
         model = MarketBondPreDataMonths
+        fields = '__all__'
+
+class MarketBondTrendingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MarketBondTrending
         fields = '__all__'
