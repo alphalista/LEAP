@@ -199,6 +199,13 @@ CELERY_BEAT_SCHEDULE = {
         'options': {
             'expires': 60 * 60
         }
+    },
+    'MarketBond_trending': {
+        'task': 'marketbond.tasks.marketbond_trending_pipeline',
+        'schedule': 60 * 20,
+        'options': {
+            'expires': 60 * 10
+        }
     }
 }
 
