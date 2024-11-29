@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'NaviBar/home.dart';
 import 'NaviBar/etbond.dart';
 import 'NaviBar/otcbond.dart';
@@ -9,8 +11,21 @@ import 'NaviBar/calculator.dart';
 import 'NaviBar/news.dart';
 import 'apiconnectiontest/data_controller.dart';
 import 'apiconnectiontest/dummy_data.dart';
+import 'package:kpaas_flutter/first.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: "assets/config/.env");
+  final kakaoNativeAppKey = dotenv.env['KAKAO_NATIVE_APP_KEY'];
+  final javaScriptAppKey = dotenv.env['KAKAO_JAVASCRIPT_APP_KEY'];
+
+  KakaoSdk.init(
+    nativeAppKey: kakaoNativeAppKey!,
+    javaScriptAppKey: javaScriptAppKey!,
+  );
+
+  await Future.delayed(const Duration(seconds: 10));
   runApp(MainPage());
 }
 
@@ -57,13 +72,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> fetchBondData() async {
     try {
-      final etResponse = await dataController.fetchEtBondData("https://leapbond.com/api/marketbond/issue-info/");
-      etBondData = etResponse['results'] ?? [];
-      nextEtBondUrl = etResponse['next'] ?? '';
+      final etResponse = await dataController.fetchEtBondData("https://leapbond.com/api/marketbond/combined/");
+      if (etResponse.isNotEmpty) {
+        etBondData = etResponse['results'] ?? [];
+        nextEtBondUrl = etResponse['next'] ?? '';
+      }
 
-      final otcResponse = jsonDecode(DummyData.MarketOtcBondAllList);
-      otcBondData = otcResponse['results'];
-      nextOtcBondUrl = otcResponse['next'];
+      final otcResponse = await dataController.fetchOtcBondData("https://leapbond.com/api/otcbond/otc-bond-all/");
+      if (otcResponse.isNotEmpty) {
+        otcBondData = otcResponse['results'] ?? [];
+        nextOtcBondUrl = otcResponse['next'] ?? "";
+      }
 
       setState(() {});
     } catch (e) {

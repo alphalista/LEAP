@@ -5,42 +5,19 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:dio/dio.dart';
 import 'main.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await dotenv.load(fileName: "assets/config/.env");
-  final kakaoNativeAppKey = dotenv.env['KAKAO_NATIVE_APP_KEY'];
-  final javaScriptAppKey = dotenv.env['KAKAO_JAVASCRIPT_APP_KEY'];
-
-  KakaoSdk.init(
-    nativeAppKey: kakaoNativeAppKey,
-    javaScriptAppKey: javaScriptAppKey,
-  );
-
-  FlutterNativeSplash.remove();
-  await Future.delayed(const Duration(seconds: 10));
-  runApp(MyApp());
-}
-
 Future<void> sendGetRequest(BuildContext context) async {
-  final kakaoRestApiKey = dotenv.env['KAKAO_REST_API_KEY'];
-  const redirectUri = 'http://127.0.0.1:8000/auth/login/kakao-callback';
   final Dio dio = Dio();
 
   try {
-    // 카카오 인증을 위한 AuthCodeClient 사용
-    String authCode = await AuthCodeClient.instance.authorize(
-      clientId: kakaoRestApiKey!,
-      redirectUri: redirectUri,
-    );
+    // 카카오 계정으로 로그인 시도
+    OAuthToken token = await UserApi.instance.loginWithKakaoAccount();
+    print('카카오 계정으로 로그인 성공, 엑세스 토큰: ${token.accessToken}');
 
-    print('카카오 계정으로 로그인 성공, 인증 코드: $authCode');
-
-    // 인증 코드를 Django 백엔드로 전송
+    // 백엔드로 액세스 토큰 전송
     final response = await dio.post(
-      'http://127.0.0.1:8000/auth/login/kakao-callback',  // DRF 엔드포인트
+      'http://127.0.0.1:8000/auth/login/kakao-callback',  // Django 백엔드 엔드포인트
       data: {
-        'code': authCode,  // 인증 코드 전송
+        'access_token': token.accessToken,  // 액세스 토큰 전송
       },
     );
 
@@ -55,14 +32,15 @@ Future<void> sendGetRequest(BuildContext context) async {
 
   Navigator.pushReplacement(
     context,
-    MaterialPageRoute(builder: (context) => MainPage()), // MyApp으로 이동
+    MaterialPageRoute(builder: (context) => MainPage()), // 메인 페이지로 이동
   );
 }
 
 
-class MyApp extends StatelessWidget {
+class MyFirstApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    print("MyFirstApp 위젯이 렌더링되었습니다."); // 확인용 출력
     return MaterialApp(
       home: Scaffold(
         backgroundColor: Colors.grey[300], // 외부 배경 색상

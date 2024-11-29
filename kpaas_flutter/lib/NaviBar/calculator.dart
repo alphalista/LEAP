@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:kpaas_flutter/MyPage/myPage_main.dart';
@@ -20,47 +19,32 @@ class _CalculatorPageState extends State<CalculatorPage> {
   String? calculatedAmount;
   String displayedDate = "(날짜를 입력하세요)";
 
-  static String MarketEtBondOwningPrice = '''
-  {
-      "t1": { "prdt_name": "AJ네트웍스70-2" },
-      "t2": { "prdt_name": "BNK금융지주 조건부자본증권(상)1-2" },
-      "t3": { "prdt_name": "한국전력공사채권1204" },
-      "t4": { "prdt_name": "BNK캐피탈197-2" }
-  }
-  ''';
-
-  static String MarketOtcBondOwningPrice = '''
-  {
-      "t1": { "prdt_name": "AJ네트웍스70-2" },
-      "t2": { "prdt_name": "BNK금융지주 조건부자본증권(상)1-2" },
-      "t3": { "prdt_name": "한국전력공사채권1204" },
-      "t4": { "prdt_name": "한국전력공사채권1204" },
-      "t5": { "prdt_name": "한국전력공사채권1194" },
-      "t6": { "prdt_name": "한국전력공사채권1194" },
-      "t7": { "prdt_name": "한국전력공사채권1204" },
-      "t8": { "prdt_name": "에스케이실트론49-2" }
-  }
-  ''';
 
   @override
   void initState() {
     super.initState();
-    _loadBondData();
   }
 
-  void _loadBondData() {
-    Map<String, dynamic> etBondData = jsonDecode(MarketEtBondOwningPrice);
-    etBondData.forEach((key, value) {
-      TrendingEtBondList.add(value);
+  void _addNewBond(bool isEtBond) {
+    setState(() {
+      if (isEtBond) {
+        TrendingEtBondList.add({'prdt_name': '새 채권'});
+      } else {
+        TrendingOtcBondList.add({'prdt_name': '새 채권'});
+      }
     });
-
-    Map<String, dynamic> otcBondData = jsonDecode(MarketOtcBondOwningPrice);
-    otcBondData.forEach((key, value) {
-      TrendingOtcBondList.add(value);
-    });
-
-    setState(() {});
   }
+
+  void _removeBond(bool isEtBond, int index) {
+    setState(() {
+      if (isEtBond) {
+        TrendingEtBondList.removeAt(index);
+      } else {
+        TrendingOtcBondList.removeAt(index);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -315,24 +299,37 @@ class _CalculatorPageState extends State<CalculatorPage> {
                   size: 24,
                 ),
                 onPressed: () {
+                  _addNewBond(isEtBond);  // 추가할 항목에 따라 함수 호출
                 },
               ),
             ],
           ),
         ),
         const SizedBox(height: 10),
-        Container(
+        bondList.isEmpty
+            ? const SizedBox(
+              height: 250,
+              child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Text("채권 정보를 추가해주세요", style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+            )
+            : Container(
           margin: const EdgeInsets.symmetric(horizontal: 10),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: _buildBondItems(bondList, isEtBond),
+          child: SizedBox(
+            height: 250,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _buildBondItems(bondList, isEtBond),
+              ),
             ),
           ),
         ),
       ],
     );
   }
+
 
   List<Widget> _buildBondItems(List<Map<String, dynamic>> bondList, bool isEtBond) {
     List<Widget> columns = [];
@@ -366,7 +363,7 @@ class _CalculatorPageState extends State<CalculatorPage> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    // X 아이콘 클릭 시 동작
+                    _removeBond(isEtBond, j);  // 리스트에서 항목 제거
                   },
                   child: const Icon(
                     Icons.close,
@@ -417,7 +414,7 @@ class _CalculatorPageState extends State<CalculatorPage> {
 
       columns.add(
         Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
           mainAxisSize: MainAxisSize.min,
           children: columnItems,
         ),
@@ -425,10 +422,13 @@ class _CalculatorPageState extends State<CalculatorPage> {
     }
 
     return [
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: columns,
+      Align(
+        alignment: Alignment.topLeft,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: columns,
+        ),
       ),
     ];
   }

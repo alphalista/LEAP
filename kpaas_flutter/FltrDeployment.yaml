@@ -1,0 +1,34 @@
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fltr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fltr
+  template:
+    metadata:
+      labels:
+        app: fltr
+    spec:
+      containers:
+        - name: fltr
+          image: 47813/fltr:latest
+          ports:
+            - containerPort: 80
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: fltr
+spec:
+  selector:
+    app: fltr
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: NodePort
