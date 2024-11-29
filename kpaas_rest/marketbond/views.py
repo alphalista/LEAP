@@ -12,6 +12,7 @@ import copy
 
 import datetime
 
+from crawled_OtcBond.models import HowManyInterest
 from .models import (
     MarketBondCode,
     MarketBondIssueInfo,
@@ -24,7 +25,9 @@ from .models import (
     MarketBondInquireDailyPrice,
     MarketBondCmb,
     ClickCount, ET_Bond_Interest, Users,
-    ET_Bond_Holding, MarketBondPreDataDays, MarketBondPreDataWeeks, MarketBondPreDataMonths
+    ET_Bond_Holding, MarketBondPreDataDays, MarketBondPreDataWeeks, MarketBondPreDataMonths,
+    MarketBondHowManyInterest,
+    MarketBondTrending
 )
 
 from .serializer import (
@@ -43,7 +46,7 @@ from .serializer import (
     ET_Bond_Holding_Serializer,
     Market_Bond_Days_Serializer,
     Market_Bond_Weeks_Serializer,
-    Market_Bond_Months_Serializer
+    Market_Bond_Months_Serializer, MarketBondTrendingSerializer
 )
 
 from .filters import MarketBondCmbFilter
@@ -100,14 +103,15 @@ class MarketBondViewSet(viewsets.ReadOnlyModelViewSet):
             }
 
             if issue_info_data and inquire_price_data and inquire_asking_price_data:
-                data['duration'] = self.MacDuration(
+                # TODO 듀레이션 키값 수정
+                data['duration'] = {'duration':str(self.MacDuration(
                     issue_info_data.get('bond_int_dfrm_mthd_cd'),
                     float(issue_info_data.get('srfc_inrt')),
                     10000,
-                    float(inquire_price_data[0].get('ernn_rate')),
+                    float(inquire_price_data.get('ernn_rate')),
                     issue_info_data.get('expd_dt'),
                     int(issue_info_data.get('int_dfrm_mcnt')),
-                )
+                ))}
 
             # Return the response
             return Response(data, status=status.HTTP_200_OK)
@@ -255,8 +259,17 @@ class ET_Bond_Interest_view(viewsets.ModelViewSet):
         try:
             bond_instance = MarketBondCode.objects.get(code=data['bond_code'])
             data['bond_code'] = int(bond_instance.id)
+            ins = MarketBondHowManyInterest.objects.get(bond_code=request.data.get('bond_code'))
+            MarketBondHowManyInterest.objects.create(
+                bond_code=MarketBondCode.objects.get(code=data['bond_code']),
+                defaults={
+                    'interest': ins.interest + 1
+                }
+            )
         except MarketBondCode.DoesNotExist:
             return Response({"bond_code": "해당 bond_code가 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        except HowManyInterest.DoesNotExist:
+            MarketBondHowManyInterest.objects.create(bond_code=MarketBondCode.objects.get(code=data['bond_code']),)
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -340,3 +353,7 @@ class EtBondPreDataMonthsView(viewsets.ReadOnlyModelViewSet):
 
         day_instances = MarketBondPreDataMonths.objects.filter(bond_code=ins_id).order_by('add_date')
         return day_instances
+
+class MarketBondTrendingView(viewsets.ReadOnlyModelViewSet):
+    queryset = MarketBondTrending.objects.all()
+    serializer_class = MarketBondTrendingSerializer

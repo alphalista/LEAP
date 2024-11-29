@@ -1,5 +1,6 @@
 from calendar import month
 
+from dateutil.relativedelta import relativedelta
 from django.shortcuts import render
 
 # Create your views here.
@@ -16,7 +17,7 @@ from .serializers import OTC_Bond_Serializer, OTC_Bond_Interest_Serializer, OTC_
     OTC_Bond_Trending_Serializer
 
 
-from django.db.models import IntegerField, DateField, Value
+from django.db.models import IntegerField, DateField, Value, FloatField
 from django.db.models.functions import Cast, Substr, Concat, Replace
 
 from datetime import timedelta, datetime
@@ -55,7 +56,7 @@ class OTC_Bond_Interest_view(viewsets.ModelViewSet):
                 }
             )
         except HowManyInterest.DoesNotExist:
-            HowManyInterest.objects.create(bond_code=request.data.get('bond_code'), interest=1)
+            HowManyInterest.objects.create(bond_code=OTC_Bond.objects.get(code=request.data.get('bond_code')), interest=1)
         serializer = OTC_Bond_Interest_Serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -128,8 +129,11 @@ class OtcBondFilterView(viewsets.ReadOnlyModelViewSet):
         if self.request.query_params.get('YTM'): # 수익률
             data = self.request.query_params.get('YTM')
             query = OTC_Bond.objects.filter(add_date=timezone.now())
-            if data == 'asc': return query.order_by('YTM')
-            elif data == 'desc': return query.order_by('-YTM')
+            query = query.annotate(
+                YTM_int=Cast('YTM', FloatField()),
+            )
+            if data == 'asc': return query.order_by('YTM_int')
+            elif data == 'desc': return query.order_by('-YTM_int')
         elif self.request.query_params.get('expd'): # 만기일
             data = self.request.query_params.get('expd')
             query = OTC_Bond.objects.annotate(
@@ -148,7 +152,8 @@ class OtcBondFilterView(viewsets.ReadOnlyModelViewSet):
             else:
                 try:
                     data = int(data)
-                    future = timezone.now() + timedelta(days=365*data)
+                    if data == '6': future = timezone.now() + relativedelta(months=6) # 6개월 이내 만기일을 일컫습니다.
+                    else : future = timezone.now() + timedelta(days=365*data)
                     return query.filter(date_field__lte=future).order_by('-date_field')
                 except ValueError:
                     return OTC_Bond.objects.all()
