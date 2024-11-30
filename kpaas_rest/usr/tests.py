@@ -46,3 +46,5 @@ class TestUser(TestCase):
         }
         response = self.client.post('/api/news/searchKeyword/', data=json.dumps(data), content_type='application/json', **headers)
         self.assertEqual(response.status_code, 201)
+        response = self.client.delete('/api/news/searchKeyword/1/', content_type='application/json', **headers)
+        self.assertEqual(response.status_code, 204)
