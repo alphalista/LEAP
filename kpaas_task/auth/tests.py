@@ -11,7 +11,7 @@ from .views import createUser
 class CreateUserTestCase(TestCase):
     def test_users(self):
         # code는 매번 실행시마다 바꿔줍니다.
-        code = "1xUl4tBL0SXu1xOanaLr7uHHr4jNSc-c_pCl5pjH3OcOBN1YsnF3AgAAAAQKPXMYAAABk32wMPwq3eF1vjqPRg"
+        code = "-4s2wkU83BPvuN4m7vBAC-gOelnxCUxWr2GEn0-ivDSKLbQi3gjRkQAAAAQKKiVRAAABk33xK_yUJG13ldIf8A"
         redirect_uri = 'http://localhost:3000/auth/login/kakao-callback'
         url = 'https://kauth.kakao.com/oauth/token'
 
