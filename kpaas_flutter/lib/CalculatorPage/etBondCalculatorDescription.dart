@@ -1,41 +1,135 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:kpaas_flutter/NaviBar/calculator.dart';
 
-class OtcBondCalculatorPage extends StatefulWidget {
-  const OtcBondCalculatorPage({Key? key}) : super(key: key);
+class EtBondCalculatorPage extends StatefulWidget {
+  final String pdno;
+  const EtBondCalculatorPage({Key? key, required this.pdno}) : super(key: key);
 
   @override
-  _OtcBondCalculatorPageState createState() => _OtcBondCalculatorPageState();
+  _EtBondCalculatorPageState createState() => _EtBondCalculatorPageState();
 }
 
-class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
+class _EtBondCalculatorPageState extends State<EtBondCalculatorPage> {
   String selectedText = '정보';
+  bool isLoading = true;
+  Map<String, dynamic> bondDetails = {};
+  String getKbpCreditGradeText(Map<String, dynamic> data) {
+    final value = data['issue_info_data']?['kbp_crdt_grad_text'];
+    return (value == null || value == '') ? '무위험' : value;
+  }
+
+  String getBondInterestMethodText(String? code) {
+    switch (code) {
+      case '01':
+        return '발행일';
+      case '02':
+        return '만기일';
+      case '03':
+        return '특정일';
+      default:
+        return 'N/A';
+    }
+  }
 
   List<String> leftColumnData = ['발행일', '만기일', '채권 종류', '위험도', '이자 지급 구분', '차기 이자 지급일', '이자 지급 주기'];
   List<String> rightColumnData = ['23.12.17', '54.12.05', '국채', '무위험', '복리채', '24.11.03', '1개월'];
-
+  late List<QuoteData> quoteData;
+  late QuoteDataSource quoteDataSource;
   final List<String> profitLeftColumnData = ['이자율', '세전 수익률', '세후 수익률', '예상 수익금'];
   final List<String> profitRightColumnData = ['4.63%', '3.94%', '3.27%', '12402.0'];
+
+  final TextEditingController _purchasePriceController = TextEditingController();
+  final TextEditingController _purchaseQuantity = TextEditingController();
+  final TextEditingController _expectedPurchaseDate = TextEditingController();
+  final TextEditingController _salePrice = TextEditingController();
+  final TextEditingController _saleQuantity = TextEditingController();
+  final TextEditingController _expectedSaleDate = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    fetchBondDetails();
+    quoteData = getQuoteData();
+    quoteDataSource = QuoteDataSource(quoteData);
+
+    _purchasePriceController.text = '';
+    _purchaseQuantity.text = '';
+    _expectedPurchaseDate.text = '';
+    _salePrice.text = '';
+    _saleQuantity.text = '';
+    _expectedSaleDate.text = '';
   }
 
+  Future<void> fetchBondDetails() async {
+    final url = 'http://localhost:8000/api/marketbond/marketbond/data/?pdno=${widget.pdno}';
+    try {
+      final response = await Dio().get(url);
+      if (response.statusCode == 200) {
+        setState(() {
+          bondDetails = response.data;
+          isLoading = false; // 데이터를 가져오면 로딩 상태를 false로 변경
+
+          quoteData = getQuoteData();
+          quoteDataSource = QuoteDataSource(quoteData);
+
+          rightColumnData = [
+            formatDate(bondDetails['issue_info_data']?['issu_dt']),  // 발행일
+            formatDate(bondDetails['issue_info_data']?['expd_dt']),  // 만기일
+            bondDetails['issue_info_data']?['bond_clsf_kor_name'] ?? 'N/A', // 채권 종류
+            getKbpCreditGradeText(bondDetails),  // 위험도 (데이터 없음 예시로 설정)
+            getBondInterestMethodText(bondDetails['issue_info_data']?['bond_int_dfrm_mthd_cd']),  // 이자 지급 구분
+            formatDate(bondDetails['issue_info_data']?['nxtm_int_dfrm_dt']),  // 차기 이자 지급일
+            "${bondDetails['issue_info_data']?['int_dfrm_mcnt']}개월" ?? 'N/A',
+          ];
+        });
+      } else {
+        print("Failed to fetch bond data: ${response.statusMessage}");
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (e is DioException) {
+        print("Dio error: ${e.message}");
+        print("Dio error type: ${e.type}");
+      } else {
+        print("Unknown error: $e");
+      }
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
   void _updateTextContent(String type) {
     setState(() {
       selectedText = type;
       if (type == '정보') {
         leftColumnData = ['발행일', '만기일', '채권 종류', '위험도', '이자 지급 구분', '차기 이자 지급일', '이자 지급 주기'];
-        rightColumnData = ['23.12.17', '54.12.05', '국채', '무위험', '복리채', '24.11.03', '1개월'];
+        rightColumnData = [
+          formatDate(bondDetails['issue_info_data']?['issu_dt']),  // 발행일
+          formatDate(bondDetails['issue_info_data']?['expd_dt']),  // 만기일
+          bondDetails['issue_info_data']?['bond_clsf_kor_name'] ?? 'N/A', // 채권 종류
+          getKbpCreditGradeText(bondDetails),  // 위험도 (데이터 없음 예시로 설정)
+          getBondInterestMethodText(bondDetails['issue_info_data']?['bond_int_dfrm_mthd_cd']),  // 이자 지급 구분
+          formatDate(bondDetails['issue_info_data']?['nxtm_int_dfrm_dt']),  // 차기 이자 지급일
+          bondDetails['issue_info_data']?['int_dfrm_mcnt'] ?? 'N/A',
+        ];
       } else if (type == '수익') {
         leftColumnData = profitLeftColumnData;
         rightColumnData = profitRightColumnData;
       }
     });
   }
+
+  String formatDate(String date) {
+    if (date.length == 8) {
+      return '${date.substring(0, 4)} - ${date.substring(4, 6)} - ${date.substring(6, 8)}';
+    }
+    return date;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,7 +138,9 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
         child: Container(
           width: 500,
           color: const Color(0xFFF1F1F9),
-          child: Column(
+          child: isLoading
+          ? const CircularProgressIndicator()
+          : Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
@@ -71,7 +167,7 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                         const Padding(
                           padding: EdgeInsets.only(left: 20.0),
                           child: Text(
-                            '장외 채권 설정',
+                            '장내 채권 설정',
                             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -81,7 +177,22 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                       padding: const EdgeInsets.only(right: 20.0),
                       child: InkWell(
                         onTap: () {
-                          Navigator.pop(context);
+                          String purchasePrice = _purchasePriceController.text;
+                          String purchaseQuantity = _purchaseQuantity.text;
+                          String expectedPurchaseDate = _expectedPurchaseDate.text;
+                          String salePrice = _salePrice.text;
+                          String saleQuantity = _saleQuantity.text;
+                          String expectedSaleDate = _expectedSaleDate.text;
+
+                          Navigator.pop(context, {
+                            'code': widget.pdno,
+                            'purchasePrice': purchasePrice,
+                            'purchaseQuantity': purchaseQuantity,
+                            'expectedPurchaseDate': expectedPurchaseDate,
+                            'salePrice': salePrice,
+                            'saleQuantity': saleQuantity,
+                            'expectedSaleDate': expectedSaleDate,
+                          });
                         },
                         child: const Text(
                           '확인',
@@ -93,7 +204,7 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                 ),
               ),
               Container(
-                margin: const EdgeInsets.all(14.0),
+                margin: const EdgeInsets.all(15.0),
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -107,7 +218,7 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                     ),
                   ],
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -115,32 +226,25 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '한국전력공사채권1204',
-                          style: TextStyle(
+                          bondDetails['issue_info_data']?['prdt_name'],
+                          style: const TextStyle(
                             fontSize: 25,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 15),
+                        const SizedBox(height: 35),
                         Text(
-                          "(KR350114GC54)",
-                          style: TextStyle(
+                          "(${widget.pdno})",
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          "(미래에셋 증권)",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red,
                           ),
                         ),
                       ],
                     ),
-                    Align(
+                    const Align(
                       alignment: Alignment.bottomRight,
                       child: Text(
-                        "10,180.0",
+                        "0000.0",
                         style: TextStyle(
                           fontSize: 35,
                           fontWeight: FontWeight.bold,
@@ -163,6 +267,18 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: selectedText == '정보' ? Colors.black : Colors.grey,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    GestureDetector(
+                      onTap: () => _updateTextContent('호가'),
+                      child: Text(
+                        '호가',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: selectedText == '호가' ? Colors.black : Colors.grey,
                         ),
                       ),
                     ),
@@ -197,8 +313,63 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                     ),
                   ],
                 ),
-                child:
-                    Row(
+                child: selectedText == '호가'
+                    ? SfDataGrid(
+                  source: QuoteDataSource(quoteData),
+                  columnWidthMode: ColumnWidthMode.fill,
+                  gridLinesVisibility: GridLinesVisibility.none,
+                  headerGridLinesVisibility: GridLinesVisibility.none,
+                  headerRowHeight: 30,
+                  rowHeight: 22.0,
+                  columns: <GridColumn>[
+                    GridColumn(
+                        columnName: '매도 수익율',
+                        label: Container(
+                            padding: EdgeInsets.zero,
+                            alignment: Alignment.center,
+                            child: const Text(
+                              '매도 수익율',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ))),
+                    GridColumn(
+                        columnName: '매도 잔량',
+                        label: Container(
+                            padding: EdgeInsets.zero,
+                            alignment: Alignment.center,
+                            child: const Text(
+                              '매도 잔량',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ))),
+                    GridColumn(
+                        columnName: '호가',
+                        label: Container(
+                            padding: EdgeInsets.zero,
+                            alignment: Alignment.center,
+                            child: const Text(
+                              '호가',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ))),
+                    GridColumn(
+                        columnName: '매수 잔량',
+                        label: Container(
+                            padding: EdgeInsets.zero,
+                            alignment: Alignment.center,
+                            child: const Text(
+                              '매수 잔량',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ))),
+                    GridColumn(
+                        columnName: '매수 수익율',
+                        label: Container(
+                            padding: EdgeInsets.zero,
+                            alignment: Alignment.center,
+                            child: const Text(
+                              '매수 수익율',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ))),
+                  ],
+                )
+                    : Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -232,29 +403,29 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                 ),
               ),
               const Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: EdgeInsets.only(left: 20.0),
-                  child: Row(
-                    children: [
-                      Text(
-                        "매수 정보",
-                        style: TextStyle(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 20.0),
+                    child: Row(
+                      children: [
+                        Text(
+                            "매수 정보",
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold
+                          ),
                         ),
-                      ),
-                      Tooltip(
-                        message: "매수 단가: 채권 매수 희망 가격을 말합니다\n매수 수량: 매수 희망 채권의 액면가를 말하는 것으로\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t단위는 천원 입니다\n매도 예정일: 채권을 매수할 시점을 입력합니다", // 매수 정보 설명
-                        child: Icon(
-                          Icons.info_outline,
-                          color: Colors.grey,
-                          size: 18,
+                        Tooltip(
+                          message: "매수 단가: 채권 매수 희망 가격을 말합니다\n매수 수량: 매수 희망 채권의 액면가를 말하는 것으로\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t단위는 천원 입니다\n매도 예정일: 채권을 매수할 시점을 입력합니다", // 매수 정보 설명
+                          child: Icon(
+                            Icons.info_outline,
+                            color: Colors.grey,
+                            size: 18,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
               ),
               Container(
                 height: 100,
@@ -296,7 +467,7 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                             width: 50,  // 입력 칸의 너비
                             height: 20, // 입력 칸의 높이
                             child: TextField(
-                              controller: TextEditingController(text: '10000.0'),
+                              controller: _purchasePriceController,
                               decoration: const InputDecoration(
                                 isDense: true,
                                 border: UnderlineInputBorder(),
@@ -326,7 +497,7 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                             width: 50,  // 입력 칸의 너비
                             height: 20, // 입력 칸의 높이
                             child: TextField(
-                              controller: TextEditingController(text: '1000'),
+                              controller: _purchaseQuantity,
                               decoration: const InputDecoration(
                                 isDense: true,
                                 border: UnderlineInputBorder(),
@@ -356,7 +527,7 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                             width: 75,  // 입력 칸의 너비
                             height: 20, // 입력 칸의 높이
                             child: TextField(
-                              controller: TextEditingController(text: '2024-10-31'),
+                              controller: _expectedPurchaseDate,
                               decoration: const InputDecoration(
                                 isDense: true,
                                 border: UnderlineInputBorder(),
@@ -413,7 +584,7 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                     ),
                   ],
                 ),
-                child: const Align(
+                child: Align(
                   alignment: Alignment.centerLeft,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -422,9 +593,9 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("매도 단가"),
-                          SizedBox(width: 5,),
-                          Expanded(
+                          const Text("매도 단가"),
+                          const SizedBox(width: 5,),
+                          const Expanded(
                             child: DottedLine(
                               dashColor: Colors.grey,
                               lineThickness: 1,
@@ -432,17 +603,18 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                               dashGapLength: 3,
                             ),
                           ),
-                          SizedBox(width: 5,),
+                          const SizedBox(width: 5,),
                           SizedBox(
                             width: 50,  // 입력 칸의 너비
                             height: 20, // 입력 칸의 높이
                             child: TextField(
-                              decoration: InputDecoration(
+                              controller: _salePrice,
+                              decoration: const InputDecoration(
                                 isDense: true,
                                 border: UnderlineInputBorder(),
                                 contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                               ),
-                              style: TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: 12),
                               keyboardType: TextInputType.number,
                             ),
                           ),
@@ -451,9 +623,9 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("매도 수량(단위: 천원)"),
-                          SizedBox(width: 5,),
-                          Expanded(
+                          const Text("매도 수량(단위: 천원)"),
+                          const SizedBox(width: 5,),
+                          const Expanded(
                             child: DottedLine(
                               dashColor: Colors.grey,
                               lineThickness: 1,  // 선의 두께
@@ -461,17 +633,18 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                               dashGapLength: 3,  // 점과 점 사이의 간격
                             ),
                           ),
-                          SizedBox(width: 5,),
+                          const SizedBox(width: 5,),
                           SizedBox(
                             width: 50,  // 입력 칸의 너비
                             height: 20, // 입력 칸의 높이
                             child: TextField(
-                              decoration: InputDecoration(
+                              controller: _saleQuantity,
+                              decoration: const InputDecoration(
                                 isDense: true,
                                 border: UnderlineInputBorder(),
                                 contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                               ),
-                              style: TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: 12),
                               keyboardType: TextInputType.number,
                             ),
                           ),
@@ -480,9 +653,9 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("매도 예정일"),
-                          SizedBox(width: 5,),
-                          Expanded(
+                          const Text("매도 예정일"),
+                          const SizedBox(width: 5,),
+                          const Expanded(
                             child: DottedLine(
                               dashColor: Colors.grey,
                               lineThickness: 1,  // 선의 두께
@@ -490,17 +663,18 @@ class _OtcBondCalculatorPageState extends State<OtcBondCalculatorPage> {
                               dashGapLength: 3,  // 점과 점 사이의 간격
                             ),
                           ),
-                          SizedBox(width: 5,),
+                          const SizedBox(width: 5,),
                           SizedBox(
                             width: 75,  // 입력 칸의 너비
                             height: 20, // 입력 칸의 높이
                             child: TextField(
-                              decoration: InputDecoration(
+                              controller: _expectedSaleDate,
+                              decoration: const InputDecoration(
                                 isDense: true,
                                 border: UnderlineInputBorder(),
                                 contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                               ),
-                              style: TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: 12),
                               keyboardType: TextInputType.number,
                             ),
                           ),
