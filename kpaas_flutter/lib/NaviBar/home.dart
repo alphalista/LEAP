@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:kpaas_flutter/etBondDescription.dart';
+import 'package:kpaas_flutter/DescriptionPage/etBondDescription.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:kpaas_flutter/MyPage/myPage_main.dart';
 import 'package:kpaas_flutter/apiconnectiontest/dummy_data.dart';
-import 'package:kpaas_flutter/otcBondDescription.dart';
+import 'package:kpaas_flutter/DescriptionPage/otcBondDescription.dart';
 import 'dart:convert';
 
 class HomePage extends StatefulWidget {

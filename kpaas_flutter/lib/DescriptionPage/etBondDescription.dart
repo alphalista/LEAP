@@ -51,7 +51,7 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
   }
 
   Future<void> fetchBondDetails() async {
-    final url = 'https://leapbond.com/api/marketbond/marketbond/data/?pdno=${widget.pdno}';
+    final url = 'http://localhost:8000/api/marketbond/marketbond/data/?pdno=${widget.pdno}';
     try {
       final response = await Dio().get(url);
       if (response.statusCode == 200) {
@@ -79,7 +79,12 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
         });
       }
     } catch (e) {
-      print("Error fetching bond data: $e");
+      if (e is DioException) {
+        print("Dio error: ${e.message}");
+        print("Dio error type: ${e.type}");
+      } else {
+        print("Unknown error: $e");
+      }
       setState(() {
         isLoading = false;
       });
@@ -342,22 +347,19 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
                                                             ),
                                                           ),
                                                           const SizedBox(height: 10),
-                                                          Padding(
-                                                            padding: const EdgeInsets.symmetric(horizontal: 40),
-                                                            child: TextField(
-                                                              controller: firstController, // 첫 번째 페이지 컨트롤러
-                                                              decoration: const InputDecoration(
-                                                                labelText: '구매 갯수',
-                                                                hintText: '예: 1000',
-                                                                border: UnderlineInputBorder(),
-                                                              ),
-                                                              onSubmitted: (value) {
-                                                                firstController.clear(); // 값 초기화
-                                                                setState(() {
-                                                                  currentPage++; // 다음 페이지로 이동
-                                                                });
-                                                              },
+                                                          TextField(
+                                                            controller: firstController, // 첫 번째 페이지 컨트롤러
+                                                            decoration: const InputDecoration(
+                                                              labelText: '구매 갯수',
+                                                              hintText: '예: 1000',
+                                                              border: OutlineInputBorder(),
                                                             ),
+                                                            onSubmitted: (value) {
+                                                              firstController.clear(); // 값 초기화
+                                                              setState(() {
+                                                                currentPage++; // 다음 페이지로 이동
+                                                              });
+                                                            },
                                                           ),
                                                         ],
                                                       )
@@ -373,22 +375,19 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
                                                             ),
                                                           ),
                                                           const SizedBox(height: 10),
-                                                          Padding(
-                                                            padding: const EdgeInsets.symmetric(horizontal: 40),
-                                                            child: TextField(
-                                                              controller: secondController, // 두 번째 페이지 컨트롤러
-                                                              decoration: const InputDecoration(
-                                                                labelText: '구매 가격',
-                                                                hintText: '예: 10000',
-                                                                border: UnderlineInputBorder(),
-                                                              ),
-                                                              onSubmitted: (value) {
-                                                                secondController.clear(); // 값 초기화
-                                                                setState(() {
-                                                                  currentPage++; // 다음 페이지로 이동
-                                                                });
-                                                              },
+                                                          TextField(
+                                                            controller: secondController, // 두 번째 페이지 컨트롤러
+                                                            decoration: const InputDecoration(
+                                                              labelText: '구매 가격',
+                                                              hintText: '예: 10000',
+                                                              border: OutlineInputBorder(),
                                                             ),
+                                                            onSubmitted: (value) {
+                                                              secondController.clear(); // 값 초기화
+                                                              setState(() {
+                                                                currentPage++; // 다음 페이지로 이동
+                                                              });
+                                                            },
                                                           ),
                                                         ],
                                                       )
@@ -404,14 +403,40 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
                                                               ),
                                                             ),
                                                             const SizedBox(height: 10),
-                                                            Padding(
-                                                              padding: const EdgeInsets.symmetric(horizontal: 40),
-                                                              child: TextField(
+                                                            TextField(
+                                                              controller: secondController, // 두 번째 페이지 컨트롤러
+                                                              decoration: const InputDecoration(
+                                                                labelText: '구매 날짜',
+                                                                hintText: 'YYYY-MM-DD',
+                                                                border: OutlineInputBorder(),
+                                                              ),
+                                                              onSubmitted: (value) {
+                                                                secondController.clear(); // 값 초기화
+                                                                setState(() {
+                                                                  currentPage++; // 다음 페이지로 이동
+                                                                });
+                                                              },
+                                                            ),
+                                                          ],
+                                                        )
+                                                      else if (currentPage == 3)
+                                                          Column(
+                                                            children: [
+                                                              const Text(
+                                                                '채권의 닉네임을 지정해주세요!',
+                                                                style: TextStyle(
+                                                                  fontSize: 20,
+                                                                  fontWeight: FontWeight.bold,
+                                                                  color: Colors.black,
+                                                                ),
+                                                              ),
+                                                              const SizedBox(height: 10),
+                                                              TextField(
                                                                 controller: thirdController, // 세 번째 페이지 컨트롤러
                                                                 decoration: const InputDecoration(
-                                                                  labelText: '구매 날짜',
-                                                                  hintText: 'YYYY-MM-DD',
-                                                                  border: UnderlineInputBorder(),
+                                                                  labelText: '닉네임',
+                                                                  hintText: '5글자 이내',
+                                                                  border: OutlineInputBorder(),
                                                                 ),
                                                                 onSubmitted: (value) {
                                                                   thirdController.clear(); // 값 초기화
@@ -420,9 +445,8 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
                                                                   });
                                                                 },
                                                               ),
-                                                            ),
-                                                          ],
-                                                        ),
+                                                            ],
+                                                          ),
                                                   ],
                                                 ),
                                             ],
@@ -479,7 +503,7 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          bondDetails['issue_info_data']['prdt_name'] ?? 'N/A',
+                          bondDetails['issue_info_data']?['prdt_name'] ?? 'N/A',
                           style: const TextStyle(
                             fontSize: 25,
                             fontWeight: FontWeight.bold,

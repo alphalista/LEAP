@@ -101,13 +101,14 @@ class MarketBondCmbSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['duration'] = self.MacDuration(
+        data['duration'] = {"duration": str(self.MacDuration(
             data['issue_info_data']['bond_int_dfrm_mthd_cd'],
             float(data['issue_info_data']['bond_int_dfrm_mthd_cd']),
             10000,
-            float(data['inquire_price_data']['expd_dt']),
+            float(data['inquire_price_data']['ernn_rate']),
+            data['issue_info_data']['expd_dt'],
             int(data['issue_info_data']['int_dfrm_mcnt'])
-        )
+        ))}
         return data
 
     # 인자 매핑
