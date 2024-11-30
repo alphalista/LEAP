@@ -4,7 +4,7 @@
 from celery import shared_task
 from marketbond.kib_api.collect_kis_data import CollectMarketBond, CollectMarketCode
 from marketbond.models import MarketBondCode, MarketBondIssueInfo, MarketBondInquirePrice, MarketBondInquireAskingPrice, \
-    MarketBondCmb, MarketBondPreDataDays, MarketBondPreDataMonths, MarketBondPreDataWeeks
+    MarketBondCmb, MarketBondPreDataDays, MarketBondPreDataMonths, MarketBondPreDataWeeks, MarketBondTrending, MarketBondHowManyInterest
 
 from .serializer import MarketBondIssueInfoSerializer, MarketBondInquirePriceSerializer, \
     MarketBondInquireAskingPriceSerializer
@@ -159,8 +159,7 @@ def handle_combine(pdno):
             )
             print(pdno, 'combine done')
     except Exception as e:
-        print(e)\
-
+        print(e)
 @shared_task()
 def combine():
     try:
@@ -282,7 +281,7 @@ def pre_data_pipeline():
         # price: 일별 현재가의 price를 가져옴
         price = str(MarketBondInquirePrice.objects.get(code=bond.code).bond_prpr)
         MarketBondPreDataDays.objects.create(
-            code=bond.code,
+            bond_code=MarketBondCode.objects.get(code=bond.code),
             duration=duration,
             price=price,
         )
@@ -299,7 +298,7 @@ def pre_data_pipeline():
             pre = MarketBondPreDataWeeks.objects.filter(bond_code=bond.code).order_by('add_date')
             if len(pre) >= 8: pre.first().delete() # 8주 데이터 넘어가면 데이터 삭제
             MarketBondPreDataWeeks.objects.create(
-                bond_code=bond.code,
+                bond_code=MarketBondCode.objects.get(code=bond.code),
                 duration=str(duration_avg),
                 price=str(price_avg),
             )
@@ -314,7 +313,35 @@ def pre_data_pipeline():
             pre = MarketBondPreDataMonths.objects.filter(bond_code=bond.code).order_by('add_date')
             if len(pre) >= 12: pre.first().delete()  # 12달 데이터 넘어가면 데이터 삭제
             MarketBondPreDataMonths.objects.create(
-                bond_code=bond.code,
+                bond_code=MarketBondCode.objects.get(code=bond.code),
                 duration=str(duration_avg),
                 price=str(price_avg),
             )
+
+@shared_task
+def marketbond_trending_pipeline(): # 장내 채권 트렌딩 파이프라인 테스크 입니다.
+    MarketBondTrending.objects.all().delete()  # 매번 데이터가 바뀌므로 데이터 삭제 진행
+    grading = ['AAA', 'AA+', 'AA', 'AA-', 'BBB', '매우낮은위험', '낮은위험', '보통위험']
+    ins_count = 10
+    howManyInterestLen = len(MarketBondHowManyInterest.objects.filter(danger_degree__in=grading))
+    Market_Bond_need = max(0, ins_count - howManyInterestLen)
+    instances = MarketBondIssueInfo.objects.filter(nice_crdt_grad_text__in=grading)
+    ins = []
+    for each in instances:
+        ins.append(each.code)
+    instances = MarketBondInquireAskingPrice.objects.filter(code__in=ins) # 위험도 추출완료
+    for each in instances:
+        MarketBondTrending.objects.update_or_create(
+            bond_code=each,
+            defaults={
+                'YTM': each.seln_ernn_rate5
+            }
+        )
+    ins = MarketBondHowManyInterest.objects.filter(danger_degree__in=grading).order_by('-interest')[:howManyInterestLen]
+    for each in ins:
+        MarketBondTrending.objects.update_or_create(
+            bond_code=each,
+            defaults={
+                'YTM': each.bond_code.YTM
+            }
+        )

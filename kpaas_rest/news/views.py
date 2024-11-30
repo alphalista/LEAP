@@ -30,7 +30,7 @@ class UserNewsViewSet(viewsets.ModelViewSet):
     queryset = UserNewsKeyword.objects.all()
     serializer_class = UserNewsSerializer
     def get_queryset(self):
-        user = self.kwargs.get('user_id', None)
+        user = self.request.user.user_id
         if user is not None:
             return UserNewsKeyword.objects.filter(user_id=user)
         return UserNewsKeyword.objects.all()
