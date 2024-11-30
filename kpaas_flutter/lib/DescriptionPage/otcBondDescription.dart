@@ -31,7 +31,7 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
   List<_ChartData> chartData = [];
 
   Future<void> fetchBondDetails() async {
-    final url = 'https://leapbond.com/api/otcbond/days/${widget.bondData['prdt_type_cd']}';
+    final url = 'https://localhost:8000/api/otcbond/days/${widget.bondData['prdt_type_cd']}';
     try {
       final response = await Dio().get(url);
       if (response.statusCode == 200) {
@@ -388,10 +388,38 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
                                                           ),
                                                           const SizedBox(height: 10),
                                                           TextField(
-                                                            controller: thirdController, // 세 번째 페이지 컨트롤러
+                                                            controller: secondController, // 두 번째 페이지 컨트롤러
                                                             decoration: const InputDecoration(
                                                               labelText: '구매 날짜',
                                                               hintText: 'YYYY-MM-DD',
+                                                              border: OutlineInputBorder(),
+                                                            ),
+                                                            onSubmitted: (value) {
+                                                              secondController.clear(); // 값 초기화
+                                                              setState(() {
+                                                                currentPage++; // 다음 페이지로 이동
+                                                              });
+                                                            },
+                                                          ),
+                                                        ],
+                                                      )
+                                                  else if (currentPage == 3)
+                                                      Column(
+                                                        children: [
+                                                          const Text(
+                                                            '채권의 닉네임을 지정해주세요!',
+                                                            style: TextStyle(
+                                                              fontSize: 20,
+                                                              fontWeight: FontWeight.bold,
+                                                              color: Colors.black,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(height: 10),
+                                                          TextField(
+                                                            controller: thirdController, // 세 번째 페이지 컨트롤러
+                                                            decoration: const InputDecoration(
+                                                              labelText: '닉네임',
+                                                              hintText: '5글자 이내',
                                                               border: OutlineInputBorder(),
                                                             ),
                                                             onSubmitted: (value) {
@@ -459,7 +487,7 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.bondData['prdt_type_cd'] ?? 'N/A',
+                    widget.bondData['prdt_name'] ?? 'N/A',
                     style: const TextStyle(
                       fontSize: 25,
                       fontWeight: FontWeight.bold,

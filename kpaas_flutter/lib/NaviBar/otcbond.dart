@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:kpaas_flutter/otcBondDescription.dart';
+import 'package:kpaas_flutter/DescriptionPage/otcBondDescription.dart';
 import 'package:kpaas_flutter/MyPage/myPage_main.dart';
+import 'package:kpaas_flutter/DescriptionPage/dialog.dart';
 import '../apiconnectiontest/data_controller.dart';
-import 'package:kpaas_flutter/dialog.dart';
 
 class OtcBondPage extends StatefulWidget {
   final List<dynamic> initialBondData;
@@ -20,6 +20,8 @@ class _OtcBondPageState extends State<OtcBondPage> {
   List<dynamic> bondData = [];
   String? nextUrl;
   bool isLoading = false;
+  String searchQuery = "";
+
   final List<Map<String, dynamic>> buttonData = [
     {
       'label': '전체',
@@ -48,12 +50,76 @@ class _OtcBondPageState extends State<OtcBondPage> {
     },
   ];
 
+  Future<void> _fetchBondData({String query = ""}) async {
+    setState(() {
+      isLoading = true; // 로딩 상태 설정
+    });
+
+    try {
+      final dataController = Get.find<DataController>();
+      final String url = query.isNotEmpty
+          ? "http://localhost:8000/api/otcbond/otc-bond-all/?query=$query"
+          : "http://localhost:8000/api/otcbond/otc-bond-all/";
+
+      final response = await dataController.fetchOtcBondData(url);
+
+      setState(() {
+        bondData = response['results'] ?? []; // 데이터를 업데이트
+        nextUrl = response['next'] ?? ''; // 다음 URL 업데이트
+      });
+    } catch (e) {
+      print("Error fetching bond data: $e");
+    } finally {
+      setState(() {
+        isLoading = false; // 로딩 상태 해제
+      });
+    }
+  }
+
+  Future<void> _fetchOtcBondDataFilteredList(String url) async {
+    setState(() {
+      isLoading = true; // 로딩 상태 시작
+    });
+
+    try {
+      final dataController = Get.find<DataController>();
+      final response = await dataController.fetchOtcBondData(url);
+
+      setState(() {
+        bondData = response['results'] ?? []; // 데이터를 업데이트
+        nextUrl = response['next'] ?? ''; // 다음 URL 업데이트
+      });
+    } catch (e) {
+      print("Error fetching bond data from endpoint: $e");
+    } finally {
+      setState(() {
+        isLoading = false; // 로딩 상태 해제
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     bondData = widget.initialBondData;
     nextUrl = widget.initialNextUrl;
+
+    buttonData[0]['onPressed'] = () async {
+      setState(() {
+        isLoading = true; // 로딩 상태 활성화
+      });
+
+      try {
+        String apiUrl = 'http://localhost:8000/api/otcbond/otc-bond-all/';
+        await _fetchOtcBondDataFilteredList(apiUrl); // API 호출
+      } catch (e) {
+        print("Error fetching all bond data: $e");
+      } finally {
+        setState(() {
+          isLoading = false; // 로딩 상태 비활성화
+        });
+      }
+    };
 
     buttonData[1]['onPressed'] = () async {
       String? result = await showExpdDateDialog(context);
@@ -62,6 +128,21 @@ class _OtcBondPageState extends State<OtcBondPage> {
           buttonData[1]['label'] = result;
           buttonData[1]['hasSelected'] = true;
         });
+
+        String newEndPoint;
+        if (result == "만기 5년 이내") {
+          newEndPoint = 'http://localhost:8000/api/otcbond/filter/?expd=5';
+        } else if (result == "만기 3년 이내") {
+          newEndPoint = 'http://localhost:8000/api/otcbond/filter/?expd=3';
+        } else if (result == "만기 1년 이내") {
+          newEndPoint = 'http://localhost:8000/api/otcbond/filter/?expd=1';
+        } else if (result == "만기 6개월 이내") {
+          newEndPoint = 'http://localhost:8000/api/otcbond/filter/?expd=6';
+        } else {
+          print('잘못된 만기 선택: $result');
+          return;
+        }
+        await _fetchOtcBondDataFilteredList(newEndPoint);
       }
     };
 
@@ -72,6 +153,24 @@ class _OtcBondPageState extends State<OtcBondPage> {
           buttonData[2]['label'] = result;
           buttonData[2]['hasSelected'] = true;
         });
+        String newEndPoint;
+        if (result == "매우낮은위험") {
+          newEndPoint = 'http://localhost:8000/api/otcbond/filter/?danger=매우낮은위험';
+        } else if (result == "낮은위험") {
+          newEndPoint = 'http://localhost:8000/api/otcbond/filter/?danger=낮은위험';
+        } else if (result == "보통위험") {
+          newEndPoint = 'http://localhost:8000/api/otcbond/filter/?danger=보통위험';
+        } else if (result == "다소높은위험") {
+          newEndPoint = 'http://localhost:8000/api/otcbond/filter/?danger=다소높은위험';
+        } else if (result == "높은위험") {
+          newEndPoint = 'http://localhost:8000/api/otcbond/filter/?danger=높은위험';
+        } else if (result == "매우높은위험") {
+          newEndPoint = 'http://localhost:8000/api/otcbond/filter/?danger=매우높은위험';
+        }else {
+          print('잘못된 만기 선택: $result');
+          return;
+        }
+        await _fetchOtcBondDataFilteredList(newEndPoint);
       }
     };
 
@@ -82,6 +181,16 @@ class _OtcBondPageState extends State<OtcBondPage> {
           buttonData[3]['label'] = result;
           buttonData[3]['hasSelected'] = true;
         });
+        String newEndPoint;
+        if (result == "오름차순") {
+          newEndPoint = 'http://localhost:8000/api/otcbond/filter/?YTM_after_tax=asc&ordering=YTM_after_tax';
+        } else if (result == "내림차순") {
+          newEndPoint = 'http://localhost:8000/api/otcbond/filter/?YTM_after_tax=asc&ordering=-YTM_after_tax';
+        } else {
+          print('잘못된 만기 선택: $result');
+          return;
+        }
+        await _fetchOtcBondDataFilteredList(newEndPoint);
       }
     };
 
@@ -92,6 +201,16 @@ class _OtcBondPageState extends State<OtcBondPage> {
           buttonData[4]['label'] = result;
           buttonData[4]['hasSelected'] = true;
         });
+        String newEndPoint;
+        if (result == "오름차순") {
+          newEndPoint = 'http://localhost:8000/api/otcbond/filter/?ordering=interest_percentage';
+        } else if (result == "내림차순") {
+          newEndPoint = 'http://localhost:8000/api/otcbond/filter/?ordering=-interest_percentage';
+        } else {
+          print('잘못된 만기 선택: $result');
+          return;
+        }
+        await _fetchOtcBondDataFilteredList(newEndPoint);
       }
     };
 
@@ -152,6 +271,7 @@ class _OtcBondPageState extends State<OtcBondPage> {
       });
     }
   }
+
     int selectedButtonIndex = 0;
 
     @override
@@ -212,7 +332,12 @@ class _OtcBondPageState extends State<OtcBondPage> {
                     filled: true,
                     fillColor: Colors.white,
                   ),
-                  onChanged: (query) {},
+                  onChanged: (query) {
+                    setState(() {
+                      searchQuery = query;
+                      _fetchBondData(query: searchQuery);
+                    });
+                  },
                 ),
               ),
             ),
@@ -230,13 +355,13 @@ class _OtcBondPageState extends State<OtcBondPage> {
                     bool isSelected = selectedButtonIndex == index;
 
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0,
+                          vertical: 8),
                       child: ElevatedButton(
                         onPressed: () {
                           setState(() {
                             selectedButtonIndex = index;
                             if (index == 0) {
-                              // Reset all hasSelected values to false and restore original labels
                               for (int i = 0; i < buttonData.length; i++) {
                                 buttonData[i]['hasSelected'] = false;
                                 buttonData[i]['label'] = originalLabels[i];
