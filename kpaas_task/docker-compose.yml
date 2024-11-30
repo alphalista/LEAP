@@ -2,10 +2,9 @@ version: '3'
 
 services:
   web:
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    build: ../kpaas_rest/
     volumes:
-      - .:/code
+      - ../kpaas_rest/:/code
     ports:
       - "8000:8000"
     depends_on:
@@ -14,6 +13,7 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - TZ=Asia/Seoul
 
   db:
     image: mysql
@@ -35,21 +35,21 @@ services:
 
   celery_worker:
     build: .
-    command: python celery -A config worker
+    command: celery -A config worker -l info
     volumes:
       - .:/code
     depends_on:
       - redis
       - web
 
-  celery_beat:
-    build: .
-    command: python celery -A config worker
-    volumes:
-      - .:/code
-    depends_on:
-      - redis
-      - web
+#  celery_beat:
+#    build: .
+#    command: celery -A config beat -l info
+#    volumes:
+#      - .:/code
+#    depends_on:
+#      - redis
+#      - web
 
 volumes:
   db_data:
