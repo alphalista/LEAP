@@ -4,7 +4,8 @@ from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import OuterRef, Subquery, CharField
 from typing import Any
-
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from rest_framework import generics
 
 import copy
@@ -55,6 +56,10 @@ from rest_framework import viewsets, status
 class MarketBondCmbViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MarketBondCmb.objects.all()
     serializer_class = MarketBondCmbSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__nice_crdt_grad_text']  # 정확한 값 매칭
+    search_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name']  # 부분 문자열 검색
+    ordering_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__srfc_inrt', 'inquire_price_data__bond_prpr', 'inquire_asking_price_data__bidp_rsqn1']  # 정렬 가능한 필드
 
 
 class MarketBondViewSet(viewsets.ReadOnlyModelViewSet):
@@ -94,14 +99,14 @@ class MarketBondViewSet(viewsets.ReadOnlyModelViewSet):
             }
 
             if issue_info_data and inquire_price_data and inquire_asking_price_data:
-                data['duration'] = self.MacDuration(
+                data['duration'] = {"duration": str(self.MacDuration(
                     issue_info_data.get('bond_int_dfrm_mthd_cd'),
                     float(issue_info_data.get('srfc_inrt')),
                     10000,
-                    float(inquire_price_data[0].get('ernn_rate')),
+                    float(inquire_price_data.get('ernn_rate')),
                     issue_info_data.get('expd_dt'),
                     int(issue_info_data.get('int_dfrm_mcnt')),
-                )
+                ))}
 
             # Return the response
             return Response(data, status=status.HTTP_200_OK)
