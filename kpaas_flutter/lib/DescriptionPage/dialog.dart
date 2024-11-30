@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 Future<String?> showExpdDateDialog(BuildContext context) async {
   int selectedMaturity = 0;
-  int selectedOrder = 0;
   String errorText = "";
 
   final Map<int, String> maturityOptions = {
@@ -10,10 +9,6 @@ Future<String?> showExpdDateDialog(BuildContext context) async {
     2: '만기 3년 이내',
     3: '만기 1년 이내',
     4: '만기 6개월 이내',
-  };
-  final Map<int, String> orderOptions = {
-    1: '오름차순',
-    2: '내림차순',
   };
 
   return await showDialog<String>(
@@ -34,7 +29,7 @@ Future<String?> showExpdDateDialog(BuildContext context) async {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (errorText.isNotEmpty) // Show error text if it's set
+                if (errorText.isNotEmpty) // 에러 메시지 표시
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Text(
@@ -139,71 +134,17 @@ Future<String?> showExpdDateDialog(BuildContext context) async {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedOrder = 1;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedOrder == 1 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        '오름차순',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedOrder == 1 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedOrder = 2;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedOrder == 2 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        '내림차순',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedOrder == 2 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
             actions: [
               TextButton(
                 onPressed: () {
-                  if (selectedMaturity == 0 || selectedOrder == 0) {
+                  if (selectedMaturity == 0) {
                     setState(() {
-                      errorText = '모든 옵션을 선택해 주세요.'; // Set error message if options aren't selected
+                      errorText = '옵션을 선택해 주세요.'; // 옵션 선택이 안 되었을 때 에러 메시지
                     });
                   } else {
-                    Navigator.of(context).pop(
-                        '${maturityOptions[selectedMaturity]} / ${orderOptions[selectedOrder]}'
-                    );
+                    Navigator.of(context).pop(maturityOptions[selectedMaturity]);
                   }
                 },
                 child: const Text(
@@ -218,6 +159,7 @@ Future<String?> showExpdDateDialog(BuildContext context) async {
     },
   );
 }
+
 
 Future<String?> showEtBondDangerDialog(BuildContext context) async {
   int selectedDanger = 0;
