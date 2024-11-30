@@ -35,3 +35,14 @@ class TestUser(TestCase):
         }
         response = self.client.put(path='/api/user/', content_type='application/json', data=json.dumps(data), **headers)
         self.assertEqual(response.status_code, 200)
+    def test_userNewsKeyword(self):
+        # get 요청
+        headers = self.Authorization_header
+        response = self.client.get('/api/news/searchKeyword/', **headers)
+        self.assertEqual(response.status_code, 200)
+        # post 요청
+        data = {
+            'search_keyword': '채권'
+        }
+        response = self.client.post('/api/news/searchKeyword/', data=json.dumps(data), content_type='application/json', **headers)
+        self.assertEqual(response.status_code, 201)
