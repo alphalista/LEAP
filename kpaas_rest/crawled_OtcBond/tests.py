@@ -61,3 +61,11 @@ class TestOtcBond(TestCase):
         id = OTC_Bond_Holding.objects.get(bond_code=ins).id
         response = self.client.delete(f'/api/otcbond/holding/{id}/', **headers)
         self.assertEqual(response.status_code, 204)
+
+    def test_Predata(self):
+        response = self.client.get('/api/otcbond/days/KR6029272E17/')
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get('/api/otcbond/weeks/KR6029272E17/')
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get('/api/otcbond/months/KR6029272E17/')
+        self.assertEqual(response.status_code, 200)
