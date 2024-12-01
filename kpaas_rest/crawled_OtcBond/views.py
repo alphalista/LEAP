@@ -80,6 +80,14 @@ class OTC_Bond_Holding_view(viewsets.ModelViewSet):
         except OTC_Bond_Holding.DoesNotExist:
             return Response('OTC_Bond_Holding does not exist', status=404)
 
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        data['user_id'] = request.user.user_id
+        serializer = OTC_Bond_Holding_Serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 class OTC_Bond_Expired_view(viewsets.ReadOnlyModelViewSet):
     serializer_class = OTC_Bond_Expired_Serializer
 
