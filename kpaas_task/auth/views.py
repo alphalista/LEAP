@@ -116,8 +116,8 @@ class NaverLogin:
         self.token_url = 'https://nid.naver.com/oauth2.0/token'
         self.me_url = 'https://openapi.naver.com/v1/nid/me'
         self.data = {
-            # 'client_id': NAVER_CLIEND_ID,
-            # 'client_secret': NAVER_CLIENT_SECRET,
+            'client_id': NAVER_CLIEND_ID,
+            'client_secret': NAVER_CLIENT_SECRET,
         }
 
     def issue_token(self):
