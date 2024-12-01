@@ -502,3 +502,14 @@ class MarketBondPreDataMonths(models.Model):
 
     class Meta:
         db_table = "MarketBondPreDataMonths"
+
+class MarketBondHowManyInterest(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    interest = models.IntegerField()
+    danger_degree = models.CharField(max_length=100)
+    # 프로젝트 명이 같기 때문에 테이블 명 따로 선언하지 않아도 됨
+
+class MarketBondTrending(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    YTM = models.CharField(max_length=100)
+    add_date = models.DateField(auto_now_add=True)

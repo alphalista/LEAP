@@ -14,12 +14,12 @@ router.register("keyword", SearchKeywordViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('searchKeyword/<str:user_id>/', UserNewsViewSet.as_view({
+    path('searchKeyword/', UserNewsViewSet.as_view({
         'get': 'list',
         'post': 'create',
         'delete': 'destroy'
     })),
-    path('searchKeyword/<str:user_id>/<int:pk>/', UserNewsViewSet.as_view({
+    path('searchKeyword/<int:pk>/', UserNewsViewSet.as_view({
         'delete': 'destroy'
     }))
 ]

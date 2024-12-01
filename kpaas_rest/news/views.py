@@ -30,7 +30,7 @@ class UserNewsViewSet(viewsets.ModelViewSet):
     queryset = UserNewsKeyword.objects.all()
     serializer_class = UserNewsSerializer
     def get_queryset(self):
-        user = self.kwargs.get('user_id', None)
+        user = self.request.user.user_id
         if user is not None:
             return UserNewsKeyword.objects.filter(user_id=user)
         return UserNewsKeyword.objects.all()
@@ -50,6 +50,7 @@ class UserNewsViewSet(viewsets.ModelViewSet):
                 SearchKeyword.objects.create(search_keyword=keyword)
                 ins = SearchKeyword.objects.get(search_keyword=keyword)
             data['search_keyword'] = ins.id
+            data['user_id'] = request.user.user_id
             serializer = UserNewsSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save()

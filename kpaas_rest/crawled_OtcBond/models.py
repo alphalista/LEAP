@@ -1,15 +1,8 @@
 from django.db import models
 # from django.contrib.auth.models import User
+from usr.models import Users
 # Create your models here.
 
-# 유저 앱의 모델과 같은 테이블 바라보게 함
-class Users(models.Model):
-    user_id = models.CharField(max_length=100, primary_key=True)
-    nickname = models.CharField(max_length=100)
-
-    class Meta:
-        db_table = 'users'
-        managed = False
 
 class OTC_Bond(models.Model):
     issu_istt_name = models.CharField(max_length=100)
@@ -32,7 +25,7 @@ class OTC_Bond(models.Model):
     add_date = models.DateField(auto_now_add=True)
     class Meta:
         db_table = 'crawling_otc_bond'
-        managed = False
+        # managed = False
 
 # 장외 관심 채권
 class OTC_Bond_Interest(models.Model):
@@ -41,10 +34,11 @@ class OTC_Bond_Interest(models.Model):
 
     class Meta:
         unique_together = ('user_id', 'bond_code')
+        # managed = False
 
 class OTC_Bond_Holding(models.Model):
-    user_id = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='holding_bonds')
-    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE, related_name='holding_bonds')
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
+    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
     price_per_10 = models.CharField(max_length=100) # 1만원 채권당 매수단가
     quantity = models.CharField(max_length=100)
     purchase_date = models.CharField(max_length=100)
@@ -52,35 +46,59 @@ class OTC_Bond_Holding(models.Model):
     class Meta:
         db_table = 'OTC_Bond_Holding'
         unique_together = ('user_id', 'bond_code', 'price_per_10')
+        # managed = False
 
 class OTC_Bond_Expired(models.Model):
-    user_id = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='expired_bonds')
-    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE, related_name='expired_bonds')
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
+    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
     class Meta:
         db_table = 'OTC_Bond_Expired'
+        # managed = False
 
 class OtcBondPreDataDays(models.Model):
-    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE, related_name='pre_data_set')
+    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
     add_date = models.DateField(auto_now_add=True)
     duration = models.CharField(max_length=100)
     price = models.CharField(max_length=100)
     class Meta:
         db_table = 'OtcBondPreData'
+        # managed = False
 
 class OtcBondPreDataWeeks(models.Model):
-    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE, related_name='pre_data_weeks_set')
+    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
     add_date = models.DateField(auto_now_add=True)
     duration = models.CharField(max_length=100)
     price = models.CharField(max_length=100)
 
     class Meta:
         db_table = 'OtcBondPreDataWeeks'
+        # managed = False
 
 class OtcBondPreDataMonths(models.Model):
-    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE, related_name='pre_data_months_set')
+    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
     add_date = models.DateField(auto_now_add=True)
     duration = models.CharField(max_length=100)
     price = models.CharField(max_length=100)
 
     class Meta:
         db_table = 'OtcBondPreDataMonths'
+        # managed = False
+
+
+class HowManyInterest(models.Model):
+    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
+    interest = models.IntegerField()
+    danger_degree = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'HowManyInterest'
+        # managed = False
+
+class OtcBondTrending(models.Model):
+    bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
+    YTM = models.CharField(max_length=100)
+    add_date = models.DateField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'OtcBondTrending'
+        # managed = False

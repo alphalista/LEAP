@@ -1,14 +1,15 @@
 from django.urls import path
-from .views import UserViewSet
+from .views import UsersViewSet
 
 urlpatterns = [
-    path('', UserViewSet.as_view({
+    path('', UsersViewSet.as_view({
         'get': 'list',
         'post': 'create',
-    })),
-    path('<str:pk>/', UserViewSet.as_view({
-        'delete': 'destroy',
         'put': 'update',
+    })),
+    path('<str:pk>/', UsersViewSet.as_view({
+        'delete': 'destroy',
+
         'patch': 'partial_update',
     }))
 ]

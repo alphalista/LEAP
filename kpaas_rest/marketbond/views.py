@@ -13,6 +13,7 @@ import copy
 
 import datetime
 
+from crawled_OtcBond.models import HowManyInterest
 from .models import (
     MarketBondCode,
     MarketBondIssueInfo,
@@ -25,7 +26,9 @@ from .models import (
     MarketBondInquireDailyPrice,
     MarketBondCmb,
     ClickCount, ET_Bond_Interest, Users,
-    ET_Bond_Holding, MarketBondPreDataDays, MarketBondPreDataWeeks, MarketBondPreDataMonths
+    ET_Bond_Holding, MarketBondPreDataDays, MarketBondPreDataWeeks, MarketBondPreDataMonths,
+    MarketBondHowManyInterest,
+    MarketBondTrending
 )
 
 from .serializer import (
@@ -44,9 +47,10 @@ from .serializer import (
     ET_Bond_Holding_Serializer,
     Market_Bond_Days_Serializer,
     Market_Bond_Weeks_Serializer,
-    Market_Bond_Months_Serializer
+    Market_Bond_Months_Serializer, MarketBondTrendingSerializer
 )
 
+from .filters import MarketBondCmbFilter
 
 from rest_framework import viewsets, status
 
@@ -57,6 +61,7 @@ class MarketBondCmbViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MarketBondCmb.objects.all()
     serializer_class = MarketBondCmbSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = MarketBondCmbFilter
     filterset_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__nice_crdt_grad_text']  # 정확한 값 매칭
     search_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name']  # 부분 문자열 검색
     ordering_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__srfc_inrt', 'inquire_price_data__bond_prpr', 'inquire_asking_price_data__bidp_rsqn1']  # 정렬 가능한 필드
@@ -99,7 +104,8 @@ class MarketBondViewSet(viewsets.ReadOnlyModelViewSet):
             }
 
             if issue_info_data and inquire_price_data and inquire_asking_price_data:
-                data['duration'] = {"duration": str(self.MacDuration(
+                # TODO 듀레이션 키값 수정
+                data['duration'] = {'duration':str(self.MacDuration(
                     issue_info_data.get('bond_int_dfrm_mthd_cd'),
                     float(issue_info_data.get('srfc_inrt')),
                     10000,
@@ -243,7 +249,7 @@ class ET_Bond_Interest_view(viewsets.ModelViewSet):
     serializer_class = ET_Bond_Interest_Serializer
     def get_queryset(self):
         # GET 요청일 때 user_id를 인수로 받습니다.
-        user_id = self.kwargs.get('user_id')
+        user_id = self.request.user.user_id
         target = ET_Bond_Interest.objects.filter(user_id=user_id)
         # target의 ET_Bond의 값은 ET_Bond의 id 값이 노출됨
         # 시리얼라이저의 to_representation()로 해결
@@ -254,8 +260,18 @@ class ET_Bond_Interest_view(viewsets.ModelViewSet):
         try:
             bond_instance = MarketBondCode.objects.get(code=data['bond_code'])
             data['bond_code'] = int(bond_instance.id)
+            data['user_id'] = request.user.user_id
+            ins = MarketBondHowManyInterest.objects.get(bond_code=bond_instance.id)
+            MarketBondHowManyInterest.objects.update_or_create(
+                bond_code=MarketBondCode.objects.get(code=data['bond_code']),
+                defaults={
+                    'interest': ins.interest + 1
+                }
+            )
         except MarketBondCode.DoesNotExist:
             return Response({"bond_code": "해당 bond_code가 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        except MarketBondHowManyInterest.DoesNotExist:
+            MarketBondHowManyInterest.objects.create(bond_code=MarketBondCode.objects.get(id=data['bond_code']), interest=1)
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -265,7 +281,7 @@ class ET_Bond_Interest_view(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         try:
             bond_instance = MarketBondCode.objects.get(code=self.kwargs.get('bond_code'))
-            instance = self.get_queryset().filter(user_id=self.kwargs.get('user_id')).filter(bond_code=bond_instance.id)
+            instance = self.get_queryset().filter(user_id=self.request.user.user_id).filter(bond_code=bond_instance.id)
             if instance:
                 self.perform_destroy(instance)
                 return Response(status=status.HTTP_204_NO_CONTENT)
@@ -282,7 +298,7 @@ class ET_Bond_Holding_view(viewsets.ModelViewSet):
     # GET은 성공
     def get_queryset(self):
         # GET 요청일 때 user_id를 인수로 받습니다.
-        user_id = self.kwargs.get('user_id')
+        user_id = self.request.user.user_id
         target = ET_Bond_Holding.objects.filter(user_id=user_id)
         # target의 ET_Bond의 값은 ET_Bond의 id 값이 노출됨
         # 시리얼라이저의 to_representation()로 해결
@@ -293,6 +309,7 @@ class ET_Bond_Holding_view(viewsets.ModelViewSet):
         try:
             bond_instance = MarketBondCode.objects.get(code=data['bond_code'])
             data['bond_code'] = int(bond_instance.id)
+            data['user_id'] = request.user.user_id
         except MarketBondCode.DoesNotExist:
             return Response({"bond_code": "해당 bond_code가 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.get_serializer(data=data)
@@ -339,3 +356,7 @@ class EtBondPreDataMonthsView(viewsets.ReadOnlyModelViewSet):
 
         day_instances = MarketBondPreDataMonths.objects.filter(bond_code=ins_id).order_by('add_date')
         return day_instances
+
+class MarketBondTrendingView(viewsets.ReadOnlyModelViewSet):
+    queryset = MarketBondTrending.objects.all()
+    serializer_class = MarketBondTrendingSerializer
