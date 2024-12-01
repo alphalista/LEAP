@@ -18,7 +18,7 @@ class TestUser(TestCase):
         response = requests.post('https://kauth.kakao.com/oauth/tokeninfo', data=data, headers=headers)
         sub = response.json().get('sub')
         email = response.json().get('email')
-        print('sub:', sub, 'email', email)
+        # print('sub:', sub, 'email', email)
         Users.objects.create(
             user_id=sub,
             email=email,

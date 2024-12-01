@@ -1,5 +1,5 @@
 from django.test import TestCase
-from .models import MarketBondCode, ET_Bond_Holding
+from .models import MarketBondCode, ET_Bond_Holding, ET_Bond_Interest
 from usr.models import Users
 from usr.tests import TestUser
 import json
@@ -33,3 +33,16 @@ class MarketBondsTest(TestCase):
         id = ET_Bond_Holding.objects.get(bond_code=ins).id
         response = self.client.delete(f'/api/marketbond/holding/{id}/', content_type='application/json', **headers)
         self.assertEqual(response.status_code, 204)
+
+    def test_interest(self):
+        headers = TestUser.Authorization_header
+        response = self.client.get('/api/marketbond/interest/', **headers)
+        self.assertEqual(response.status_code, 200)
+        data = {
+            'bond_code': 'KR123'
+        }
+        response = self.client.post('/api/marketbond/interest/', content_type='application/json', data=json.dumps(data), **headers)
+        self.assertEqual(response.status_code, 201)
+        response = self.client.delete('/api/marketbond/interest/KR123/', content_type='application/json', **headers)
+        self.assertEqual(response.status_code, 204)
+
