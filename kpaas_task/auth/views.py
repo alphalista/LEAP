@@ -19,7 +19,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 def kakao_callback(request):
     code = request.GET.get('code')
-    redirect_uri = 'http://127.0.0.1:8000/auth/login/kakao-callback'
+    redirect_uri = 'http://localhost:3000/auth/login/kakao-callback'
     url = 'https://kauth.kakao.com/oauth/token'
     
     headers = {
@@ -89,8 +89,8 @@ def createUser(id_token):
     response = requests.post('https://kauth.kakao.com/oauth/tokeninfo', data=data, headers=headers)
     if response.status_code == 200:
         # 여기서부터 유저를 만들면 됨
-        sub = id_token.json().get('sub')
-        email = id_token.json().get('email')
+        sub = response.json().get('sub')
+        email = response.json().get('email')
 
         instance = Users.objects.filter(user_id=sub)
         if not instance:

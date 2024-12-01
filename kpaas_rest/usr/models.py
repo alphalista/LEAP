@@ -9,4 +9,3 @@ class Users(AbstractUser):
 
     class Meta:
         db_table = 'users'
-        managed = False
