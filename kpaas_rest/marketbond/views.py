@@ -307,6 +307,7 @@ class ET_Bond_Holding_view(viewsets.ModelViewSet):
         try:
             bond_instance = MarketBondCode.objects.get(code=data['bond_code'])
             data['bond_code'] = int(bond_instance.id)
+            data['user_id'] = request.user.user_id
         except MarketBondCode.DoesNotExist:
             return Response({"bond_code": "해당 bond_code가 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.get_serializer(data=data)
