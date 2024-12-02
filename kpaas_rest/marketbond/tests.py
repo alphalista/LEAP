@@ -186,13 +186,14 @@ class MarketBondsTest(TestCase):
 
     def test_interest(self):
         headers = TestUser.Authorization_header
-        response = self.client.get('/api/marketbond/interest/', **headers)
-        self.assertEqual(response.status_code, 200)
         data = {
             'bond_code': 'KR101501DA57'
         }
         response = self.client.post('/api/marketbond/interest/', content_type='application/json', data=json.dumps(data), **headers)
         self.assertEqual(response.status_code, 201)
+        response = self.client.get('/api/marketbond/interest/', **headers)
+        self.assertEqual(response.status_code, 200)
+        # print('interest data:', response.json())
         response = self.client.delete('/api/marketbond/interest/KR101501DA57/', content_type='application/json', **headers)
         self.assertEqual(response.status_code, 204)
 

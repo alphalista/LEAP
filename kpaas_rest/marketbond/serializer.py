@@ -189,6 +189,14 @@ class ET_Bond_Interest_Serializer(serializers.ModelSerializer):
         bond_info = instance.bond_code
         data.pop('bond_code')
         data['bond_code'] = bond_info.code
+        id = MarketBondCode.objects.get(id=bond_info.id)
+        ins_data = {
+            'code': id,
+            'issue_info_data': MarketBondIssueInfo.objects.get(code=id),
+            'inquire_price_data': MarketBondInquirePrice.objects.get(code=id),
+            'inquire_asking_price_data': MarketBondInquireAskingPrice.objects.get(code=id.id)
+        }
+        data['meta'] = MarketBondCmbSerializer(ins_data).data
         return data
 
     # def validate_bond_code(self, value):
