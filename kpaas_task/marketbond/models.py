@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import UniqueConstraint
+from usr.models import Users
 
 
 # Create your models here.
@@ -514,3 +515,29 @@ class MarketBondTrending(models.Model):
     bond_name = models.CharField(max_length=200)
     YTM = models.CharField(max_length=100)
     add_date = models.DateField(auto_now_add=True)
+
+class ET_Bond_Holding(models.Model):
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    price_per_10 = models.CharField(max_length=100) # 1만원 채권당 매수단가
+    quantity = models.CharField(max_length=100)
+    purchase_date = models.CharField(max_length=100)
+    expire_date = models.DateField()
+    class Meta:
+        db_table = 'ET_Bond_Holding'
+        unique_together = ('user_id', 'bond_code', 'price_per_10')
+
+class ET_Bond_Interest(models.Model):
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
+    # pk가 id이기 때문에 칼럼에는 id가 들어옵니다.
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user_id', 'bond_code')
+        db_table = 'ET_Bond_Interest'
+
+class ET_Bond_Expired(models.Model): # ReadOnly
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    class Meta:
+        db_table = 'ET_Bond_Expired'

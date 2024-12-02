@@ -1,5 +1,6 @@
 from django.test import TestCase
-from .models import MarketBondCode, ET_Bond_Holding, ET_Bond_Interest, MarketBondIssueInfo, MarketBondInquireAskingPrice, MarketBondInquirePrice
+from .models import MarketBondCode, ET_Bond_Holding, ET_Bond_Interest, MarketBondIssueInfo, \
+    MarketBondInquireAskingPrice, MarketBondInquirePrice, ET_Bond_Expired
 from usr.models import Users
 from usr.tests import TestUser
 import json
@@ -161,6 +162,7 @@ class MarketBondsTest(TestCase):
             bond_mxpr="13463.70",
             bond_llam="7249.70"
         )
+
 
     def test_holding(self):
         headers = TestUser.Authorization_header
