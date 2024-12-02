@@ -87,6 +87,7 @@ class OtcBondPreDataMonths(models.Model):
 # 장외 채권 트렌딩 채권 저장 모델입니다. (Managed)
 class OtcBondTrending(models.Model):
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
+    bond_name = models.CharField(max_length=200)
     YTM = models.CharField(max_length=100)
     add_date = models.DateField(auto_now_add=True)
 

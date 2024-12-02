@@ -19,7 +19,8 @@ from .views import (
     EtBondPreDataDaysView,
     EtBondPreDataWeeksView,
     EtBondPreDataMonthsView,
-    MarketBondTrendingView
+    MarketBondTrendingView,
+    MarketBondExpiredView
 )
 
 router = DefaultRouter()
@@ -66,6 +67,9 @@ urlpatterns = [
         'get': 'list',
     })),
     path('trending/', MarketBondTrendingView.as_view({
+        'get': 'list',
+    })),
+    path('expired/', MarketBondExpiredView.as_view({
         'get': 'list',
     }))
 ]
