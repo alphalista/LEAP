@@ -121,6 +121,7 @@ def otc_bond_trending_pipeline():
         OtcBondTrending.objects.update_or_create(
             bond_code=each,
             defaults={
+                'bond_name': each.prdt_name,
                 'YTM': each.YTM
             }
         )
@@ -129,6 +130,7 @@ def otc_bond_trending_pipeline():
         OtcBondTrending.objects.update_or_create(
             bond_code=each,
             defaults={
+                'bond_name': each.bond_code.prdt_name,
                 'YTM': each.bond_code.YTM
             }
         )
