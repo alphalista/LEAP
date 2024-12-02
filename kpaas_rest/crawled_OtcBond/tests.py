@@ -43,10 +43,7 @@ class TestOtcBond(TestCase):
         response = self.client.get('/api/otcbond/expired/', **headers)
         self.assertEqual(response.status_code, 200)
     def test_holding(self):
-        # get Test
         headers = TestOtcBond.Authorization_header
-        response = self.client.get('/api/otcbond/holding/', **headers)
-        self.assertEqual(response.status_code, 200)
         # post Test
         data = {
             'bond_code': 'KR6029272E17',
@@ -57,6 +54,10 @@ class TestOtcBond(TestCase):
         }
         response = self.client.post('/api/otcbond/holding/', content_type='application/json', data=json.dumps(data), **headers)
         self.assertEqual(response.status_code, 201)
+        # GET Test
+        response = self.client.get('/api/otcbond/holding/', **headers)
+        self.assertEqual(response.status_code, 200)
+        print(response.json())
         # delete Test
         ins = OTC_Bond.objects.get(code='KR6029272E17')
         id = OTC_Bond_Holding.objects.get(bond_code=ins).id
@@ -82,9 +83,9 @@ class TestOtcBond(TestCase):
         # GET 요청 테스트
         response = self.client.get('/api/otcbond/interest/', **headers)
         self.assertEqual(response.status_code, 200)
-        print(response.json())
+        # print(response.json())
         # DELETE 요청테스트
         id = OTC_Bond_Interest.objects.get(bond_code='KR6029272E17').id
-        print(id)
+        # print(id)
         response = self.client.delete(f'/api/otcbond/interest/{id}/', **headers)
         self.assertEqual(response.status_code, 204)

@@ -25,11 +25,19 @@ class OTC_Bond_Holding_Serializer(serializers.ModelSerializer):
     class Meta:
         model = OTC_Bond_Holding
         fields = '__all__'
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['meta'] = OTC_Bond_Serializer(OTC_Bond.objects.get(code=data['bond_code'])).data
+        return data
 
 class OTC_Bond_Expired_Serializer(serializers.ModelSerializer):
     class Meta:
         model = OTC_Bond_Expired
         fields = '__all__'
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['meta'] = OTC_Bond_Serializer(OTC_Bond.objects.get(code=data['bond_code'])).data
+        return data
 
 class OTC_Bond_Days_Serializer(serializers.ModelSerializer):
     class Meta:
