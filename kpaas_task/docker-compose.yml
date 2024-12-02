@@ -15,6 +15,60 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - TZ=Asia/Seoul
 
+    networks:
+      - app_network
+
+  celery-flower:
+    image: sungmin330/kpaas_task:latest
+    command: celery -A config flower
+    ports:
+      - "5555:5555"
+    depends_on:
+      - nginx
+      - db
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks:
+      - app_network
+
+  celery-beat:
+    image: sungmin330/kpaas_task:latest
+    command: celery -A config beat
+
+    depends_on:
+      - nginx
+      - db
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks:
+      - app_network
+
+  celery-worker:
+    image: sungmin330/kpaas_task:latest
+    command: celery -A config worker
+    depends_on:
+      - nginx
+      - db
+      - redis
+      - celery-beat
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks:
+      - app_network
+
+  flutter:
+    image: 47813/fltr:latest
+    ports:
+      - "8080:80"
+    depends_on:
+      - nginx
+    networks:
+      - app_network
   db:
     image: mysql
     restart: always
