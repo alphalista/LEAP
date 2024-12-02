@@ -473,10 +473,15 @@ class MarketBondInquireDailyPrice(models.Model):
 
 class MarketBondCmb(models.Model):
     # You can adjust these fields based on the actual fields you need from the other models
-    code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE, unique=True)
     issue_info_data = models.ForeignKey(MarketBondIssueInfo, on_delete=models.CASCADE)
     inquire_price_data = models.ForeignKey(MarketBondInquirePrice, on_delete=models.CASCADE)
     inquire_asking_price_data = models.ForeignKey(MarketBondInquireAskingPrice, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['code'], name='unique_marketbondcmb_code')
+        ]
 
 class MarketBondPreDataDays(models.Model):
     bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
