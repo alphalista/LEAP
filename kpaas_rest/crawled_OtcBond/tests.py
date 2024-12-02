@@ -1,5 +1,6 @@
 from django.test import TestCase
 
+from .models import OTC_Bond_Interest
 from .models import OTC_Bond_Holding
 from usr.models import Users
 from usr.tests import TestUser
@@ -69,3 +70,21 @@ class TestOtcBond(TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get('/api/otcbond/months/KR6029272E17/')
         self.assertEqual(response.status_code, 200)
+
+    def test_interest(self):
+        # POST 요청 Test
+        headers = TestOtcBond.Authorization_header
+        data = {
+            'bond_code': 'KR6029272E17'
+        }
+        response = self.client.post('/api/otcbond/interest/', content_type='application/json', data=json.dumps(data), **headers)
+        self.assertEqual(response.status_code, 201)
+        # GET 요청 테스트
+        response = self.client.get('/api/otcbond/interest/', **headers)
+        self.assertEqual(response.status_code, 200)
+        print(response.json())
+        # DELETE 요청테스트
+        id = OTC_Bond_Interest.objects.get(bond_code='KR6029272E17').id
+        print(id)
+        response = self.client.delete(f'/api/otcbond/interest/{id}/', **headers)
+        self.assertEqual(response.status_code, 204)

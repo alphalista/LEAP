@@ -16,6 +16,10 @@ class OTC_Bond_Interest_Serializer(serializers.ModelSerializer):
     class Meta:
         model = OTC_Bond_Interest
         fields = '__all__'
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['meta'] = OTC_Bond_Serializer(OTC_Bond.objects.get(code=data['bond_code'])).data
+        return data
 
 class OTC_Bond_Holding_Serializer(serializers.ModelSerializer):
     class Meta:
