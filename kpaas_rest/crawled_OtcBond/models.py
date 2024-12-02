@@ -96,6 +96,7 @@ class HowManyInterest(models.Model):
 
 class OtcBondTrending(models.Model):
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
+    bond_name = models.CharField(max_length=200)
     YTM = models.CharField(max_length=100)
     add_date = models.DateField(auto_now_add=True)
 

@@ -57,7 +57,9 @@ class OTC_Bond_Interest_view(viewsets.ModelViewSet):
             )
         except HowManyInterest.DoesNotExist:
             HowManyInterest.objects.create(bond_code=OTC_Bond.objects.get(code=request.data.get('bond_code')), interest=1)
-        serializer = OTC_Bond_Interest_Serializer(data=request.data)
+        data = request.data.copy()
+        data['user_id'] = request.user.user_id
+        serializer = OTC_Bond_Interest_Serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
