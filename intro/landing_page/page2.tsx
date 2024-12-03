@@ -19,18 +19,18 @@ const tasks = [
 export function Page2() {
   return (
   <div className="h-screen flex items-center justify-center snap-start">
-    <div className="flex">
-      <div>
-        <MemberCard name="성민" description="설명" tasks={tasks} style={{ margin: '3.6rem' }}/>
+    <div className="flex justify-evenly">
+      <div className="px-4">
+        <MemberCard name="성민" description="설명" tasks={tasks} style={{  }}/>
       </div>
-      <div>
-        <MemberCard name="성민" description="설명" tasks={tasks} style={{ margin: '3.6rem' }}/>
+      <div className="px-4">
+        <MemberCard name="성민" description="설명" tasks={tasks} style={{  }}/>
       </div>
-      <div>
-        <MemberCard name="성민" description="설명" tasks={tasks} style={{ margin: '3.6rem' }}/>
+      <div className="px-4">
+        <MemberCard name="성민" description="설명" tasks={tasks} style={{  }}/>
       </div>
-      <div>
-        <MemberCard name="성민" description="설명" tasks={tasks} style={{ margin: '3.6rem' }}/>
+      <div className="px-4">
+        <MemberCard name="성민" description="설명" tasks={tasks} style={{  }}/>
       </div>
     </div>
   </div>

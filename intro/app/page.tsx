@@ -23,8 +23,10 @@ export default function Home() {
     setIsScrolling(true);
 
     const current = e.deltaY > 0 ? 1 : -1;
-    const currentIndex = sectionRefs.findIndex(ref => ref.current && ref.current.getBoundingClientRect().top === 0);
-    const nextIndex = Math.min(Math.max(currentIndex + current, 0), sectionRefs.length - 1);
+    const currentIndex = sectionRefs.findIndex(ref => {
+      const top = ref.current?.getBoundingClientRect().top || 0;
+      return Math.abs(top) < 300; // Allow a margin of error( 가로가 작은 스크린 호환 )
+    });    const nextIndex = Math.min(Math.max(currentIndex + current, 0), sectionRefs.length - 1);
     const nextSection = sectionRefs[nextIndex]?.current;
 
     if (nextSection) {

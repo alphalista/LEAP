@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import leap_icon from '../public/leap_white.svg'
+import main_page from '../public/main_page.svg'
 
 
 export function Page1() {
@@ -16,6 +17,19 @@ export function Page1() {
           style={{
             width: '40%', 
             height:'90%', 
+            objectFit: 'cover', 
+            objectPosition: 'center'
+          }}
+        />
+                <Image
+          src={main_page}
+          alt="v13 image"
+          className="flex"
+          width="500"
+          height="100"
+          style={{
+            width: '12%', 
+            height:'100%', 
             objectFit: 'cover', 
             objectPosition: 'center'
           }}
