@@ -4,7 +4,8 @@
 from celery import shared_task
 from marketbond.kib_api.collect_kis_data import CollectMarketBond, CollectMarketCode
 from marketbond.models import MarketBondCode, MarketBondIssueInfo, MarketBondInquirePrice, MarketBondInquireAskingPrice, \
-    MarketBondCmb, MarketBondPreDataDays, MarketBondPreDataMonths, MarketBondPreDataWeeks, MarketBondTrending, MarketBondHowManyInterest
+    MarketBondCmb, MarketBondPreDataDays, MarketBondPreDataMonths, MarketBondPreDataWeeks, MarketBondTrending, MarketBondHowManyInterest, \
+    ET_Bond_Holding, ET_Bond_Expired
 from django.db import transaction
 
 from .serializer import MarketBondIssueInfoSerializer, MarketBondInquirePriceSerializer, \
@@ -117,7 +118,7 @@ def market_bond_inquire_price():
     try:
         pdno_list = list(MarketBondCode.objects.values_list('code', flat=True))
         for pdno in pdno_list:
-            fetch_market_bond_inquire_price.delay(pdno)  # Use .delay() to enqueue tasks
+            fetch_market_bond_inquire_price(pdno)  # Use .delay() to enqueue tasks
     except Exception as e:
         print(e)
 
@@ -350,3 +351,13 @@ def marketbond_trending_pipeline(): # 장내 채권 트렌딩 파이프라인 �
                 'YTM': each.bond_code.YTM
             }
         )
+
+@shared_task
+def holding_to_expired():
+    expired = ET_Bond_Holding.objects.filter(expire_date__lt=timezone.now())
+    for instance in expired:
+        ET_Bond_Expired.objects.create(
+            user_id=instance.user_id,
+            bond_code=instance.bond_code,
+        )
+    expired.delete()

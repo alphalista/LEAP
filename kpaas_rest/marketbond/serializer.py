@@ -16,7 +16,8 @@ from .models import (
     ClickCount, ET_Bond_Interest, ET_Bond_Holding,
     MarketBondPreDataDays, MarketBondPreDataWeeks, MarketBondPreDataMonths,
     MarketBondHowManyInterest,
-    MarketBondTrending
+    MarketBondTrending,
+    ET_Bond_Expired
 )
 
 
@@ -103,13 +104,14 @@ class MarketBondCmbSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['duration'] = self.MacDuration(
+        data['duration'] = {'duration': str(self.MacDuration(
             data['issue_info_data']['bond_int_dfrm_mthd_cd'],
             float(data['issue_info_data']['bond_int_dfrm_mthd_cd']),
             10000,
-            float(data['inquire_price_data']['expd_dt']),
+            float(data['inquire_asking_price_data']['seln_ernn_rate5']),
+            data['issue_info_data']['expd_dt'],
             int(data['issue_info_data']['int_dfrm_mcnt'])
-        )
+        ))}
         return data
 
     # 인자 매핑
@@ -188,6 +190,14 @@ class ET_Bond_Interest_Serializer(serializers.ModelSerializer):
         bond_info = instance.bond_code
         data.pop('bond_code')
         data['bond_code'] = bond_info.code
+        id = MarketBondCode.objects.get(id=bond_info.id)
+        ins_data = {
+            'code': id,
+            'issue_info_data': MarketBondIssueInfo.objects.get(code=id),
+            'inquire_price_data': MarketBondInquirePrice.objects.get(code=id),
+            'inquire_asking_price_data': MarketBondInquireAskingPrice.objects.get(code=id.id)
+        }
+        data['meta'] = MarketBondCmbSerializer(ins_data).data
         return data
 
     # def validate_bond_code(self, value):
@@ -204,9 +214,17 @@ class ET_Bond_Interest_Serializer(serializers.ModelSerializer):
 class ET_Bond_Holding_Serializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        bond_info = instance.bond_code
+        bond_info = instance.bond_code # bond_info: 코드 원본 모델
         data.pop('bond_code')
         data['bond_code'] = bond_info.code
+        id = MarketBondCode.objects.get(id=bond_info.id)
+        ins_data = {
+            'code': id,
+            'issue_info_data': MarketBondIssueInfo.objects.get(code=id),
+            'inquire_price_data': MarketBondInquirePrice.objects.get(code=id),
+            'inquire_asking_price_data': MarketBondInquireAskingPrice.objects.get(code=id.id)
+        }
+        data['meta'] = MarketBondCmbSerializer(ins_data).data
         return data
 
     class Meta:
@@ -233,3 +251,23 @@ class MarketBondTrendingSerializer(serializers.ModelSerializer):
     class Meta:
         model = MarketBondTrending
         fields = '__all__'
+
+class MarketBondExpiredSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ET_Bond_Expired
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        bond_info = instance.bond_code  # bond_info: 코드 원본 모델
+        data.pop('bond_code')
+        data['bond_code'] = bond_info.code
+        id = MarketBondCode.objects.get(id=bond_info.id)
+        ins_data = {
+            'code': id,
+            'issue_info_data': MarketBondIssueInfo.objects.get(code=id),
+            'inquire_price_data': MarketBondInquirePrice.objects.get(code=id),
+            'inquire_asking_price_data': MarketBondInquireAskingPrice.objects.get(code=id.id)
+        }
+        data['meta'] = MarketBondCmbSerializer(ins_data).data
+        return data

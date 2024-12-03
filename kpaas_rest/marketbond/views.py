@@ -4,7 +4,8 @@ from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import OuterRef, Subquery, CharField
 from typing import Any
-
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from rest_framework import generics
 
 import copy
@@ -27,7 +28,8 @@ from .models import (
     ClickCount, ET_Bond_Interest, Users,
     ET_Bond_Holding, MarketBondPreDataDays, MarketBondPreDataWeeks, MarketBondPreDataMonths,
     MarketBondHowManyInterest,
-    MarketBondTrending
+    MarketBondTrending,
+    ET_Bond_Expired
 )
 
 from .serializer import (
@@ -46,7 +48,8 @@ from .serializer import (
     ET_Bond_Holding_Serializer,
     Market_Bond_Days_Serializer,
     Market_Bond_Weeks_Serializer,
-    Market_Bond_Months_Serializer, MarketBondTrendingSerializer
+    Market_Bond_Months_Serializer, MarketBondTrendingSerializer,
+    MarketBondExpiredSerializer
 )
 
 from .filters import MarketBondCmbFilter
@@ -368,3 +371,11 @@ class EtBondPreDataMonthsView(viewsets.ReadOnlyModelViewSet):
 class MarketBondTrendingView(viewsets.ReadOnlyModelViewSet):
     queryset = MarketBondTrending.objects.all()
     serializer_class = MarketBondTrendingSerializer
+
+class MarketBondExpiredView(viewsets.ReadOnlyModelViewSet):
+    serializer_class = MarketBondExpiredSerializer
+    def get_queryset(self):
+        user_id = self.request.user.user_id
+        print('test:', user_id)
+        target = ET_Bond_Expired.objects.filter(user_id=user_id)
+        return target

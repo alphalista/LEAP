@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:kpaas_flutter/etBondDescription.dart';
+import 'package:kpaas_flutter/DescriptionPage/etBondDescription.dart';
 import 'package:kpaas_flutter/MyPage/myPage_main.dart';
 import 'package:get/get.dart';
 import '../apiconnectiontest/data_controller.dart';
-import 'package:kpaas_flutter/dialog.dart';
+import 'package:kpaas_flutter/DescriptionPage/dialog.dart';
 
 class EtBondPage extends StatefulWidget {
   final List<dynamic> initialBondData;
@@ -21,6 +21,7 @@ class _EtBondPageState extends State<EtBondPage> {
   List<dynamic> bondData = [];
   String? nextUrl;
   bool isLoading = false;
+  String searchQuery = "";
 
   final List<Map<String, dynamic>> buttonData = [
     {
@@ -54,6 +55,32 @@ class _EtBondPageState extends State<EtBondPage> {
       'hasSelected': false,
     },
   ];
+
+  Future<void> _fetchBondData({String query = ""}) async {
+    setState(() {
+      isLoading = true; // 로딩 상태 설정
+    });
+
+    try {
+      final dataController = Get.find<DataController>();
+      final String url = query.isNotEmpty
+          ? "http://localhost:8000/api/marketbond/combined/?search=$query"
+          : "http://localhost:8000/api/marketbond/combined/";
+
+      final response = await dataController.fetchEtBondData(url);
+
+      setState(() {
+        bondData = response['results'] ?? []; // 데이터를 업데이트
+        nextUrl = response['next'] ?? ''; // 다음 URL 업데이트
+      });
+    } catch (e) {
+      print("Error fetching bond data: $e");
+    } finally {
+      setState(() {
+        isLoading = false; // 로딩 상태 해제
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -211,7 +238,12 @@ class _EtBondPageState extends State<EtBondPage> {
                   filled: true,
                   fillColor: Colors.white,
                 ),
-                onChanged: (query) {},
+                onChanged: (query) {
+                  setState(() {
+                    searchQuery = query;
+                    _fetchBondData(query: searchQuery);
+                  });
+                },
               ),
             ),
           ),
@@ -347,7 +379,7 @@ class _EtBondPageState extends State<EtBondPage> {
                                       ),
                                     ),
                                     Text(
-                                      bondData[actualIndex]['bond_avrg_drtn_val'] ?? "N/A",  // 듀레이션
+                                      "${bondData[actualIndex]['duration']['duration']}년" ?? "N/A",
                                       style: const TextStyle(
                                         fontSize: 20,
                                         color: Colors.black,
@@ -462,76 +494,3 @@ class _EtBondPageState extends State<EtBondPage> {
     }
   }
 }
-
-/// 주어진 액면가와 이자율 및 이자 지급 주기에 따른 회당 이자를 계산하는 함수입니다.
-double interestMoney(double faceValue, double percent, int intCycle) {
-  return faceValue * (percent * 0.01) / (12 / intCycle);
-}
-
-/// 차기 이자 지급일부터 만기일까지 남은 이자 지급 기간을 계산하는 함수입니다.
-int getRemainingInterestPeriod(
-    String nextInterestDate, String maturityDate, int interestCyclePeriod) {
-  int count = 0;
-
-  // 연, 월, 일을 넣습니다. 이자 지급일자와 만기일자는 같기 때문에 일수는 1로 가정합니다.
-  DateTime nextInterestDateTime =
-  DateTime.parse(nextInterestDate.substring(0, 6) + '01');
-  DateTime maturityDateTime =
-  DateTime.parse(maturityDate.substring(0, 6) + '01');
-
-  // 만기 달을 넘어설 때까지 계속 더해나갑니다.
-  while (nextInterestDateTime.isBefore(maturityDateTime) ||
-      nextInterestDateTime.isAtSameMomentAs(maturityDateTime)) {
-    nextInterestDateTime =
-        nextInterestDateTime.add(Duration(days: 30 * interestCyclePeriod));
-    count += 1;
-  }
-  return count;
-}
-
-/// 채권 하나 당 수익금을 계산하는 함수입니다.
-///
-/// - [positionMode]: 자료형: int, 매수 또는 매도 포지션을 말하며 0은 매수, 1은 매도 포지션입니다.
-/// - [pricePer10]: 자료형: int, 채권 10,000원 수량, 즉 액면가 10,000원 당 매수 가격을 말합니다.
-/// - [purCnt]: 자료형: int, 채권 수량(단위: 천원)을 말합니다.
-/// - [interestPercent]: 자료형: double, 이자율을 말합니다.
-/// - [matDate]: 자료형: String(YYYYmmdd 형식), 예) "20240103". 만기일 또는 계산 목표일을 말합니다.
-/// - [nxtInterestDate]: 자료형: String(YYYYmmdd 형식), 예) "20240103". 차기 이자 지급일을 말합니다.
-/// - [interestCyclePeriod]: 자료형: int, 이자 지급 주기를 월 단위로 말합니다.
-/// - [isMat]: 자료형: bool, 만기일 기준으로 계산할지 여부를 나타냅니다.
-/// - [sellPrice]: 자료형: int, 매도 포지션 한정 인수이며, 매도 가격을 말합니다.
-///
-/// @return 자료형: double, 소수점 2자리까지 표기된 예상 수익금이 반환됩니다.
-
-double exptIncome(
-    int positionMode,
-    double pricePer10,
-    int purCnt,
-    double interestPercent,
-    String matDate,
-    String nxtInterestDate,
-    int interestCyclePeriod,
-    bool isMat,
-    [double sellPrice = 0]) {
-  double faceValue = purCnt * 1000;
-  double price = pricePer10 * purCnt / 10;
-  int remainingInterestPeriod =
-  getRemainingInterestPeriod(nxtInterestDate, matDate, interestCyclePeriod);
-  double interest =
-  interestMoney(faceValue, interestPercent, interestCyclePeriod); // 회당 이자
-  double totInterest = interest * remainingInterestPeriod;
-  double tax = interest * 0.154 * remainingInterestPeriod;
-
-  // 현재 대비 수익 계산
-  if (positionMode == 0) {
-    // 매수
-    return double.parse(
-        (isMat ? faceValue + totInterest - tax - price : totInterest - tax)
-            .toStringAsFixed(2));
-  } else {
-    // 매도: 매매 차익 + 이자
-    return double.parse(
-        (sellPrice + totInterest - tax - price).toStringAsFixed(2));
-  }
-}
-

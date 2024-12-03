@@ -23,7 +23,10 @@ urlpatterns = [
             'post': 'create',       # 새 인스턴스 생성
             'put': 'update',        # 전체 업데이트
             'patch': 'partial_update',  # 부분 업데이트
-            'delete': 'destroy'     # 삭제
+            # 'delete': 'destroy'     # 삭제
+    })),
+    path('interest/<int:pk>/', OTC_Bond_Interest_view.as_view({
+        'delete': 'destroy'
     })),
     path('expired/', OTC_Bond_Expired_view.as_view({
         'get': 'list'
