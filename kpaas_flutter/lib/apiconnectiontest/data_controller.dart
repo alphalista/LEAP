@@ -116,4 +116,43 @@ class DataController extends GetxController {
       isLoading(false);
     }
   }
+
+  Future<Map<String, dynamic>> fetchUserOtcBondData(String url, String idToken) async {
+    final dio = Dio();
+    isLoading(true); // 로딩 상태 시작
+    try {
+      // Dio GET 요청
+      final response = await dio.get(
+        url,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $idToken', // 헤더에 Authorization 추가
+          },
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data is Map) {
+        var data = response.data;
+        market_bond_code.assignAll(data['results']); // 데이터 업데이트
+        market_bond_nextPage.value = data['next'] ?? ''; // 다음 페이지 URL 저장
+        market_bond_prevPage.value = data['previous'] ?? ''; // 이전 페이지 URL 저장
+        return data; // 성공적으로 데이터를 반환
+      } else {
+        print('Failed to load market bond data'); // 요청 실패 로그
+        return {}; // 빈 데이터를 반환
+      }
+    } catch (e) {
+      // DioException을 처리
+      if (e is DioException) {
+        print('Error fetching otcBond data: ${e.message}');
+        print('Error status code: ${e.response?.statusCode}');
+        print('Error response data: ${e.response?.data}');
+      } else {
+        print('Unexpected error: $e'); // 기타 오류 처리
+      }
+      return {};
+    } finally {
+      isLoading(false); // 로딩 상태 종료
+    }
+  }
 }

@@ -24,6 +24,8 @@ dependencies:
   flutter_native_splash: ^2.4.1
   syncfusion_flutter_datagrid: ^21.2.10
   dotted_line: ^3.2.3
+  flutter_inappwebview: ^6.0.2
+  http: ^1.2.2
 
 flutter_native_splash:
   color: "#000000"

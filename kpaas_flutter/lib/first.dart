@@ -1,43 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
-import 'package:dio/dio.dart';
-import 'main.dart';
-
-Future<void> sendGetRequest(BuildContext context) async {
-  final Dio dio = Dio();
-
-  try {
-    // 카카오 계정으로 로그인 시도
-    OAuthToken token = await UserApi.instance.loginWithKakaoAccount();
-    print('카카오 계정으로 로그인 성공, 엑세스 토큰: ${token.accessToken}');
-
-    // 백엔드로 액세스 토큰 전송
-    final response = await dio.post(
-      'http://127.0.0.1:8000/auth/login/kakao-callback',  // Django 백엔드 엔드포인트
-      data: {
-        'access_token': token.accessToken,  // 액세스 토큰 전송
-      },
-    );
-
-    if (response.statusCode == 200) {
-      print('백엔드로부터 응답 수신: ${response.data}');
-    } else {
-      print('백엔드 요청 실패: ${response.statusCode}');
-    }
-  } catch (error) {
-    print('카카오 계정으로 로그인 실패 $error');
-  }
-
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (context) => MainPage()), // 메인 페이지로 이동
-  );
-}
-
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:flutter_native_splash/flutter_native_splash.dart';
+// import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+// import 'package:dio/dio.dart';
+// import 'main.dart';
+import 'dart:js' as js;
+import 'dart:html' as html;
 
 class MyFirstApp extends StatelessWidget {
+  final String nativeAppKey;
+  final String javaScriptAppKey;
+
+  MyFirstApp({required this.nativeAppKey, required this.javaScriptAppKey});
+
   @override
   Widget build(BuildContext context) {
     print("MyFirstApp 위젯이 렌더링되었습니다."); // 확인용 출력
@@ -63,6 +38,10 @@ class TabNavigationExample extends StatefulWidget {
 
 class _TabNavigationExampleState extends State<TabNavigationExample> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+
+  void loginWithKakaoWeb() {
+    js.context.callMethod('loginWithKakaoRedirect', []);
+  }
 
   @override
   void initState() {
@@ -250,7 +229,7 @@ class _TabNavigationExampleState extends State<TabNavigationExample> with Single
                 : Center(
               child: GestureDetector(
                 onTap: () {
-                  sendGetRequest(context);
+                  loginWithKakaoWeb();
                 },
                 child: const Text(
                   '카카오로 시작하기',

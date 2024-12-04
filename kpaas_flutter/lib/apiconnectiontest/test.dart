@@ -1,57 +1,81 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'data_controller.dart';
+import 'package:dio/dio.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final DataController dataController = Get.put(DataController());
-
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Market Bond Data'),
+      debugShowCheckedModeBanner: false,
+      home: ApiRequestPage(),
+    );
+  }
+}
+
+class ApiRequestPage extends StatefulWidget {
+  @override
+  _ApiRequestPageState createState() => _ApiRequestPageState();
+}
+
+class _ApiRequestPageState extends State<ApiRequestPage> {
+  String apiResponse = "데이터를 로드 중입니다...";
+
+  Future<void> fetchApiData(String idToken) async {
+    final dio = Dio();
+
+    try {
+      final response = await dio.get(
+        'http://localhost:8000/api/otcbond/interest',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $idToken', // 헤더에 Authorization 추가
+          },
         ),
-        body: Obx(() {
-          if (dataController.isLoading.value) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (dataController.market_bond_issue_info.isEmpty && dataController.market_bond_inquire_daily_price.isEmpty) {
-            return Center(child: Text('No Data Available'));
-          }
+      );
 
-          // 유효한 인덱스 확인 후 데이터 접근
-          int index1 = 0;  // 원하는 인덱스값
-          int index2 = 0;  // 원하는 인덱스값
+      if (response.statusCode == 200) {
+        setState(() {
+          apiResponse = response.data.toString(); // 받아온 데이터를 화면에 출력
+        });
+      } else {
+        setState(() {
+          apiResponse = '요청 실패: ${response.statusCode}';
+        });
+      }
+    } on DioError catch (dioError) {
+      setState(() {
+        apiResponse = '오류 발생: ${dioError.message}';
+      });
+    } catch (error) {
+      setState(() {
+        apiResponse = '예기치 못한 오류 발생: $error';
+      });
+    }
+  }
 
-          if (dataController.market_bond_issue_info.length > index1 &&
-              dataController.market_bond_inquire_daily_price.length > index2) {
-            var data1 = dataController.market_bond_issue_info[index1];  // market_bond_issue_info의 특정 인덱스 값
-            var data2 = dataController.market_bond_inquire_daily_price[index2];  // market_bond_inquire_daily_price의 특정 인덱스 값
-
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Data from market_bond_issue_info at index $index1:'),
-                  Text('Code: ${data1['code'] ?? 'Unknown Code'}'),
-                  Text('Product Name: ${data1['prdt_name'] ?? 'N/A'}'),
-
-                  SizedBox(height: 20),
-
-                  Text('Data from market_bond_inquire_daily_price at index $index2:'),
-                  Text('Stock Bsop Date: ${data2['stck_bsop_date'] ?? 'N/A'}'),
-                  Text('Bond Prpr: ${data2['bond_prpr'] ?? 'N/A'}'),
-                  Text('Accumulated Volume: ${data2['acml_vol'] ?? 'N/A'}'),
-                ],
-              ),
-            );
-          } else {
-            return Center(child: Text('Invalid index or no data available at specified index.'));
-          }
-        }),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("API 데이터 요청")),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                // idToken을 전달해 데이터 요청
+                const idToken = "eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJlNmYyYjJhOGExNTFhMWNmN2FkNmRhMzQ5MTg5OTdmNSIsInN1YiI6IjM3Nzc1MTM2MTAiLCJhdXRoX3RpbWUiOjE3MzMyODUyMTAsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwiZXhwIjoxNzMzMzA2ODEwLCJpYXQiOjE3MzMyODUyMTAsImVtYWlsIjoiZGxlZUBzdHUuaWljcy5rMTIudHIifQ.VYMCPQNBYi4tAKnBM8pI2wHKd13DPN1Gw154Gfe4f0pDApJHe1JnocTFpzWanXgW4HwI5bDIiCVduiqkhTEOUP5X0xBtSjsynX529WOF2SEl-xgbvZAVRIKoShTdtxyfL5584vgVh3h8fidgYqWTAcHfYJdE6ZrU4ySubut0rK7J7juhmvirC5UHrd8PP3eyThy0TcCB9nAdqbOuGHpzMhXb0mqo3S18UVAwVbU0zsqNdD_TeXBLtBxuq1tA_9bTJYBEzg1Vir5NvYNAcXB-fr5krNoSLVCbqP9oLFkx5FwlfgG8C7rhb30JaQscIi3hGnGG-wVNsfw_yKpW_oN1xA"; // 실제 토큰 값으로 대체
+                fetchApiData(idToken);
+              },
+              child: Text("API 데이터 요청"),
+            ),
+            SizedBox(height: 20),
+            Text(apiResponse, textAlign: TextAlign.center),
+          ],
+        ),
       ),
     );
   }
