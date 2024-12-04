@@ -43,7 +43,21 @@ class OTC_Bond_Interest_view(viewsets.ModelViewSet):
     def get_queryset(self):
         user_id = self.request.user.user_id
         if user_id is not None:
-            return OTC_Bond_Interest.objects.filter(user_id=user_id)
+            ins = OTC_Bond_Interest.objects.filter(user_id=user_id)
+            ins_list = []
+            for each in ins:
+                ins_list.append(each.bond_code.code)
+            print(ins_list)
+            query = self.request.query_params.get('query')
+            if query:
+                bond_code_search = OTC_Bond.objects.filter(code__in=ins_list).filter(code__icontains=query)
+                prdt_name_search = OTC_Bond.objects.filter(code__in=ins_list).filter(prdt_name__icontains=query)
+                join = bond_code_search | prdt_name_search
+                return_list = []
+                for li in join:
+                    return_list.append(li.code)
+                return OTC_Bond_Interest.objects.filter(bond_code__in=return_list)
+            return ins
         return OTC_Bond_Interest.objects.all()
 
     def create(self, request, *args, **kwargs):
@@ -70,7 +84,20 @@ class OTC_Bond_Holding_view(viewsets.ModelViewSet):
     def get_queryset(self):
         user_id = self.request.user.user_id
         if user_id is not None:
-            return OTC_Bond_Holding.objects.filter(user_id=user_id)
+            ins = OTC_Bond_Holding.objects.filter(user_id=user_id)
+            ins_list = []
+            for each in ins:
+                ins_list.append(each.bond_code.code)
+            query = self.request.query_params.get('query')
+            if query:
+                bond_code_search = OTC_Bond.objects.filter(code__in=ins_list).filter(code__icontains=query)
+                prdt_name_search = OTC_Bond.objects.filter(code__in=ins_list).filter(prdt_name__icontains=query)
+                join = bond_code_search | prdt_name_search
+                return_list = []
+                for li in join:
+                    return_list.append(li.code)
+                return OTC_Bond_Holding.objects.filter(bond_code__in=return_list)
+            return ins
         return OTC_Bond_Holding.objects.all()
 
     def destroy(self, request, *args, **kwargs):
@@ -96,7 +123,20 @@ class OTC_Bond_Expired_view(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         user_id = self.request.user.user_id
         if user_id is not None:
-            return OTC_Bond_Expired.objects.filter(user_id=user_id)
+            ins = OTC_Bond_Expired.objects.filter(user_id=user_id)
+            ins_list = []
+            for each in ins:
+                ins_list.append(each.bond_code.code)
+            query = self.request.query_params.get('query')
+            if query:
+                bond_code_search = OTC_Bond.objects.filter(code__in=ins_list).filter(code__icontains=query)
+                prdt_name_search = OTC_Bond.objects.filter(code__in=ins_list).filter(prdt_name__icontains=query)
+                join = bond_code_search | prdt_name_search
+                return_list = []
+                for li in join:
+                    return_list.append(li.code)
+                return OTC_Bond_Expired.objects.filter(bond_code__in=return_list)
+            return ins
         return OTC_Bond_Expired.objects.all()
 
 class OTC_Bond_Days_View(viewsets.ReadOnlyModelViewSet):
