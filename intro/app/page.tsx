@@ -1,6 +1,8 @@
 'use client'
 import { Page1 } from '@/landing_page/page1'
 import { Page2 } from '@/landing_page/page2'
+import { Page3 } from '@/landing_page/page3'
+import { Page4 } from '@/landing_page/page4'
 
 
 import { useRef, useState, useEffect, useLayoutEffect } from 'react';
@@ -50,10 +52,10 @@ export default function Home() {
         <Page2 />
       </div>
       <div ref={sectionRefs[2]}>
-        <Page2 />
+        <Page3 />
       </div>
       <div ref={sectionRefs[3]}>
-        <Page2 />
+        <Page4 />
       </div>
     </div>
   );

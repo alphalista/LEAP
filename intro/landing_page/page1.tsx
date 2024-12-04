@@ -8,46 +8,64 @@ export function Page1() {
     <div className="h-screen snap-start">
       <div className="flex justify-start">
         <div style={{ width: '3.2%' }}></div>
-        <Image
-          src={leap_icon}
-          alt="v13 image"
-          className="flex"
-          width="500"
-          height="100"
-          style={{
-            width: '40%', 
-            height:'90%', 
-            objectFit: 'cover', 
-            objectPosition: 'center'
-          }}
-        />
-                <Image
-          src={main_page}
-          alt="v13 image"
-          className="flex"
-          width="500"
-          height="100"
-          style={{
-            width: '12%', 
-            height:'100%', 
-            objectFit: 'cover', 
-            objectPosition: 'center'
-          }}
-        />
-      </div>
-      <div className="flex">
+
+        {/* Left Section with Leap Icon and Text Below it */}
+        <div className="flex flex-col items-center">
+          <Image
+            src={leap_icon}
+            alt="Leap Icon representing our bond investment style"
+            width="500"
+            height="100"
+            style={{
+              width: '40vw', 
+              height: '90%', 
+              objectFit: 'contain', 
+              objectPosition: 'center'
+            }}
+          />
+          <p 
+            className="font-black"
+            style={{
+              fontSize: "clamp(1.2rem, 2.8vw, 5rem)",
+              color: "#f9fafb",
+              fontWeight: "900",
+              marginTop: '1rem'
+            }}
+          >
+            우리들의 채권 투자 스타일
+          </p>
+        </div>
+        
         <div style={{ width: '3.2%' }}></div>
-        <p 
-          className="font-black"
+        {/* Right Section with Main Image */}
+        <div
+          className="flex"
           style={{
-            fontSize: "clamp(1.2rem, 2.8vw, 5rem)",
-            color: "#f9fafb",
-            fontWeight: "900"
+            width: '45vw', 
+            display: 'flex',
+            flexWrap: 'wrap', // 줄 바꿈 허용
+            justifyContent: 'space-between', // 열 간격 균등 분배
+            alignItems: 'center', // 세로 정렬
+            gap: '1rem', // 요소 간 간격
+            transform: 'rotate(0deg)' // 원하는 회전 각도
           }}
-        >
-          우리들의 채권 투자 스타일
-        </p>
+          >
+          {[...Array(6)].map((_, index) => (
+            <Image
+              key={index}
+              src={main_page}
+              alt="Main image representing our investment philosophy"
+              width="500"
+              height="100"
+              style={{
+                width: '30%', // 한 줄에 3개씩 배치되도록 설정
+                objectFit: 'contain',
+                objectPosition: 'center'
+              }}
+            />
+          ))}
+        </div>
       </div>
     </div>
-  )
+  );
 }
