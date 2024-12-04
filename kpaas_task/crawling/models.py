@@ -109,3 +109,4 @@ class OTC_Bond_Interest(models.Model):
 
     class Meta:
         unique_together = ('user_id', 'bond_code')
+        db_table = 'OTC_Bond_Interest'
