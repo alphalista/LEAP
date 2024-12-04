@@ -34,7 +34,7 @@ class OTC_Bond_Interest(models.Model):
 
     class Meta:
         unique_together = ('user_id', 'bond_code')
-        # managed = False
+        db_table = 'OTC_Bond_Interest'
 
 class OTC_Bond_Holding(models.Model):
     user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
