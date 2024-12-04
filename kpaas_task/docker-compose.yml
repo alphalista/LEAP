@@ -81,6 +81,23 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     networks:
       - app_network
+  login-listen:
+    build: .
+    command: python manage.py runserver 0.0.0.0:3000 --settings=config.settings.production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - nginx
+      - db
+      - redis
+      - celery-beat
+    volumes:
+      - .:/code
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks:
+      - app_network
 
 #  flutter:
 #    image: 47813/fltr:latest
