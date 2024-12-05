@@ -19,6 +19,7 @@ Future<void> main() async {
   await dotenv.load(fileName: "assets/config/.env");
   final kakaoNativeAppKey = dotenv.env['KAKAO_NATIVE_APP_KEY'];
   final javaScriptAppKey = dotenv.env['KAKAO_JAVASCRIPT_APP_KEY'];
+  final idToken = dotenv.env['ID_TOKEN'];
 
   KakaoSdk.init(
     nativeAppKey: kakaoNativeAppKey!,
@@ -27,22 +28,27 @@ Future<void> main() async {
   runApp(MaterialApp(home: MainPage(
     // nativeAppKey: kakaoNativeAppKey,
     // javaScriptAppKey: javaScriptAppKey
+      idToken: idToken!
   )));
 }
 
 class MainPage extends StatelessWidget {
+  final String idToken;
+  const MainPage({Key? key, required this.idToken}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-
       home: Scaffold(
         backgroundColor: Colors.grey[300],
         body: Center(
           child: Container(
             width: 500,
             color: Colors.white,
-            child: MyHomePage(),
+            child: MyHomePage(
+              idToken: idToken
+            ),
           ),
         ),
       ),
@@ -50,7 +56,10 @@ class MainPage extends StatelessWidget {
   }
 }
 
+
 class MyHomePage extends StatefulWidget {
+  final String idToken;
+  const MyHomePage({Key? key, required this.idToken}) : super(key: key);
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
@@ -115,20 +124,29 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: _selectedIndex == 0
-          ? HomePage()
+          ? HomePage(
+          idToken: widget.idToken
+      )
           : _selectedIndex == 1
           ? EtBondPage(
         initialBondData: etBondData,
         initialNextUrl: nextEtBondUrl,
+          idToken: widget.idToken
       )
           : _selectedIndex == 2
           ? OtcBondPage(
         initialBondData: otcBondData,
         initialNextUrl: nextOtcBondUrl,
+          idToken: widget.idToken
       )
           : _selectedIndex == 3
-          ? CalculatorPage()
-          : NewsPage(newsData: newsData),
+          ? CalculatorPage(
+          idToken: widget.idToken
+      )
+          : NewsPage(
+          newsData: newsData,
+          idToken: widget.idToken
+      ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,

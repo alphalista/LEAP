@@ -7,6 +7,10 @@ import 'package:kpaas_flutter/CalculatorPage/otcBondCalculatorDescription.dart';
 import 'package:kpaas_flutter/CalculatorPage/otcBondCalculatorSearch.dart';
 
 class CalculatorPage extends StatefulWidget {
+  final String idToken;
+  const CalculatorPage({Key? key, required this.idToken}) : super(key: key);
+
+
   @override
   _CalculatorPageState createState() => _CalculatorPageState();
 }
@@ -80,7 +84,9 @@ class _CalculatorPageState extends State<CalculatorPage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => MyPage()),
+                MaterialPageRoute(builder: (context) => MyPage(
+                  idToken: widget.idToken,
+                )),
               );
             },
           ),
@@ -480,7 +486,10 @@ class _CalculatorPageState extends State<CalculatorPage> {
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => OtcBondCalculatorPage(bondData: bond),
+                          builder: (context) => OtcBondCalculatorPage(
+                              bondData: bond,
+                              idToken: widget.idToken,
+                          ),
                         ),
                       );
 

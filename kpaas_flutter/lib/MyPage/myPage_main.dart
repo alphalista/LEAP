@@ -3,18 +3,10 @@ import 'package:kpaas_flutter/MyPage/MatureBondDisplay.dart';
 import 'package:kpaas_flutter/MyPage/OwningBondDisplay.dart';
 import 'package:kpaas_flutter/MyPage/InterestBondDisplay.dart';
 
-void main() {
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: const MyPage(),
-    theme: ThemeData(
-      primarySwatch: Colors.blue,
-    ),
-  ));
-}
-
 class MyPage extends StatefulWidget {
-  const MyPage({Key? key}) : super(key: key);
+  final String idToken;
+  const MyPage({Key? key, required this.idToken}) : super(key: key);
+
 
   @override
   _MyPageState createState() => _MyPageState();
@@ -122,7 +114,9 @@ class _MyPageState extends State<MyPage> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const InterestBondDisplay()),
+                              MaterialPageRoute(builder: (context) => InterestBondDisplay(
+                                idToken: widget.idToken
+                              )),
                             );
                           },
                           child: const Row(
@@ -145,7 +139,9 @@ class _MyPageState extends State<MyPage> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const OwningBondDisplay()),
+                            MaterialPageRoute(builder: (context) => OwningBondDisplay(
+                              idToken: widget.idToken
+                            )),
                           );
                         },
                         child: const Padding(
@@ -170,7 +166,9 @@ class _MyPageState extends State<MyPage> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const MatureBondDisplay()),
+                            MaterialPageRoute(builder: (context) => MatureBondDisplay(
+                              idToken: widget.idToken
+                            )),
                           );
                         },
                         child: const Padding(

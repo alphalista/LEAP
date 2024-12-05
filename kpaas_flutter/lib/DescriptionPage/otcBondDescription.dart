@@ -4,7 +4,8 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 
 class OtcBondDescriptionPage extends StatefulWidget {
   final Map<String, dynamic> bondData;
-  const OtcBondDescriptionPage({Key? key, required this.bondData}) : super(key: key);
+  final String idToken;
+  const OtcBondDescriptionPage({Key? key, required this.bondData, required this.idToken}) : super(key: key);
 
 
   @override
@@ -268,7 +269,7 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
                                                         },
                                                         options: Options(
                                                           headers: {
-                                                            'Authorization': 'Bearer eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJlNmYyYjJhOGExNTFhMWNmN2FkNmRhMzQ5MTg5OTdmNSIsInN1YiI6IjM3Nzc1MTM2MTAiLCJhdXRoX3RpbWUiOjE3MzMzNzAyNTQsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwiZXhwIjoxNzMzMzkxODU0LCJpYXQiOjE3MzMzNzAyNTQsImVtYWlsIjoiZGxlZUBzdHUuaWljcy5rMTIudHIifQ.oz4zdLoO14JklujYkc5tGXzabe-iRqNfWG3bMCHYzhbN0Tm8ic7YQZDfGVEohYwMH8vORDLgCf22aYrNQ2rjyvvkvlVg4vjN6uAT2QPn8dAyok3cDlUUr7pal6Am7T4zd8JRUzsqpkn2uBvIa1uI33LFqPsXBTfdd13So0KRxlS3JCWFRBi5tdNQcDNAK6-D9AzCqBiF6H-6fyeDucF9Lv9seNJEc1HOHja_BlLgLP67g5vLV0zONkfnxT145JO8GkwgHa0WEZqnMR8tBN0L2XRv7yycG9vFQUNs0hjN-esvh9VDX4PkSJWWEsT7MEPQ3xqxvAZ4f7RVGXbm5gEWPQ',
+                                                            'Authorization': 'Bearer ${widget.idToken}',
                                                           },
                                                         ),
                                                       );
@@ -440,11 +441,12 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
                                                                   'quantity': firstController.text,
                                                                   'purchase_date': thirdController.text,
                                                                   'expire_date': widget.bondData['expd_dt'],
-                                                                  'bond_code': widget.bondData['code']
+                                                                  'bond_code': widget.bondData['code'],
+                                                                  'nickname': fourthController.text
                                                                 },
                                                                 options: Options(
                                                                   headers: {
-                                                                    'Authorization': 'Bearer eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJlNmYyYjJhOGExNTFhMWNmN2FkNmRhMzQ5MTg5OTdmNSIsInN1YiI6IjM3Nzc1MTM2MTAiLCJhdXRoX3RpbWUiOjE3MzMzNzAyNTQsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwiZXhwIjoxNzMzMzkxODU0LCJpYXQiOjE3MzMzNzAyNTQsImVtYWlsIjoiZGxlZUBzdHUuaWljcy5rMTIudHIifQ.oz4zdLoO14JklujYkc5tGXzabe-iRqNfWG3bMCHYzhbN0Tm8ic7YQZDfGVEohYwMH8vORDLgCf22aYrNQ2rjyvvkvlVg4vjN6uAT2QPn8dAyok3cDlUUr7pal6Am7T4zd8JRUzsqpkn2uBvIa1uI33LFqPsXBTfdd13So0KRxlS3JCWFRBi5tdNQcDNAK6-D9AzCqBiF6H-6fyeDucF9Lv9seNJEc1HOHja_BlLgLP67g5vLV0zONkfnxT145JO8GkwgHa0WEZqnMR8tBN0L2XRv7yycG9vFQUNs0hjN-esvh9VDX4PkSJWWEsT7MEPQ3xqxvAZ4f7RVGXbm5gEWPQ',
+                                                                    'Authorization': 'Bearer ${widget.idToken}',
                                                                   },
                                                                 ),
                                                               );

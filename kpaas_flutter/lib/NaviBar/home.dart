@@ -8,6 +8,8 @@ import 'package:kpaas_flutter/DescriptionPage/otcBondDescription.dart';
 import 'dart:convert';
 
 class HomePage extends StatefulWidget {
+  final String idToken;
+  const HomePage({Key? key, required this.idToken}) : super(key: key);
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -32,7 +34,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _fetchBondDetailsFromDummyData();
-    _fetchBondData(idToken: 'eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9');
+    _fetchBondData(idToken: widget.idToken);
   }
 
   Future<void> _fetchBondData({required String idToken}) async {
@@ -46,10 +48,38 @@ class _HomePageState extends State<HomePage> {
       final etTrendingResponse = await dio.get(
         'http://localhost:8000/api/marketbond/trending',
       );
+      final otcInterestResponse = await dio.get(
+        'http://localhost:8000/api/otcbond/interest/',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer ${widget.idToken}',
+          },
+        ),
+      );
+      final etInterestResponse = await dio.get(
+        'http://localhost:8000/api/otcbond/interest',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer ${widget.idToken}',
+          },
+        ),
+      );
+
+      if (otcInterestResponse.statusCode == 200) {
+        List<dynamic> results = otcInterestResponse.data['results'];
+        setState(() {});
+        results.forEach((value) {
+          InterestOtcBondList.add({
+            "prdt_name": value['bond_name'] ?? "Unknown",
+            "code": value['bond_code'] ?? "Unknown",
+            'expd_asrc_erng_rt': value['YTM'] ?? "0.0%"
+          });
+        });
+      }
+
       if (otcTrendingResponse.statusCode == 200) {
         List<dynamic> results = otcTrendingResponse.data['results'];
         setState(() {});
-        print(results);
         results.forEach((value) {
           TrendingEtBondList.add({
                 "prdt_name": value['bond_name'] ?? "Unknown",
@@ -62,7 +92,6 @@ class _HomePageState extends State<HomePage> {
       if (etTrendingResponse.statusCode == 200) {
         List<dynamic> results = etTrendingResponse.data['results'];
         setState(() {});
-        print(results);
         results.forEach((value) {
           TrendingOtcBondList.add({
             "prdt_name": value['bond_name'] ?? "Unknown",
@@ -186,7 +215,9 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MyPage()),
+                  MaterialPageRoute(builder: (context) => MyPage(
+                    idToken: widget.idToken,
+                  )),
                 );
               },
             ),

@@ -8,8 +8,9 @@ import 'package:kpaas_flutter/DescriptionPage/dialog.dart';
 class EtBondPage extends StatefulWidget {
   final List<dynamic> initialBondData;
   final String initialNextUrl;
+  final String idToken;
 
-  const EtBondPage({Key? key, required this.initialBondData, required this.initialNextUrl}) : super(key: key);
+  const EtBondPage({Key? key, required this.initialBondData, required this.initialNextUrl, required this.idToken}) : super(key: key);
 
   @override
   _EtBondPageState createState() => _EtBondPageState();
@@ -215,7 +216,9 @@ class _EtBondPageState extends State<EtBondPage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const MyPage()),
+                MaterialPageRoute(builder: (context) => MyPage(
+                  idToken: widget.idToken,
+                )),
               );
             },
           ),

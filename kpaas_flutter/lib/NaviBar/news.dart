@@ -7,8 +7,9 @@ import 'package:kpaas_flutter/MyPage/myPage_main.dart';
 
 class NewsPage extends StatefulWidget {
   final List<dynamic> newsData;
+  final String idToken;
 
-  const NewsPage({Key? key, required this.newsData}) : super(key: key);  // 생성자 추가
+  const NewsPage({Key? key, required this.newsData, required this.idToken}) : super(key: key);  // 생성자 추가
 
   @override
   State<NewsPage> createState() => _NewsPageState();
@@ -96,7 +97,9 @@ class _NewsPageState extends State<NewsPage> {
               // 사용자 아이콘 클릭 시 MyPage로 이동
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => MyPage()), // MyPage로 이동
+                MaterialPageRoute(builder: (context) => MyPage(
+                  idToken: widget.idToken,
+                )), // MyPage로 이동
               );
             },
           ),

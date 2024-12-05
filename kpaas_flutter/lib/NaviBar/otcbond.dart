@@ -8,8 +8,9 @@ import '../apiconnectiontest/data_controller.dart';
 class OtcBondPage extends StatefulWidget {
   final List<dynamic> initialBondData;
   final String initialNextUrl;
+  final String idToken;
 
-  const OtcBondPage({Key? key, required this.initialBondData, required this.initialNextUrl}) : super(key: key);
+  const OtcBondPage({Key? key, required this.initialBondData, required this.initialNextUrl, required this.idToken}) : super(key: key);
 
   @override
   _OtcBondPageState createState() => _OtcBondPageState();
@@ -308,7 +309,9 @@ class _OtcBondPageState extends State<OtcBondPage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const MyPage()),
+                  MaterialPageRoute(builder: (context) => MyPage(
+                    idToken: widget.idToken,
+                  )),
                 );
               },
             ),
@@ -417,6 +420,7 @@ class _OtcBondPageState extends State<OtcBondPage> {
                         MaterialPageRoute(
                           builder: (context) => OtcBondDescriptionPage(
                             bondData: bondData[actualIndex], // 선택한 bondData 전달
+                            idToken: widget.idToken,
                           ),
                         ),
                       );

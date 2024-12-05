@@ -22,7 +22,7 @@ class KakaoLoginPage extends StatefulWidget {
 }
 
 class _KakaoLoginPageState extends State<KakaoLoginPage> {
-  final String appKey = 'e6f2b2a8a151a1cf7ad6da34918997f5'; // JavaScript 앱 키
+  final String appKey = '!!'; // JavaScript 앱 키
   final String redirectUri = 'http://localhost:3000/auth/login/kakao-callback'; // 로그인 후 리디렉션될 URI
 
   @override
