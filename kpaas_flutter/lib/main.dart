@@ -24,7 +24,10 @@ Future<void> main() async {
     nativeAppKey: kakaoNativeAppKey!,
     javaScriptAppKey: javaScriptAppKey!,
   );
-  runApp(MainPage());
+  runApp(MaterialApp(home: MyFirstApp(
+    nativeAppKey: kakaoNativeAppKey,
+    javaScriptAppKey: javaScriptAppKey
+  )));
 }
 
 class MainPage extends StatelessWidget {

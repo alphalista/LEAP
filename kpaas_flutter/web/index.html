@@ -1,26 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- Add the base href placeholder for Flutter -->
   <base href="/web/">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- iOS meta tags & icons -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="kpaas_flutter">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
+  <title>Flutter Kakao Login</title>
 
-  <title>kpaas_flutter</title>
-  <link rel="manifest" href="manifest.json">
+  <!-- Kakao JavaScript SDK -->
+  <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
 </head>
 <body>
+<script>
+  // Kakao SDK 초기화
+  Kakao.init('302213153dcdf7e4b7b4d0ab1a1fabe8'); // JavaScript 앱 키
+  console.log('Kakao SDK 초기화:', Kakao.isInitialized());
+
+  // 로그인 리다이렉트 처리
+  function loginWithKakaoRedirect() {
+    Kakao.Auth.authorize({
+      redirectUri: 'http://localhost:3000/auth/login/kakao-callback',
+    });
+  }
+
+  // 리다이렉트 후 인증 코드 처리
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get('code');
+
+  if (code) {
+    console.log('인증 코드:', code);
+
+    // Flutter로 인증 코드 전달
+    if (window.opener) {
+      console.log('Flutter로 인증 코드 전달 중...');
+      window.opener.postMessage({
+        type: 'kakao_login_code',
+        data: { code: code }
+      }, '*');
+      window.close(); // 로그인 창 닫기
+    } else {
+      console.warn('메인 창이 초기화되지 않았습니다.');
+    }
+
+    // 서버에 인증 코드 전송
+    fetch('http://localhost:3000/auth/login/kakao-callback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code }),
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log('로그인 성공:', data);
+      })
+      .catch(error => {
+        console.error('서버 요청 실패:', error);
+      });
+  } else {
+    console.warn('URL에 인증 코드가 없습니다.');
+  }
+</script>
 <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

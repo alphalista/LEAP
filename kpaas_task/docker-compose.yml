@@ -16,11 +16,13 @@ services:
 
   django-rest:
     build: ../kpaas_rest/
-#    command: python manage.py collectstatic --no-input && daphne -b 0.0.0.0 -p 8000 kpaas_rest.asgi:application
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+             daphne -b 0.0.0.0 -p 8000 kpaas_rest.asgi:application"
     ports:
       - "8000:8000"
     volumes:
-      - ../kpaas_rest:/code
+      - ../kpaas_rest/:/code
     depends_on:
       - nginx
       - db
@@ -35,6 +37,8 @@ services:
   celery-flower:
     build: .
     command: celery -A config flower
+    volumes:
+      - .:/code
     ports:
       - "5555:5555"
     depends_on:
@@ -50,7 +54,6 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     networks:
       - app_network
-
   celery-beat:
     build: .
     command: celery -A config beat
