@@ -109,6 +109,18 @@ class OTC_Bond_Holding_view(viewsets.ModelViewSet):
         except OTC_Bond_Holding.DoesNotExist:
             return Response('OTC_Bond_Holding does not exist', status=404)
 
+    def update(self, request, *args, **kwargs):
+        try:
+            user_request_data = OTC_Bond_Holding.objects.filter(user_id=request.user.user_id).get(bond_code=request.data.get('bond_code'))
+        except OTC_Bond_Holding.DoesNotExist:
+            return Response('OTC_Bond_Holding does not exist', status=404)
+        serializer = OTC_Bond_Holding_Serializer(user_request_data, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
         data['user_id'] = request.user.user_id

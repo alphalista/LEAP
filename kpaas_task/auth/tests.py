@@ -11,7 +11,7 @@ from .views import createUser
 class CreateUserTestCase(TestCase):
     def test_users(self):
         # code는 매번 실행시마다 바꿔줍니다.
-        code = "TsKKzyD87eDCnvA6DhKqsyktUpqabiV3T10v9YLSLLCvKVtjljZxqwAAAAQKKcjYAAABk4Xt1izHP8VuE1ZNOQ"
+        code = "2bXKqZ6SsytmUaZP73vHq6rLmbpdg5cwtywYl7eJLRsqwaYLFwaDdAAAAAQKPCRaAAABk5byhTeSBpCp5rpDbg"
         redirect_uri = 'http://localhost:3000/auth/login/kakao-callback'
         url = 'https://kauth.kakao.com/oauth/token'
 
@@ -28,7 +28,7 @@ class CreateUserTestCase(TestCase):
         }
         # 외부 요청 허용
         response = requests.post(url, data=data, headers=headers)
-        print(response.json())
+        # print(response.json())
         self.assertEqual(response.status_code, 200) # 정상적으로 리다이렉트 됐는지 판단
 
         createUser(response.json().get('id_token'))

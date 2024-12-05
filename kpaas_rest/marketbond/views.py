@@ -354,6 +354,21 @@ class ET_Bond_Holding_view(viewsets.ModelViewSet):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def update(self, request, *args, **kwargs):
+        try:
+            data = request.data.copy()
+            bond_instance = MarketBondCode.objects.get(code=data['bond_code'])
+            data['bond_code'] = int(bond_instance.id)
+            request_data = ET_Bond_Holding.objects.filter(user_id=request.user.user_id).get(bond_code=data['bond_code'])
+        except MarketBondCode.DoesNotExist:
+            return Response('MarketBondCod does not exist', status=404)
+        except ET_Bond_Holding.DoesNotExist:
+            return Response('ET_Bond_Holding does not exist', status=404)
+        serializer = ET_Bond_Holding_Serializer(request_data, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 class EtBondPreDataDaysView(viewsets.ReadOnlyModelViewSet):
     serializer_class = Market_Bond_Days_Serializer

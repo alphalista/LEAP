@@ -179,7 +179,14 @@ class MarketBondsTest(TestCase):
         # get test
         response = self.client.get('/api/marketbond/holding/?query=KR', **headers)
         self.assertEqual(response.status_code, 200)
-        print('holding data:', response.json())
+        # put test
+        data = {
+            'bond_code': 'KR101501DA57',
+            'nickname': 'ytk'
+        }
+        response = self.client.put('/api/marketbond/holding/', content_type='application/json', data=json.dumps(data), **headers)
+        print('holding put: ', response.json())
+        self.assertEqual(response.status_code, 201)
         # delete test
         ins = MarketBondCode.objects.get(code='KR101501DA57')
         id = ET_Bond_Holding.objects.get(bond_code=ins).id
