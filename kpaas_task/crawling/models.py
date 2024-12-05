@@ -48,7 +48,7 @@ class OTC_Bond_Holding(models.Model):
     quantity = models.CharField(max_length=100)
     purchase_date = models.CharField(max_length=100)
     expire_date = models.DateField()
-
+    nickname = models.CharField(max_length=100, blank=True, null=True)
     class Meta:
         db_table = 'OTC_Bond_Holding'
 
