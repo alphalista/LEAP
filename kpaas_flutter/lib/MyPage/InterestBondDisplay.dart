@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
@@ -25,21 +27,36 @@ class _InterestBondDisplayState extends State<InterestBondDisplay> {
       isLoading = true;
     });
     try {
+      print(idToken);
       final response = await dio.get(
-        'http://localhost:8000/api/otcbond/interest',
+        'http://localhost:8000/api/otcbond/interest/?query=$query',
         options: Options(
           headers: {
-            'Authorization': 'Bearer $idToken', // 헤더에 Authorization 추가
+            'Authorization': 'Bearer eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJlNmYyYjJhOGExNTFhMWNmN2FkNmRhMzQ5MTg5OTdmNSIsInN1YiI6IjM3Nzc1MTM2MTAiLCJhdXRoX3RpbWUiOjE3MzMzNzAyNTQsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwiZXhwIjoxNzMzMzkxODU0LCJpYXQiOjE3MzMzNzAyNTQsImVtYWlsIjoiZGxlZUBzdHUuaWljcy5rMTIudHIifQ.oz4zdLoO14JklujYkc5tGXzabe-iRqNfWG3bMCHYzhbN0Tm8ic7YQZDfGVEohYwMH8vORDLgCf22aYrNQ2rjyvvkvlVg4vjN6uAT2QPn8dAyok3cDlUUr7pal6Am7T4zd8JRUzsqpkn2uBvIa1uI33LFqPsXBTfdd13So0KRxlS3JCWFRBi5tdNQcDNAK6-D9AzCqBiF6H-6fyeDucF9Lv9seNJEc1HOHja_BlLgLP67g5vLV0zONkfnxT145JO8GkwgHa0WEZqnMR8tBN0L2XRv7yycG9vFQUNs0hjN-esvh9VDX4PkSJWWEsT7MEPQ3xqxvAZ4f7RVGXbm5gEWPQ',
           },
         ),
       );
 
+      if (response.statusCode == 200) {
+        List<dynamic> results = response.data['results'];
+
+        List<dynamic> metaValues = results.map((item) {
+          if (item['meta'] is String) {
+            return jsonDecode(item['meta']);
+          }
+          return item['meta'];
+        }).toList();
+
+        setState(() {
+          bondData = metaValues; // 데이터 업데이트
+          nextUrl = response.data['next']; // 다음 페이지 URL 설정
+        });
+        print('Bond data fetched successfully: $bondData');
+      } else {
+        print('Failed to fetch data: ${response.statusCode}');
+      }
     } catch (e) {
       print("Error fetching bond data: $e");
-    } finally {
-      setState(() {
-        isLoading = false; // 로딩 상태 해제
-      });
     }
   }
 
@@ -69,7 +86,7 @@ class _InterestBondDisplayState extends State<InterestBondDisplay> {
   @override
   void initState() {
     super.initState();
-    String idToken = 'eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJlNmYyYjJhOGExNTFhMWNmN2FkNmRhMzQ5MTg5OTdmNSIsInN1YiI6IjM3Nzc1MTM2MTAiLCJhdXRoX3RpbWUiOjE3MzMzMjQ1NjIsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwiZXhwIjoxNzMzMzQ2MTYyLCJpYXQiOjE3MzMzMjQ1NjIsImVtYWlsIjoiZGxlZUBzdHUuaWljcy5rMTIudHIifQ.DpMhKPNBnOU27-asqQh6d8m6CCsz36NjJr6pT7agnPShY8bKyAlUKgOF3Yg98uF0HUPktt-stPikrfDqjfPofSFpWpU5V0J-OqDuhcCwbRvOFIimHUAOU0rQSm8JMC3dV3HUxcWUpdqqghFSGCk-WRJIyeIB6dsBJKvilLJ_ZtVvSBrO341Ez_Mixtji8U9tQOu1nW47sMDqnaR-i0PBSWwHrqErBVjE_jqXf-mlIhtPSWwR0MzvEt_tfJh1vO2v0LR5DjV564BUHIfBC_PwAT2CiCfUi9n3XnLya6V2T4rBUWj6dWaIYBdiwI0HZCU2CNht1L4jCIRTsWKfPZdB2w';
+    String idToken = "eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJlNmYyYjJhOGExNTFhMWNmN2FkNmRhMzQ5MTg5OTdmNSIsInN1YiI6IjM3Nzc1MTM2MTAiLCJhdXRoX3RpbWUiOjE3MzMzNzAyNTQsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwiZXhwIjoxNzMzMzkxODU0LCJpYXQiOjE3MzMzNzAyNTQsImVtYWlsIjoiZGxlZUBzdHUuaWljcy5rMTIudHIifQ.oz4zdLoO14JklujYkc5tGXzabe-iRqNfWG3bMCHYzhbN0Tm8ic7YQZDfGVEohYwMH8vORDLgCf22aYrNQ2rjyvvkvlVg4vjN6uAT2QPn8dAyok3cDlUUr7pal6Am7T4zd8JRUzsqpkn2uBvIa1uI33LFqPsXBTfdd13So0KRxlS3JCWFRBi5tdNQcDNAK6-D9AzCqBiF6H-6fyeDucF9Lv9seNJEc1HOHja_BlLgLP67g5vLV0zONkfnxT145JO8GkwgHa0WEZqnMR8tBN0L2XRv7yycG9vFQUNs0hjN-esvh9VDX4PkSJWWEsT7MEPQ3xqxvAZ4f7RVGXbm5gEWPQ";
     _fetchBondData(idToken: idToken);
 
     _scrollController.addListener(() {
@@ -181,10 +198,8 @@ class _InterestBondDisplayState extends State<InterestBondDisplay> {
                       fillColor: Colors.white,
                     ),
                     onChanged: (query) {
-                      setState(() {
                         searchQuery = query;
                         _fetchBondData(query: searchQuery, idToken: 'eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9');
-                      });
                     },
                   ),
                 ),
