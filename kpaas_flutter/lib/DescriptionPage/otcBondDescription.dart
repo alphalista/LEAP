@@ -50,7 +50,7 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
             }).toList();
           }
 
-          chartData = weeklyMarketPriceData; // 초기 차트 데이터를 주간 시장 가격으로 설정
+          chartData = weeklyMarketPriceData;
           isLoading = false;
         });
       } else {
@@ -176,7 +176,7 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
   void _updatePeriod(String period) {
     setState(() {
       selectedPeriod = period;
-      _updateChartData(selectedChart); // 현재 선택된 차트에 맞게 데이터 업데이트
+      _updateChartData(selectedChart);
     });
   }
 
@@ -221,10 +221,10 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
                               int currentPage = 0; // 현재 페이지 상태
                               bool showFinalMessage = false; // 최종 메시지 표시 여부
 
-                              // 각 페이지별 TextEditingController 선언
                               TextEditingController firstController = TextEditingController();
                               TextEditingController secondController = TextEditingController();
                               TextEditingController thirdController = TextEditingController();
+                              TextEditingController fourthController = TextEditingController();
 
                               return StatefulBuilder(
                                 builder: (context, setState) {
@@ -259,7 +259,19 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
                                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                                 children: [
                                                   TextButton(
-                                                    onPressed: () {
+                                                    onPressed: () async {
+                                                      final dio = Dio();
+                                                      final response = await dio.post(
+                                                        'http://localhost:8000/api/otcbond/interest/',
+                                                        data: {
+                                                          'bond_code': widget.bondData['code']
+                                                        },
+                                                        options: Options(
+                                                          headers: {
+                                                            'Authorization': 'Bearer eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJlNmYyYjJhOGExNTFhMWNmN2FkNmRhMzQ5MTg5OTdmNSIsInN1YiI6IjM3Nzc1MTM2MTAiLCJhdXRoX3RpbWUiOjE3MzMzNzAyNTQsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwiZXhwIjoxNzMzMzkxODU0LCJpYXQiOjE3MzMzNzAyNTQsImVtYWlsIjoiZGxlZUBzdHUuaWljcy5rMTIudHIifQ.oz4zdLoO14JklujYkc5tGXzabe-iRqNfWG3bMCHYzhbN0Tm8ic7YQZDfGVEohYwMH8vORDLgCf22aYrNQ2rjyvvkvlVg4vjN6uAT2QPn8dAyok3cDlUUr7pal6Am7T4zd8JRUzsqpkn2uBvIa1uI33LFqPsXBTfdd13So0KRxlS3JCWFRBi5tdNQcDNAK6-D9AzCqBiF6H-6fyeDucF9Lv9seNJEc1HOHja_BlLgLP67g5vLV0zONkfnxT145JO8GkwgHa0WEZqnMR8tBN0L2XRv7yycG9vFQUNs0hjN-esvh9VDX4PkSJWWEsT7MEPQ3xqxvAZ4f7RVGXbm5gEWPQ',
+                                                          },
+                                                        ),
+                                                      );
                                                       setState(() {
                                                         buttonText = "추가되었습니다!\n마이페이지의 '관심 채권'을 확인하세요!";
                                                       });
@@ -339,7 +351,6 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
                                                             border: OutlineInputBorder(),
                                                           ),
                                                           onSubmitted: (value) {
-                                                            firstController.clear(); // 값 초기화
                                                             setState(() {
                                                               currentPage++; // 다음 페이지로 이동
                                                             });
@@ -367,7 +378,6 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
                                                             border: OutlineInputBorder(),
                                                           ),
                                                           onSubmitted: (value) {
-                                                            secondController.clear(); // 값 초기화
                                                             setState(() {
                                                               currentPage++; // 다음 페이지로 이동
                                                             });
@@ -388,16 +398,15 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
                                                           ),
                                                           const SizedBox(height: 10),
                                                           TextField(
-                                                            controller: secondController, // 두 번째 페이지 컨트롤러
+                                                            controller: thirdController, // 두 번째 페이지 컨트롤러
                                                             decoration: const InputDecoration(
                                                               labelText: '구매 날짜',
                                                               hintText: 'YYYY-MM-DD',
                                                               border: OutlineInputBorder(),
                                                             ),
                                                             onSubmitted: (value) {
-                                                              secondController.clear(); // 값 초기화
                                                               setState(() {
-                                                                currentPage++; // 다음 페이지로 이동
+                                                                currentPage++;
                                                               });
                                                             },
                                                           ),
@@ -416,14 +425,29 @@ class _OtcBondDescriptionPageState extends State<OtcBondDescriptionPage> {
                                                           ),
                                                           const SizedBox(height: 10),
                                                           TextField(
-                                                            controller: thirdController, // 세 번째 페이지 컨트롤러
+                                                            controller: fourthController,
                                                             decoration: const InputDecoration(
                                                               labelText: '닉네임',
                                                               hintText: '5글자 이내',
                                                               border: OutlineInputBorder(),
                                                             ),
-                                                            onSubmitted: (value) {
-                                                              thirdController.clear(); // 값 초기화
+                                                            onSubmitted: (value) async {
+                                                              final dio = Dio();
+                                                              final response = await dio.post(
+                                                                'http://localhost:8000/api/otcbond/holding/',
+                                                                data: {
+                                                                  'price_per_10': secondController.text,
+                                                                  'quantity': firstController.text,
+                                                                  'purchase_date': thirdController.text,
+                                                                  'expire_date': widget.bondData['expd_dt'],
+                                                                  'bond_code': widget.bondData['code']
+                                                                },
+                                                                options: Options(
+                                                                  headers: {
+                                                                    'Authorization': 'Bearer eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJlNmYyYjJhOGExNTFhMWNmN2FkNmRhMzQ5MTg5OTdmNSIsInN1YiI6IjM3Nzc1MTM2MTAiLCJhdXRoX3RpbWUiOjE3MzMzNzAyNTQsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwiZXhwIjoxNzMzMzkxODU0LCJpYXQiOjE3MzMzNzAyNTQsImVtYWlsIjoiZGxlZUBzdHUuaWljcy5rMTIudHIifQ.oz4zdLoO14JklujYkc5tGXzabe-iRqNfWG3bMCHYzhbN0Tm8ic7YQZDfGVEohYwMH8vORDLgCf22aYrNQ2rjyvvkvlVg4vjN6uAT2QPn8dAyok3cDlUUr7pal6Am7T4zd8JRUzsqpkn2uBvIa1uI33LFqPsXBTfdd13So0KRxlS3JCWFRBi5tdNQcDNAK6-D9AzCqBiF6H-6fyeDucF9Lv9seNJEc1HOHja_BlLgLP67g5vLV0zONkfnxT145JO8GkwgHa0WEZqnMR8tBN0L2XRv7yycG9vFQUNs0hjN-esvh9VDX4PkSJWWEsT7MEPQ3xqxvAZ4f7RVGXbm5gEWPQ',
+                                                                  },
+                                                                ),
+                                                              );
                                                               setState(() {
                                                                 buttonText = "추가되었습니다!\n마이페이지의 '보유 채권'을 확인하세요!";
                                                               });
