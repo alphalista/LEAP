@@ -65,7 +65,7 @@ class TestOtcBond(TestCase):
             'nickname': 'Hi'
         }
         response = self.client.put('/api/otcbond/holding/', content_type='application/json', data=json.dumps(data), **headers)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
         # delete Test
         ins = OTC_Bond.objects.get(code='KR6029272E17')
         id = OTC_Bond_Holding.objects.get(bond_code=ins).id

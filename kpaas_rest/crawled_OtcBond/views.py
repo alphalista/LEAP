@@ -117,7 +117,7 @@ class OTC_Bond_Holding_view(viewsets.ModelViewSet):
         serializer = OTC_Bond_Holding_Serializer(user_request_data, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 

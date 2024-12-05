@@ -523,6 +523,7 @@ class ET_Bond_Holding(models.Model):
     quantity = models.CharField(max_length=100)
     purchase_date = models.CharField(max_length=100)
     expire_date = models.DateField()
+    nickname = models.CharField(max_length=100, null=True, blank=True)
     class Meta:
         db_table = 'ET_Bond_Holding'
         unique_together = ('user_id', 'bond_code', 'price_per_10')
