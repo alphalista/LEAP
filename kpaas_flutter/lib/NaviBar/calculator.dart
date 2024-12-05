@@ -232,7 +232,7 @@ class _CalculatorPageState extends State<CalculatorPage> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Text(
-                              "${selectedOption == 1 ? displayedDate : "2054 - 11 - 25"}까지의 수익은",
+                              "${selectedOption == 0 ? displayedDate : "2054 - 11 - 25"}까지의 수익은",
                               style: TextStyle(fontWeight: FontWeight.bold),),
                           ],
                         ),
@@ -474,7 +474,6 @@ class _CalculatorPageState extends State<CalculatorPage> {
                         'interestCyclePeriod': interestCyclePeriod,
                       };
 
-                      print(parseData);
                       etCalculatedResult.add(parseData);
 
                     } else {
@@ -513,26 +512,26 @@ class _CalculatorPageState extends State<CalculatorPage> {
                       String nxtInterestDate = bond['nxtm_int_dfrm_dt'];
                       int interestCyclePeriod = int.tryParse(bond['int_pay_cycle']) ?? 0;
 
-                      // double outcomeResult = 0;
-                      // for (int i in calculateMethod) {
-                      //   if (i == 0) {
-                      //     double output = exptIncome(i, purchasePrice, purchaseQuantity, interestRate, matDate, nxtInterestDate, interestCyclePeriod, isMat);
-                      //     outcomeResult = outcomeResult + output * 0.1 * purchaseQuantity;
-                      //   }
-                      //   else if (i == 1) {
-                      //     double output = exptIncome(i, salePrice, saleQuantity, interestRate, matDate, nxtInterestDate, interestCyclePeriod, isMat, salePrice);
-                      //     outcomeResult = outcomeResult + output * 0.1 * saleQuantity;
-                      //   }
-                      // }
-                      //
-                      // double outcomeResultRounded = double.tryParse(outcomeResult.toStringAsFixed(2)) ?? 0.00;
-                      // otcCalculatedResult.add(
-                      //     {
-                      //       "code": bond['code'],
-                      //       "price": outcomeResultRounded
-                      //     }
-                      // );
-                      // print(otcCalculatedResult);
+                      double outcomeResult = 0;
+                      for (int i in calculateMethod) {
+                        if (i == 0) {
+                          double output = exptIncome(i, purchasePrice, purchaseQuantity, interestRate, matDate, nxtInterestDate, interestCyclePeriod, true);
+                          outcomeResult = outcomeResult + output * 0.1 * purchaseQuantity;
+                        }
+                        else if (i == 1) {
+                          double output = exptIncome(i, salePrice, saleQuantity, interestRate, matDate, nxtInterestDate, interestCyclePeriod, true, salePrice);
+                          outcomeResult = outcomeResult + output * 0.1 * saleQuantity;
+                        }
+                      }
+
+                      double outcomeResultRounded = double.tryParse(outcomeResult.toStringAsFixed(2)) ?? 0.00;
+                      otcCalculatedResult.add(
+                          {
+                            "code": bond['code'],
+                            "price": outcomeResultRounded
+                          }
+                      );
+                      print(otcCalculatedResult);
                       Map<String, dynamic> parseData = {
                         'purchasePrice': purchasePrice,
                         'purchaseQuantity': purchaseQuantity,
@@ -544,9 +543,6 @@ class _CalculatorPageState extends State<CalculatorPage> {
                         'nxtInterestDate': nxtInterestDate,
                         'interestCyclePeriod': interestCyclePeriod,
                       };
-
-                      print(parseData);
-                      otcCalculatedResult.add(parseData);
                     }
                   },
                   child: const Icon(

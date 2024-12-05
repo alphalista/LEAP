@@ -24,9 +24,9 @@ Future<void> main() async {
     nativeAppKey: kakaoNativeAppKey!,
     javaScriptAppKey: javaScriptAppKey!,
   );
-  runApp(MaterialApp(home: MyFirstApp(
-    nativeAppKey: kakaoNativeAppKey,
-    javaScriptAppKey: javaScriptAppKey
+  runApp(MaterialApp(home: MainPage(
+    // nativeAppKey: kakaoNativeAppKey,
+    // javaScriptAppKey: javaScriptAppKey
   )));
 }
 
