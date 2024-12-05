@@ -286,6 +286,12 @@
       <excludeFolder url="file://$MODULE_DIR$/kpaas_flutter/windows/flutter/ephemeral/.plugin_symlinks/url_launcher_windows/example/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/kpaas_flutter/windows/flutter/ephemeral/.plugin_symlinks/url_launcher_windows/example/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/kpaas_flutter/windows/flutter/ephemeral/.plugin_symlinks/url_launcher_windows/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/kpaas_flutter/windows/flutter/ephemeral/.plugin_symlinks/flutter_inappwebview_windows/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/kpaas_flutter/windows/flutter/ephemeral/.plugin_symlinks/flutter_inappwebview_windows/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/kpaas_flutter/windows/flutter/ephemeral/.plugin_symlinks/flutter_inappwebview_windows/build" />
+      <excludeFolder url="file://$MODULE_DIR$/kpaas_flutter/windows/flutter/ephemeral/.plugin_symlinks/flutter_inappwebview_windows/example/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/kpaas_flutter/windows/flutter/ephemeral/.plugin_symlinks/flutter_inappwebview_windows/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/kpaas_flutter/windows/flutter/ephemeral/.plugin_symlinks/flutter_inappwebview_windows/example/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
