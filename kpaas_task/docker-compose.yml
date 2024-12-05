@@ -37,8 +37,6 @@ services:
   celery-flower:
     build: .
     command: celery -A config flower
-    volumes:
-      - .:/code
     ports:
       - "5555:5555"
     depends_on:
@@ -46,7 +44,7 @@ services:
       - db
       - redis
       - celery-worker
-      - celery-beat
+#      - celery-beat
     volumes:
       - .:/code
     environment:
@@ -54,20 +52,20 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     networks:
       - app_network
-  celery-beat:
-    build: .
-    command: celery -A config beat
-    depends_on:
-      - nginx
-      - db
-      - redis
-    volumes:
-      - .:/code
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    networks:
-      - app_network
+#  celery-beat:
+#    build: .
+#    command: celery -A config beat
+#    depends_on:
+#      - nginx
+#      - db
+#      - redis
+#    volumes:
+#      - .:/code
+#    environment:
+#      - CELERY_BROKER_URL=redis://redis:6379/0
+#      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+#    networks:
+#      - app_network
 
   celery-worker:
     build: .
@@ -76,7 +74,7 @@ services:
       - nginx
       - db
       - redis
-      - celery-beat
+#      - celery-beat
     volumes:
       - .:/code
     environment:
@@ -93,7 +91,7 @@ services:
       - nginx
       - db
       - redis
-      - celery-beat
+#      - celery-beat
     volumes:
       - .:/code
     environment:
