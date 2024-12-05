@@ -45,52 +45,45 @@ services:
       - nginx
       - db
       - redis
+      - celery-worker
+      - celery-beat
+    volumes:
+      - .:/code
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     networks:
       - app_network
-
-#  celery-beat:
-#    build: .
-#    command: celery -A config beat
-#    volumes:
-#      - .:/code
-#    depends_on:
-#      - nginx
-#      - db
-#      - redis
-#    environment:
-#      - CELERY_BROKER_URL=redis://redis:6379/0
-#      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-#    networks:
-#      - app_network
-
-  celery-worker:
+  celery-beat:
     build: .
-    command: celery -A config worker
-    volumes:
-      - .:/code
+    command: celery -A config beat
     depends_on:
       - nginx
       - db
       - redis
-#      - celery-beat
+    volumes:
+      - .:/code
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     networks:
       - app_network
 
-  #  flutter:
-  #    image: 47813/fltr:latest
-  #    ports:
-  #      - "8080:80"
-  #    depends_on:
-  #      - nginx
-  #    networks:
-  #      - app_network
-
+  celery-worker:
+    build: .
+    command: celery -A config worker
+    depends_on:
+      - nginx
+      - db
+      - redis
+      - celery-beat
+    volumes:
+      - .:/code
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks:
+      - app_network
   login-listen:
     build: .
     command: python manage.py runserver 0.0.0.0:3000 --settings=config.settings.production
@@ -100,7 +93,7 @@ services:
       - nginx
       - db
       - redis
-#      - celery-beat
+      - celery-beat
     volumes:
       - .:/code
     environment:
@@ -108,6 +101,15 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     networks:
       - app_network
+
+#  flutter:
+#    image: 47813/fltr:latest
+#    ports:
+#      - "8080:80"
+#    depends_on:
+#      - nginx
+#    networks:
+#      - app_network
 
   db:
     image: mysql

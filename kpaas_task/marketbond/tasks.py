@@ -6,6 +6,7 @@ from marketbond.kib_api.collect_kis_data import CollectMarketBond, CollectMarket
 from marketbond.models import MarketBondCode, MarketBondIssueInfo, MarketBondInquirePrice, MarketBondInquireAskingPrice, \
     MarketBondCmb, MarketBondPreDataDays, MarketBondPreDataMonths, MarketBondPreDataWeeks, MarketBondTrending, MarketBondHowManyInterest, \
     ET_Bond_Holding, ET_Bond_Expired
+from django.db import transaction
 
 from .serializer import MarketBondIssueInfoSerializer, MarketBondInquirePriceSerializer, \
     MarketBondInquireAskingPriceSerializer
@@ -152,12 +153,16 @@ def handle_combine(pdno):
             inquire_price_data = MarketBondInquirePrice.objects.filter(code=code).order_by('-id').first()
             inquire_asking_price_data = MarketBondInquireAskingPrice.objects.filter(code=code).order_by('-id').first()
 
-            market_bond_c = MarketBondCmb.objects.create(
-                code=code,
-                issue_info_data=issue_info_data,
-                inquire_price_data=inquire_price_data,
-                inquire_asking_price_data=inquire_asking_price_data,
-            )
+            with transaction.atomic():
+                # Check if a record with the same code already exists
+                market_bond_c, created = MarketBondCmb.objects.update_or_create(
+                    code=code,
+                    defaults={
+                        'issue_info_data': issue_info_data,
+                        'inquire_price_data': inquire_price_data,
+                        'inquire_asking_price_data': inquire_asking_price_data,
+                    },
+                )
             print(pdno, 'combine done')
     except Exception as e:
         print(e)

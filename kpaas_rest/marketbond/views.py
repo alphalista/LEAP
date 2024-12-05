@@ -68,6 +68,15 @@ class MarketBondCmbViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name']  # 부분 문자열 검색
     ordering_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__srfc_inrt', 'inquire_price_data__bond_prpr', 'inquire_asking_price_data__bidp_rsqn1']  # 정렬 가능한 필드
 
+    def get_queryset(self):
+        # Exclude records where relevant fields are 0
+        return super().get_queryset().exclude(
+            issue_info_data__srfc_inrt=0
+        ).exclude(
+            inquire_price_data__bond_prpr=0
+        ).exclude(
+            inquire_asking_price_data__bidp_rsqn1=0
+        )
 
 class MarketBondViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MarketBondIssueInfo.objects.none()  # 임의의 빈 쿼리셋
@@ -255,6 +264,19 @@ class ET_Bond_Interest_view(viewsets.ModelViewSet):
         target = ET_Bond_Interest.objects.filter(user_id=user_id)
         # target의 ET_Bond의 값은 ET_Bond의 id 값이 노출됨
         # 시리얼라이저의 to_representation()로 해결
+        query = self.request.query_params.get('query')
+        if query:
+            temp = []
+            for each in target:
+                temp.append(each.bond_code.id) # id 값이 드감
+            code_search_result = MarketBondCode.objects.filter(id__in=temp).filter(code__icontains=query)
+            name_search_result = MarketBondIssueInfo.objects.filter(code__in=temp).filter(prdt_name__icontains=query)
+            temp.clear()
+            for each in code_search_result:
+                temp.append(each.id)
+            for each in name_search_result:
+                temp.append(each.code.id)
+            return ET_Bond_Interest.objects.filter(bond_code__in=temp)
         return target
 
     def create(self, request, *args, **kwargs):
@@ -304,6 +326,19 @@ class ET_Bond_Holding_view(viewsets.ModelViewSet):
         target = ET_Bond_Holding.objects.filter(user_id=user_id)
         # target의 ET_Bond의 값은 ET_Bond의 id 값이 노출됨
         # 시리얼라이저의 to_representation()로 해결
+        query = self.request.query_params.get('query')
+        if query:
+            temp = []
+            for each in target:
+                temp.append(each.bond_code.id)  # id 값이 드감
+            code_search_result = MarketBondCode.objects.filter(id__in=temp).filter(code__icontains=query)
+            name_search_result = MarketBondIssueInfo.objects.filter(code__in=temp).filter(prdt_name__icontains=query)
+            temp.clear()
+            for each in code_search_result:
+                temp.append(each.id)
+            for each in name_search_result:
+                temp.append(each.code.id)
+            return ET_Bond_Holding.objects.filter(bond_code__in=temp)
         return target
 
     def create(self, request, *args, **kwargs):
@@ -367,6 +402,18 @@ class MarketBondExpiredView(viewsets.ReadOnlyModelViewSet):
     serializer_class = MarketBondExpiredSerializer
     def get_queryset(self):
         user_id = self.request.user.user_id
-        print('test:', user_id)
         target = ET_Bond_Expired.objects.filter(user_id=user_id)
+        query = self.request.query_params.get('query')
+        if query:
+            temp = []
+            for each in target:
+                temp.append(each.bond_code.id)  # id 값이 드감
+            code_search_result = MarketBondCode.objects.filter(id__in=temp).filter(code__icontains=query)
+            name_search_result = MarketBondIssueInfo.objects.filter(code__in=temp).filter(prdt_name__icontains=query)
+            temp.clear()
+            for each in code_search_result:
+                temp.append(each.id)
+            for each in name_search_result:
+                temp.append(each.code.id)
+            return ET_Bond_Expired.objects.filter(bond_code__in=temp)
         return target

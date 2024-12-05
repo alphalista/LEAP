@@ -40,7 +40,8 @@ class TestOtcBond(TestCase):
         self.assertEqual(response.status_code, 200)
     def test_Expired(self):
         headers = TestOtcBond.Authorization_header
-        response = self.client.get('/api/otcbond/expired/', **headers)
+        response = self.client.get('/api/otcbond/expired/?query=KR', **headers)
+        print(response.json())
         self.assertEqual(response.status_code, 200)
     def test_holding(self):
         headers = TestOtcBond.Authorization_header
@@ -55,7 +56,7 @@ class TestOtcBond(TestCase):
         response = self.client.post('/api/otcbond/holding/', content_type='application/json', data=json.dumps(data), **headers)
         self.assertEqual(response.status_code, 201)
         # GET Test
-        response = self.client.get('/api/otcbond/holding/', **headers)
+        response = self.client.get('/api/otcbond/holding/?query=실트론', **headers)
         self.assertEqual(response.status_code, 200)
         # print(response.json())
         # delete Test

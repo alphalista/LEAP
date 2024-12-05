@@ -177,7 +177,7 @@ class MarketBondsTest(TestCase):
         response = self.client.post('/api/marketbond/holding/', content_type='application/json', data=json.dumps(data), **headers)
         self.assertEqual(response.status_code, 201)
         # get test
-        response = self.client.get('/api/marketbond/holding/', **headers)
+        response = self.client.get('/api/marketbond/holding/?query=KR', **headers)
         self.assertEqual(response.status_code, 200)
         print('holding data:', response.json())
         # delete test
@@ -193,7 +193,7 @@ class MarketBondsTest(TestCase):
         }
         response = self.client.post('/api/marketbond/interest/', content_type='application/json', data=json.dumps(data), **headers)
         self.assertEqual(response.status_code, 201)
-        response = self.client.get('/api/marketbond/interest/', **headers)
+        response = self.client.get('/api/marketbond/interest/?query=국민', **headers)
         self.assertEqual(response.status_code, 200)
         # print('interest data:', response.json())
         response = self.client.delete('/api/marketbond/interest/KR101501DA57/', content_type='application/json', **headers)
