@@ -16,13 +16,11 @@ services:
 
   django-rest:
     build: ../kpaas_rest/
-    command: >
-      sh -c "python manage.py collectstatic --noinput &&
-             daphne -b 0.0.0.0 -p 8000 kpaas_rest.asgi:application"
+#    command: python manage.py collectstatic --no-input && daphne -b 0.0.0.0 -p 8000 kpaas_rest.asgi:application
     ports:
       - "8000:8000"
     volumes:
-      - ../kpaas_rest/:/code
+      - ../kpaas_rest:/code
     depends_on:
       - nginx
       - db
@@ -44,7 +42,7 @@ services:
       - db
       - redis
       - celery-worker
-#      - celery-beat
+      - celery-beat
     volumes:
       - .:/code
     environment:
@@ -52,20 +50,21 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     networks:
       - app_network
-#  celery-beat:
-#    build: .
-#    command: celery -A config beat
-#    depends_on:
-#      - nginx
-#      - db
-#      - redis
-#    volumes:
-#      - .:/code
-#    environment:
-#      - CELERY_BROKER_URL=redis://redis:6379/0
-#      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-#    networks:
-#      - app_network
+
+  celery-beat:
+    build: .
+    command: celery -A config beat
+    depends_on:
+      - nginx
+      - db
+      - redis
+    volumes:
+      - .:/code
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks:
+      - app_network
 
   celery-worker:
     build: .
@@ -74,7 +73,7 @@ services:
       - nginx
       - db
       - redis
-#      - celery-beat
+      - celery-beat
     volumes:
       - .:/code
     environment:
@@ -91,7 +90,7 @@ services:
       - nginx
       - db
       - redis
-#      - celery-beat
+      - celery-beat
     volumes:
       - .:/code
     environment:
@@ -100,14 +99,14 @@ services:
     networks:
       - app_network
 
-#  flutter:
-#    image: 47813/fltr:latest
-#    ports:
-#      - "8080:80"
-#    depends_on:
-#      - nginx
-#    networks:
-#      - app_network
+  flutter:
+    build: ../kpaas_flutter/
+    ports:
+      - "8080:80"
+    depends_on:
+      - nginx
+    networks:
+      - app_network
 
   db:
     image: mysql
