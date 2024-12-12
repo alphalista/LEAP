@@ -14,8 +14,15 @@ services:
     networks:
       - app_network
 
+  landing:
+    image: sungmin330/landing:latest
+    ports:
+      - "3000:3000"
+    networks:
+      - app_network
+
   django-rest:
-    build: ../kpaas_rest/
+    image: sungmin330/kpaas_rest:latest
 #    command: python manage.py collectstatic --no-input && daphne -b 0.0.0.0 -p 8000 kpaas_rest.asgi:application
     ports:
       - "8000:8000"
@@ -33,7 +40,7 @@ services:
       - app_network
 
   celery-flower:
-    build: .
+    image: sungmin330/kpaas_task:latest
     command: celery -A config flower
     ports:
       - "5555:5555"
@@ -52,7 +59,7 @@ services:
       - app_network
 
   celery-beat:
-    build: .
+    image: sungmin330/kpaas_task:latest
     command: celery -A config beat
     depends_on:
       - nginx
@@ -67,7 +74,7 @@ services:
       - app_network
 
   celery-worker:
-    build: .
+    image: sungmin330/kpaas_task:latest
     command: celery -A config worker
     depends_on:
       - nginx
@@ -82,7 +89,7 @@ services:
     networks:
       - app_network
   login-listen:
-    build: .
+    image: sungmin330/kpaas_task:latest
     command: python manage.py runserver 0.0.0.0:3000 --settings=config.settings.production
     ports:
       - "3000:3000"
@@ -100,7 +107,7 @@ services:
       - app_network
 
   flutter:
-    build: ../kpaas_flutter/
+    image: sungmin330/kpaas_flutter:latest
     ports:
       - "8080:80"
     depends_on:
