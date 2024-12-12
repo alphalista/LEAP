@@ -76,6 +76,7 @@ class MarketBondCmbViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         # Exclude records where relevant fields are 0
+
         querySet = super().get_queryset().exclude(
             issue_info_data__srfc_inrt=0
         ).exclude(
