@@ -56,6 +56,12 @@ from .filters import MarketBondCmbFilter
 
 from rest_framework import viewsets, status
 
+from django.db.models import IntegerField, DateField, Value, FloatField
+from django.db.models.functions import Cast, Substr, Concat, Replace
+from dateutil.relativedelta import relativedelta
+from datetime import timedelta
+from django.utils import timezone
+
 
 # Create your views here.
 
@@ -66,17 +72,84 @@ class MarketBondCmbViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = MarketBondCmbFilter
     filterset_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__nice_crdt_grad_text']  # 정확한 값 매칭
     search_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name']  # 부분 문자열 검색
-    ordering_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__srfc_inrt', 'inquire_price_data__bond_prpr', 'inquire_asking_price_data__bidp_rsqn1']  # 정렬 가능한 필드
+    ordering_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__srfc_inrt', 'inquire_price_data__bond_prpr', 'inquire_asking_price_data__seln_ernn_rate1', 'issue_info_data__expd_dt', 'inquire_asking_price_data__total_askp_rsqn']  # 정렬 가능한 필드
 
     def get_queryset(self):
         # Exclude records where relevant fields are 0
-        return super().get_queryset().exclude(
+
+        querySet = super().get_queryset().exclude(
             issue_info_data__srfc_inrt=0
         ).exclude(
             inquire_price_data__bond_prpr=0
         ).exclude(
             inquire_asking_price_data__bidp_rsqn1=0
         )
+        if self.request.query_params.get('expd_dt'):
+            data = self.request.query_params.get('expd_dt')
+            query = querySet.annotate(
+                date_field=Cast(
+                    Concat(
+                        Substr('issue_info_data__expd_dt', 1, 4), Value('-'),
+                        Substr('issue_info_data__expd_dt', 5, 2), Value('-'),
+                        Substr('issue_info_data__expd_dt', 7, 2)
+                    )
+                    , DateField())
+            )
+            if data == 'asc':
+                return query
+            elif data == 'desc':
+                return query
+            else:
+                try:
+                    data = int(data)
+                    if data == 6: future = timezone.now() + relativedelta(months=6) # 6개월 이내 만기일을 일컫습니다.
+                    else : future = timezone.now() + timedelta(days=365*data)
+                    return query.filter(date_field__lte=future).order_by('-date_field')
+                except ValueError:
+                    return querySet
+        elif self.request.query_params.get('grad'):
+            data = self.request.query_params.get('grad')
+            # obj = MarketBondIssueInfo.objects
+            query = querySet
+            if data == 'AAA':
+                query = querySet.filter(issue_info_data__kbp_crdt_grad_text='AAA')
+            elif data == 'AA':
+                plus = querySet.filter(issue_info_data__kbp_crdt_grad_text='AA+')
+                zero = querySet.filter(issue_info_data__kbp_crdt_grad_text='AA')
+                minus = querySet.filter(issue_info_data__kbp_crdt_grad_text='AA-')
+                query = plus | zero | minus
+            elif data == 'A':
+                plus = querySet.filter(issue_info_data__kbp_crdt_grad_text='A+')
+                zero = querySet.filter(issue_info_data__kbp_crdt_grad_text='A')
+                minus = querySet.filter(issue_info_data__kbp_crdt_grad_text='A-')
+                query = plus | zero | minus
+            elif data == 'BBB':
+                plus = querySet.filter(issue_info_data__kbp_crdt_grad_text='BBB+')
+                zero = querySet.filter(issue_info_data__kbp_crdt_grad_text='BBB')
+                minus = querySet.filter(issue_info_data__kbp_crdt_grad_text='BBB-')
+                query = plus | zero | minus
+            elif data == 'BB':
+                plus = querySet.filter(issue_info_data__kbp_crdt_grad_text='BB+')
+                zero = querySet.filter(issue_info_data__kbp_crdt_grad_text='BB')
+                minus = querySet.filter(issue_info_data__kbp_crdt_grad_text='BB-')
+                query = plus | zero | minus
+            elif data == 'B':
+                plus = querySet.filter(issue_info_data__kbp_crdt_grad_text='B')
+                zero = querySet.filter(issue_info_data__kbp_crdt_grad_text='B')
+                minus = querySet.filter(issue_info_data__kbp_crdt_grad_text='B')
+                query = plus | zero | minus
+            elif data == 'CCC':
+                plus = querySet.filter(issue_info_data__kbp_crdt_grad_text='CCC+')
+                zero = querySet.filter(issue_info_data__kbp_crdt_grad_text='CCC')
+                minus = querySet.filter(issue_info_data__kbp_crdt_grad_text='CCC-')
+                under1 = querySet.filter(issue_info_data__kbp_crdt_grad_text='CC')
+                under2 = querySet.filter(issue_info_data__kbp_crdt_grad_text='C')
+                under3 = querySet.filter(issue_info_data__kbp_crdt_grad_text='D')
+                query = plus | zero | minus | under1 | under2 | under3
+            elif data == 'none':
+                query = querySet.filter(issue_info_data__kbp_crdt_grad_text='')
+            return query
+        return querySet
 
 class MarketBondViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MarketBondIssueInfo.objects.none()  # 임의의 빈 쿼리셋
@@ -194,8 +267,76 @@ class MarketBondCodeViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class MarketBondIssueInfoViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = MarketBondIssueInfo.objects.all()
+    # queryset = MarketBondIssueInfo.objects.all()
     serializer_class = MarketBondIssueInfoSerializer
+
+    def get_queryset(self):
+        if self.request.query_params.get('expd_dt'):
+            data = self.request.query_params.get('expd_dt')
+            query = MarketBondIssueInfo.objects.annotate(
+                date_field=Cast(
+                    Concat(
+                        Substr('expd_dt', 1, 4), Value('-'),
+                        Substr('expd_dt', 5, 2), Value('-'),
+                        Substr('expd_dt', 7, 2)
+                    )
+                    , DateField())
+            )
+            if data == 'asc':
+                return query.order_by('date_field')
+            elif data == 'desc':
+                return query.order_by('-date_field')
+            else:
+                try:
+                    data = int(data)
+                    if data == 6: future = timezone.now() + relativedelta(months=6) # 6개월 이내 만기일을 일컫습니다.
+                    else : future = timezone.now() + timedelta(days=365*data)
+                    return query.filter(date_field__lte=future).order_by('-date_field')
+                except ValueError:
+                    return MarketBondIssueInfo.objects.all()
+        elif self.request.query_params.get('grad'):
+            data = self.request.query_params.get('grad')
+            obj = MarketBondIssueInfo.objects
+            query = MarketBondIssueInfo.objects.all()
+            if data == 'AAA':
+                query = obj.filter(kbp_crdt_grad_text='AAA')
+            elif data == 'AA':
+                plus = obj.filter(kbp_crdt_grad_text='AA+')
+                zero = obj.filter(kbp_crdt_grad_text='AA')
+                minus = obj.filter(kbp_crdt_grad_text='AA-')
+                query = plus | zero | minus
+            elif data == 'A':
+                plus = obj.filter(kbp_crdt_grad_text='A+')
+                zero = obj.filter(kbp_crdt_grad_text='A')
+                minus = obj.filter(kbp_crdt_grad_text='A-')
+                query = plus | zero | minus
+            elif data == 'BBB':
+                plus = obj.filter(kbp_crdt_grad_text='BBB+')
+                zero = obj.filter(kbp_crdt_grad_text='BBB')
+                minus = obj.filter(kbp_crdt_grad_text='BBB-')
+                query = plus | zero | minus
+            elif data == 'BB':
+                plus = obj.filter(kbp_crdt_grad_text='BB+')
+                zero = obj.filter(kbp_crdt_grad_text='BB')
+                minus = obj.filter(kbp_crdt_grad_text='BB-')
+                query = plus | zero | minus
+            elif data == 'B':
+                plus = obj.filter(kbp_crdt_grad_text='B')
+                zero = obj.filter(kbp_crdt_grad_text='B')
+                minus = obj.filter(kbp_crdt_grad_text='B')
+                query = plus | zero | minus
+            elif data == 'CCC':
+                plus = obj.filter(kbp_crdt_grad_text='CCC+')
+                zero = obj.filter(kbp_crdt_grad_text='CCC')
+                minus = obj.filter(kbp_crdt_grad_text='CCC-')
+                under1 = obj.filter(kbp_crdt_grad_text='CC')
+                under2 = obj.filter(kbp_crdt_grad_text='C')
+                under3 = obj.filter(kbp_crdt_grad_text='D')
+                query = plus | zero | minus | under1 | under2 | under3
+            elif data == 'none':
+                query = obj.filter(kbp_crdt_grad_text='')
+            return query
+        return MarketBondIssueInfo.objects.all()
 
 
 class MarketBondSearchInfoViewSet(viewsets.ReadOnlyModelViewSet):

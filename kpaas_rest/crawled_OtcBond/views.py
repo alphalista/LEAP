@@ -214,7 +214,7 @@ class OtcBondFilterView(viewsets.ReadOnlyModelViewSet):
             else:
                 try:
                     data = int(data)
-                    if data == '6': future = timezone.now() + relativedelta(months=6) # 6개월 이내 만기일을 일컫습니다.
+                    if data == 6: future = timezone.now() + relativedelta(months=6) # 6개월 이내 만기일을 일컫습니다.
                     else : future = timezone.now() + timedelta(days=365*data)
                     return query.filter(date_field__lte=future).order_by('-date_field')
                 except ValueError:
