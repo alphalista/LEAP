@@ -21,10 +21,16 @@ dependencies:
   syncfusion_flutter_charts: ^21.1.35
   flutter_dotenv: ^5.1.0
   kakao_flutter_sdk_user: ^1.9.5
-  flutter_native_splash: ^2.4.1
+  flutter_native_splash: ^2.4.3
   syncfusion_flutter_datagrid: ^21.2.10
   dotted_line: ^3.2.3
   http: ^1.2.2
+
+
+flutter_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/app_icon.png"
 
 flutter_native_splash:
   color: "#000000"
@@ -34,6 +40,9 @@ flutter_native_splash:
     image: assets/images/SplashImage.png
     icon_background_color: "#000000"
 
+  ios: false
+
+
   web:
     image: assets/images/SplashImage.png
     fullscreen: true
@@ -42,6 +51,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.13.1
+
 
 flutter:
   uses-material-design: true
@@ -55,3 +66,4 @@ flutter:
     - assets/images/Third.png
     - assets/images/Fourth.png
     - assets/images/Fifth.png
+    - assets/images/app_icon.png
