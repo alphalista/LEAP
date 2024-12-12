@@ -16,7 +16,7 @@ SECRET_KEY = env('SECRET_KEY')
 KAKAO_ADMIN_KEY = env('KAKAO_ADMIN_KEY')
 KAKAO_REST_API_KEY = env('KAKAO_REST_API_KEY')
 KAKAO_CLIENT_SECRET = env('KAKAO_CLIENT_SECRET')
-NAVER_CLIEND_ID = env('NAVER_CLIENT_ID')
+NAVER_CLIENT_ID = env('NAVER_CLIENT_ID')
 NAVER_CLIENT_SECRET = env('NAVER_CLIENT_SECRET')
 
 # 기본 디버그 모드 (세부 설정 파일에서 수정)
@@ -119,35 +119,40 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'marketbond.tasks.market_bond_code_info',
         'schedule': crontab(minute=0, hour=0),
         'options': {
-            'expires': 60 * 5
+            'expires': 60 * 5,
+            'time_limit': 60 * 40
         }
     },
     'market_bond_issue_info_task': {
         'task': 'marketbond.tasks.market_bond_issue_info',
         'schedule': crontab(minute=5, hour=0),
         'options': {
-            'expires': 60 * 60
+            'expires': 60 * 60,
+            'time_limit': 60 * 40
         }
     },
     'market_bond_inquire_asking_price_task': {
         'task': 'marketbond.tasks.market_bond_inquire_asking_price',
         'schedule': crontab(minute='*/30', hour='9-16'),
         'options': {
-            'expires': 60 * 60
+            'expires': 60 * 60,
+            'time_limit': 60 * 40
         }
     },
     'market_bond_inquire_daily_itemchartprice': {
         'task': 'marketbond.tasks.market_bond_inquire_daily_itemchartprice',
         'schedule': crontab(minute=0, hour=1),
         'options': {
-            'expires': 60 * 60
+            'expires': 60 * 60,
+            'time_limit': 60 * 40
         }
     },
     'market_bond_inquire_price': {
         'task': 'marketbond.tasks.market_bond_inquire_price',
         'schedule': crontab(minute='*/30', hour='9-16'),
         'options': {
-            'expires': 60 * 60
+            'expires': 60 * 60,
+            'time_limit': 60 * 40
         }
     },
     'naver_news_task': {
@@ -197,7 +202,15 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'marketbond.tasks.combine',
         'schedule': 60 * 30,
         'options': {
-            'expires': 60 * 60
+            'expires': 60 * 60,
+            'time_limit': 60 * 40
+        }
+    },
+    'MarketBond_trending': {
+        'task': 'marketbond.tasks.marketbond_trending_pipeline',
+        'schedule': 60 * 20,
+        'options': {
+            'expires': 60 * 10
         }
     }
 }

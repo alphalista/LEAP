@@ -48,7 +48,7 @@ class OTC_Bond_Holding(models.Model):
     quantity = models.CharField(max_length=100)
     purchase_date = models.CharField(max_length=100)
     expire_date = models.DateField()
-
+    nickname = models.CharField(max_length=100, blank=True, null=True)
     class Meta:
         db_table = 'OTC_Bond_Holding'
 
@@ -87,6 +87,7 @@ class OtcBondPreDataMonths(models.Model):
 # 장외 채권 트렌딩 채권 저장 모델입니다. (Managed)
 class OtcBondTrending(models.Model):
     bond_code = models.ForeignKey(OTC_Bond, on_delete=models.CASCADE)
+    bond_name = models.CharField(max_length=200)
     YTM = models.CharField(max_length=100)
     add_date = models.DateField(auto_now_add=True)
 
@@ -108,3 +109,4 @@ class OTC_Bond_Interest(models.Model):
 
     class Meta:
         unique_together = ('user_id', 'bond_code')
+        db_table = 'OTC_Bond_Interest'

@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import UniqueConstraint
+from usr.models import Users
 
 
 # Create your models here.
@@ -473,10 +474,11 @@ class MarketBondInquireDailyPrice(models.Model):
 
 class MarketBondCmb(models.Model):
     # You can adjust these fields based on the actual fields you need from the other models
-    code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    code = models.OneToOneField(MarketBondCode, on_delete=models.CASCADE)
     issue_info_data = models.ForeignKey(MarketBondIssueInfo, on_delete=models.CASCADE)
     inquire_price_data = models.ForeignKey(MarketBondInquirePrice, on_delete=models.CASCADE)
     inquire_asking_price_data = models.ForeignKey(MarketBondInquireAskingPrice, on_delete=models.CASCADE)
+
 
 class MarketBondPreDataDays(models.Model):
     bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
@@ -503,3 +505,41 @@ class MarketBondPreDataMonths(models.Model):
     class Meta:
         db_table = "MarketBondPreDataMonths"
 
+class MarketBondHowManyInterest(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    interest = models.IntegerField()
+    danger_degree = models.CharField(max_length=100)
+    # 프로젝트 명이 같기 때문에 테이블 명 따로 선언하지 않아도 됨
+
+class MarketBondTrending(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    bond_name = models.CharField(max_length=200)
+    YTM = models.CharField(max_length=100)
+    add_date = models.DateField(auto_now_add=True)
+
+class ET_Bond_Holding(models.Model):
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    price_per_10 = models.CharField(max_length=100) # 1만원 채권당 매수단가
+    quantity = models.CharField(max_length=100)
+    purchase_date = models.CharField(max_length=100)
+    expire_date = models.DateField()
+    nickname = models.CharField(max_length=100, null=True, blank=True)
+    class Meta:
+        db_table = 'ET_Bond_Holding'
+        unique_together = ('user_id', 'bond_code', 'price_per_10')
+
+class ET_Bond_Interest(models.Model):
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
+    # pk가 id이기 때문에 칼럼에는 id가 들어옵니다.
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user_id', 'bond_code')
+        db_table = 'ET_Bond_Interest'
+
+class ET_Bond_Expired(models.Model): # ReadOnly
+    user_id = models.ForeignKey(Users, on_delete=models.CASCADE)
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    class Meta:
+        db_table = 'ET_Bond_Expired'

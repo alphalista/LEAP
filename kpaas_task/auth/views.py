@@ -6,7 +6,10 @@ import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.middleware.csrf import get_token
-from config.settings.base import KAKAO_CLIENT_SECRET, KAKAO_REST_API_KEY, NAVER_CLIEND_ID, NAVER_CLIENT_SECRET
+from config.settings.base import KAKAO_CLIENT_SECRET, KAKAO_REST_API_KEY, NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
+
+import jwt
+
 
 from usr.models import Users
 
@@ -19,7 +22,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 def kakao_callback(request):
     code = request.GET.get('code')
-    redirect_uri = 'http://127.0.0.1:8000/auth/login/kakao-callback'
+    redirect_uri = 'http://localhost:3000/auth/login/kakao-callback'
     url = 'https://kauth.kakao.com/oauth/token'
     
     headers = {
@@ -39,7 +42,7 @@ def kakao_callback(request):
     if response.status_code == 200:
         try:
             # ID 토큰 인증을 토대로 다시 요청
-            createUser(response.json().get('id_token'))
+            createUser(response.json()['id_token'])
             return JsonResponse(response.json())
         except ValueError:
             return JsonResponse({"error": "Invalid JSON response", "content": response.text}, status=500)
@@ -89,8 +92,10 @@ def createUser(id_token):
     response = requests.post('https://kauth.kakao.com/oauth/tokeninfo', data=data, headers=headers)
     if response.status_code == 200:
         # 여기서부터 유저를 만들면 됨
-        sub = id_token.json().get('sub')
-        email = id_token.json().get('email')
+        payload = jwt.decode(id_token, options={"verify_signature": False})
+
+        sub = payload['sub']
+        email = payload['email']
 
         instance = Users.objects.filter(user_id=sub)
         if not instance:
@@ -116,7 +121,7 @@ class NaverLogin:
         self.token_url = 'https://nid.naver.com/oauth2.0/token'
         self.me_url = 'https://openapi.naver.com/v1/nid/me'
         self.data = {
-            'client_id': NAVER_CLIEND_ID,
+            'client_id': NAVER_CLIENT_ID,
             'client_secret': NAVER_CLIENT_SECRET,
         }
 

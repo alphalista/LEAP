@@ -4,7 +4,9 @@
 from celery import shared_task
 from marketbond.kib_api.collect_kis_data import CollectMarketBond, CollectMarketCode
 from marketbond.models import MarketBondCode, MarketBondIssueInfo, MarketBondInquirePrice, MarketBondInquireAskingPrice, \
-    MarketBondCmb, MarketBondPreDataDays, MarketBondPreDataMonths, MarketBondPreDataWeeks
+    MarketBondCmb, MarketBondPreDataDays, MarketBondPreDataMonths, MarketBondPreDataWeeks, MarketBondTrending, MarketBondHowManyInterest, \
+    ET_Bond_Holding, ET_Bond_Expired
+from django.db import transaction
 
 from .serializer import MarketBondIssueInfoSerializer, MarketBondInquirePriceSerializer, \
     MarketBondInquireAskingPriceSerializer
@@ -116,7 +118,7 @@ def market_bond_inquire_price():
     try:
         pdno_list = list(MarketBondCode.objects.values_list('code', flat=True))
         for pdno in pdno_list:
-            fetch_market_bond_inquire_price.delay(pdno)  # Use .delay() to enqueue tasks
+            fetch_market_bond_inquire_price(pdno)  # Use .delay() to enqueue tasks
     except Exception as e:
         print(e)
 
@@ -151,12 +153,16 @@ def handle_combine(pdno):
             inquire_price_data = MarketBondInquirePrice.objects.filter(code=code).order_by('-id').first()
             inquire_asking_price_data = MarketBondInquireAskingPrice.objects.filter(code=code).order_by('-id').first()
 
-            market_bond_c = MarketBondCmb.objects.create(
-                code=code,
-                issue_info_data=issue_info_data,
-                inquire_price_data=inquire_price_data,
-                inquire_asking_price_data=inquire_asking_price_data,
-            )
+            with transaction.atomic():
+                # Check if a record with the same code already exists
+                market_bond_c, created = MarketBondCmb.objects.update_or_create(
+                    code=code,
+                    defaults={
+                        'issue_info_data': issue_info_data,
+                        'inquire_price_data': inquire_price_data,
+                        'inquire_asking_price_data': inquire_asking_price_data,
+                    },
+                )
             print(pdno, 'combine done')
     except Exception as e:
         print(e)
@@ -317,3 +323,40 @@ def pre_data_pipeline():
                 duration=str(duration_avg),
                 price=str(price_avg),
             )
+
+@shared_task
+def marketbond_trending_pipeline(): # 장내 채권 트렌딩 파이프라인 테스크 입니다.
+    print('trending start')
+    MarketBondTrending.objects.all().delete()  # 매번 데이터가 바뀌므로 데이터 삭제 진행
+    ins_count = 15
+    howManyInterestLen = len(MarketBondHowManyInterest.objects.all())
+    Market_Bond_need = max(0, ins_count - howManyInterestLen)
+    instances = MarketBondInquireAskingPrice.objects.all().order_by('-seln_ernn_rate5')[:Market_Bond_need] # 위험도 추출완료
+    for each in instances:
+        MarketBondTrending.objects.update_or_create(
+            bond_code=each.code,
+            defaults={
+                'bond_name': each.code.name,
+                'YTM': each.seln_ernn_rate5
+            }
+        )
+    ins = MarketBondHowManyInterest.objects.all().order_by('-interest')[:howManyInterestLen]
+    for each in ins:
+        MarketBondTrending.objects.update_or_create(
+            bond_code=each.bond_code,
+            defaults={
+                'bond_name': each.code.name,
+                'YTM': each.bond_code.YTM
+            }
+        )
+    print('trending end')
+
+@shared_task
+def holding_to_expired():
+    expired = ET_Bond_Holding.objects.filter(expire_date__lt=timezone.now())
+    for instance in expired:
+        ET_Bond_Expired.objects.create(
+            user_id=instance.user_id,
+            bond_code=instance.bond_code,
+        )
+    expired.delete()

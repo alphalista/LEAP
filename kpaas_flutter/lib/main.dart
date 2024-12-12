@@ -24,9 +24,10 @@ Future<void> main() async {
     nativeAppKey: kakaoNativeAppKey!,
     javaScriptAppKey: javaScriptAppKey!,
   );
-
-  await Future.delayed(const Duration(seconds: 10));
-  runApp(MainPage());
+  runApp(MaterialApp(home: MainPage(
+    // nativeAppKey: kakaoNativeAppKey,
+    // javaScriptAppKey: javaScriptAppKey
+  )));
 }
 
 class MainPage extends StatelessWidget {
@@ -56,12 +57,15 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
+  bool isLoading = true;
   final DataController dataController = Get.put(DataController());
   List<dynamic> etBondData = [];
   List<dynamic> otcBondData = [];
   String nextEtBondUrl = '';
   String nextOtcBondUrl = '';
   List<dynamic> newsData = [];
+  List<dynamic> bondData = [];
+  String nextUrl = '';
 
   @override
   void initState() {
@@ -71,24 +75,35 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> fetchBondData() async {
+    setState(() {
+      isLoading = true; // 로딩 상태 설정
+    });
+
     try {
-      final etResponse = await dataController.fetchEtBondData("https://leapbond.com/api/marketbond/combined/");
-      if (etResponse.isNotEmpty) {
+      final dataController = Get.find<DataController>();
+      final otcResponse = await dataController.fetchOtcBondData(
+        "http://localhost:8000/api/otcbond/otc-bond-all/",
+      );
+      final etResponse = await dataController.fetchEtBondData(
+        "http://localhost:8000/api/marketbond/combined/",
+      );
+
+      setState(() {
         etBondData = etResponse['results'] ?? [];
-        nextEtBondUrl = etResponse['next'] ?? '';
-      }
-
-      final otcResponse = await dataController.fetchOtcBondData("https://leapbond.com/api/otcbond/otc-bond-all/");
-      if (otcResponse.isNotEmpty) {
-        otcBondData = otcResponse['results'] ?? [];
-        nextOtcBondUrl = otcResponse['next'] ?? "";
-      }
-
-      setState(() {});
+        nextEtBondUrl = etResponse['next'] ?? "";
+        otcBondData = otcResponse['results'] ?? []; // 장외 채권 데이터 저장
+        nextOtcBondUrl = otcResponse['next'] ?? ''; // 다음 URL 저장
+      });
     } catch (e) {
-      print('Error fetching bond data: $e');
+      print("Error fetching bond data: $e");
+    } finally {
+      setState(() {
+        isLoading = false; // 로딩 상태 해제
+      });
     }
   }
+
+
 
   Future<void> fetchNewsData() async {
     newsData = await dataController.fetchNewsData();

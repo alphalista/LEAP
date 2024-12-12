@@ -15,10 +15,12 @@ services:
       - app_network
 
   django-rest:
-    image: sungmin330/kpaas_rest:latest
-    command: python manage.py collectstatic && daphne -b 0.0.0.0 -p 8000 kpaas_rest.asgi:application
+    build: ../kpaas_rest/
+#    command: python manage.py collectstatic --no-input && daphne -b 0.0.0.0 -p 8000 kpaas_rest.asgi:application
     ports:
       - "8000:8000"
+    volumes:
+      - ../kpaas_rest:/code
     depends_on:
       - nginx
       - db
@@ -31,7 +33,7 @@ services:
       - app_network
 
   celery-flower:
-    image: sungmin330/kpaas_task:latest
+    build: .
     command: celery -A config flower
     ports:
       - "5555:5555"
@@ -39,6 +41,10 @@ services:
       - nginx
       - db
       - redis
+      - celery-worker
+      - celery-beat
+    volumes:
+      - .:/code
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -46,13 +52,14 @@ services:
       - app_network
 
   celery-beat:
-    image: sungmin330/kpaas_task:latest
+    build: .
     command: celery -A config beat
-
     depends_on:
       - nginx
       - db
       - redis
+    volumes:
+      - .:/code
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -60,13 +67,32 @@ services:
       - app_network
 
   celery-worker:
-    image: sungmin330/kpaas_task:latest
+    build: .
     command: celery -A config worker
     depends_on:
       - nginx
       - db
       - redis
       - celery-beat
+    volumes:
+      - .:/code
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks:
+      - app_network
+  login-listen:
+    build: .
+    command: python manage.py runserver 0.0.0.0:3000 --settings=config.settings.production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - nginx
+      - db
+      - redis
+      - celery-beat
+    volumes:
+      - .:/code
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -74,7 +100,7 @@ services:
       - app_network
 
   flutter:
-    image: 47813/fltr:latest
+    build: ../kpaas_flutter/
     ports:
       - "8080:80"
     depends_on:

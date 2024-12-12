@@ -4,7 +4,8 @@ from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import OuterRef, Subquery, CharField
 from typing import Any
-
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from rest_framework import generics
 
 import copy
@@ -12,6 +13,7 @@ import copy
 
 import datetime
 
+from crawled_OtcBond.models import HowManyInterest
 from .models import (
     MarketBondCode,
     MarketBondIssueInfo,
@@ -24,7 +26,10 @@ from .models import (
     MarketBondInquireDailyPrice,
     MarketBondCmb,
     ClickCount, ET_Bond_Interest, Users,
-    ET_Bond_Holding, MarketBondPreDataDays, MarketBondPreDataWeeks, MarketBondPreDataMonths
+    ET_Bond_Holding, MarketBondPreDataDays, MarketBondPreDataWeeks, MarketBondPreDataMonths,
+    MarketBondHowManyInterest,
+    MarketBondTrending,
+    ET_Bond_Expired
 )
 
 from .serializer import (
@@ -43,12 +48,19 @@ from .serializer import (
     ET_Bond_Holding_Serializer,
     Market_Bond_Days_Serializer,
     Market_Bond_Weeks_Serializer,
-    Market_Bond_Months_Serializer
+    Market_Bond_Months_Serializer, MarketBondTrendingSerializer,
+    MarketBondExpiredSerializer
 )
 
 from .filters import MarketBondCmbFilter
 
 from rest_framework import viewsets, status
+
+from django.db.models import IntegerField, DateField, Value, FloatField
+from django.db.models.functions import Cast, Substr, Concat, Replace
+from dateutil.relativedelta import relativedelta
+from datetime import timedelta
+from django.utils import timezone
 
 
 # Create your views here.
@@ -60,17 +72,84 @@ class MarketBondCmbViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = MarketBondCmbFilter
     filterset_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__nice_crdt_grad_text']  # 정확한 값 매칭
     search_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name']  # 부분 문자열 검색
-    ordering_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__srfc_inrt', 'inquire_price_data__bond_prpr', 'inquire_asking_price_data__bidp_rsqn1']  # 정렬 가능한 필드
+    ordering_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__srfc_inrt', 'inquire_price_data__bond_prpr', 'inquire_asking_price_data__seln_ernn_rate1', 'issue_info_data__expd_dt', 'inquire_asking_price_data__total_askp_rsqn']  # 정렬 가능한 필드
 
     def get_queryset(self):
         # Exclude records where relevant fields are 0
-        return super().get_queryset().exclude(
+
+        querySet = super().get_queryset().exclude(
             issue_info_data__srfc_inrt=0
         ).exclude(
             inquire_price_data__bond_prpr=0
         ).exclude(
             inquire_asking_price_data__bidp_rsqn1=0
         )
+        if self.request.query_params.get('expd_dt'):
+            data = self.request.query_params.get('expd_dt')
+            query = querySet.annotate(
+                date_field=Cast(
+                    Concat(
+                        Substr('issue_info_data__expd_dt', 1, 4), Value('-'),
+                        Substr('issue_info_data__expd_dt', 5, 2), Value('-'),
+                        Substr('issue_info_data__expd_dt', 7, 2)
+                    )
+                    , DateField())
+            )
+            if data == 'asc':
+                return query
+            elif data == 'desc':
+                return query
+            else:
+                try:
+                    data = int(data)
+                    if data == 6: future = timezone.now() + relativedelta(months=6) # 6개월 이내 만기일을 일컫습니다.
+                    else : future = timezone.now() + timedelta(days=365*data)
+                    return query.filter(date_field__lte=future).order_by('-date_field')
+                except ValueError:
+                    return querySet
+        elif self.request.query_params.get('grad'):
+            data = self.request.query_params.get('grad')
+            # obj = MarketBondIssueInfo.objects
+            query = querySet
+            if data == 'AAA':
+                query = querySet.filter(issue_info_data__kbp_crdt_grad_text='AAA')
+            elif data == 'AA':
+                plus = querySet.filter(issue_info_data__kbp_crdt_grad_text='AA+')
+                zero = querySet.filter(issue_info_data__kbp_crdt_grad_text='AA')
+                minus = querySet.filter(issue_info_data__kbp_crdt_grad_text='AA-')
+                query = plus | zero | minus
+            elif data == 'A':
+                plus = querySet.filter(issue_info_data__kbp_crdt_grad_text='A+')
+                zero = querySet.filter(issue_info_data__kbp_crdt_grad_text='A')
+                minus = querySet.filter(issue_info_data__kbp_crdt_grad_text='A-')
+                query = plus | zero | minus
+            elif data == 'BBB':
+                plus = querySet.filter(issue_info_data__kbp_crdt_grad_text='BBB+')
+                zero = querySet.filter(issue_info_data__kbp_crdt_grad_text='BBB')
+                minus = querySet.filter(issue_info_data__kbp_crdt_grad_text='BBB-')
+                query = plus | zero | minus
+            elif data == 'BB':
+                plus = querySet.filter(issue_info_data__kbp_crdt_grad_text='BB+')
+                zero = querySet.filter(issue_info_data__kbp_crdt_grad_text='BB')
+                minus = querySet.filter(issue_info_data__kbp_crdt_grad_text='BB-')
+                query = plus | zero | minus
+            elif data == 'B':
+                plus = querySet.filter(issue_info_data__kbp_crdt_grad_text='B')
+                zero = querySet.filter(issue_info_data__kbp_crdt_grad_text='B')
+                minus = querySet.filter(issue_info_data__kbp_crdt_grad_text='B')
+                query = plus | zero | minus
+            elif data == 'CCC':
+                plus = querySet.filter(issue_info_data__kbp_crdt_grad_text='CCC+')
+                zero = querySet.filter(issue_info_data__kbp_crdt_grad_text='CCC')
+                minus = querySet.filter(issue_info_data__kbp_crdt_grad_text='CCC-')
+                under1 = querySet.filter(issue_info_data__kbp_crdt_grad_text='CC')
+                under2 = querySet.filter(issue_info_data__kbp_crdt_grad_text='C')
+                under3 = querySet.filter(issue_info_data__kbp_crdt_grad_text='D')
+                query = plus | zero | minus | under1 | under2 | under3
+            elif data == 'none':
+                query = querySet.filter(issue_info_data__kbp_crdt_grad_text='')
+            return query
+        return querySet
 
 class MarketBondViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MarketBondIssueInfo.objects.none()  # 임의의 빈 쿼리셋
@@ -109,14 +188,15 @@ class MarketBondViewSet(viewsets.ReadOnlyModelViewSet):
             }
 
             if issue_info_data and inquire_price_data and inquire_asking_price_data:
-                data['duration'] = self.MacDuration(
+                # TODO 듀레이션 키값 수정
+                data['duration'] = {'duration':str(self.MacDuration(
                     issue_info_data.get('bond_int_dfrm_mthd_cd'),
                     float(issue_info_data.get('srfc_inrt')),
                     10000,
-                    float(inquire_price_data[0].get('ernn_rate')),
+                    float(inquire_price_data.get('ernn_rate')),
                     issue_info_data.get('expd_dt'),
                     int(issue_info_data.get('int_dfrm_mcnt')),
-                )
+                ))}
 
             # Return the response
             return Response(data, status=status.HTTP_200_OK)
@@ -187,8 +267,76 @@ class MarketBondCodeViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class MarketBondIssueInfoViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = MarketBondIssueInfo.objects.all()
+    # queryset = MarketBondIssueInfo.objects.all()
     serializer_class = MarketBondIssueInfoSerializer
+
+    def get_queryset(self):
+        if self.request.query_params.get('expd_dt'):
+            data = self.request.query_params.get('expd_dt')
+            query = MarketBondIssueInfo.objects.annotate(
+                date_field=Cast(
+                    Concat(
+                        Substr('expd_dt', 1, 4), Value('-'),
+                        Substr('expd_dt', 5, 2), Value('-'),
+                        Substr('expd_dt', 7, 2)
+                    )
+                    , DateField())
+            )
+            if data == 'asc':
+                return query.order_by('date_field')
+            elif data == 'desc':
+                return query.order_by('-date_field')
+            else:
+                try:
+                    data = int(data)
+                    if data == 6: future = timezone.now() + relativedelta(months=6) # 6개월 이내 만기일을 일컫습니다.
+                    else : future = timezone.now() + timedelta(days=365*data)
+                    return query.filter(date_field__lte=future).order_by('-date_field')
+                except ValueError:
+                    return MarketBondIssueInfo.objects.all()
+        elif self.request.query_params.get('grad'):
+            data = self.request.query_params.get('grad')
+            obj = MarketBondIssueInfo.objects
+            query = MarketBondIssueInfo.objects.all()
+            if data == 'AAA':
+                query = obj.filter(kbp_crdt_grad_text='AAA')
+            elif data == 'AA':
+                plus = obj.filter(kbp_crdt_grad_text='AA+')
+                zero = obj.filter(kbp_crdt_grad_text='AA')
+                minus = obj.filter(kbp_crdt_grad_text='AA-')
+                query = plus | zero | minus
+            elif data == 'A':
+                plus = obj.filter(kbp_crdt_grad_text='A+')
+                zero = obj.filter(kbp_crdt_grad_text='A')
+                minus = obj.filter(kbp_crdt_grad_text='A-')
+                query = plus | zero | minus
+            elif data == 'BBB':
+                plus = obj.filter(kbp_crdt_grad_text='BBB+')
+                zero = obj.filter(kbp_crdt_grad_text='BBB')
+                minus = obj.filter(kbp_crdt_grad_text='BBB-')
+                query = plus | zero | minus
+            elif data == 'BB':
+                plus = obj.filter(kbp_crdt_grad_text='BB+')
+                zero = obj.filter(kbp_crdt_grad_text='BB')
+                minus = obj.filter(kbp_crdt_grad_text='BB-')
+                query = plus | zero | minus
+            elif data == 'B':
+                plus = obj.filter(kbp_crdt_grad_text='B')
+                zero = obj.filter(kbp_crdt_grad_text='B')
+                minus = obj.filter(kbp_crdt_grad_text='B')
+                query = plus | zero | minus
+            elif data == 'CCC':
+                plus = obj.filter(kbp_crdt_grad_text='CCC+')
+                zero = obj.filter(kbp_crdt_grad_text='CCC')
+                minus = obj.filter(kbp_crdt_grad_text='CCC-')
+                under1 = obj.filter(kbp_crdt_grad_text='CC')
+                under2 = obj.filter(kbp_crdt_grad_text='C')
+                under3 = obj.filter(kbp_crdt_grad_text='D')
+                query = plus | zero | minus | under1 | under2 | under3
+            elif data == 'none':
+                query = obj.filter(kbp_crdt_grad_text='')
+            return query
+        return MarketBondIssueInfo.objects.all()
 
 
 class MarketBondSearchInfoViewSet(viewsets.ReadOnlyModelViewSet):
@@ -257,6 +405,19 @@ class ET_Bond_Interest_view(viewsets.ModelViewSet):
         target = ET_Bond_Interest.objects.filter(user_id=user_id)
         # target의 ET_Bond의 값은 ET_Bond의 id 값이 노출됨
         # 시리얼라이저의 to_representation()로 해결
+        query = self.request.query_params.get('query')
+        if query:
+            temp = []
+            for each in target:
+                temp.append(each.bond_code.id) # id 값이 드감
+            code_search_result = MarketBondCode.objects.filter(id__in=temp).filter(code__icontains=query)
+            name_search_result = MarketBondIssueInfo.objects.filter(code__in=temp).filter(prdt_name__icontains=query)
+            temp.clear()
+            for each in code_search_result:
+                temp.append(each.id)
+            for each in name_search_result:
+                temp.append(each.code.id)
+            return ET_Bond_Interest.objects.filter(bond_code__in=temp)
         return target
 
     def create(self, request, *args, **kwargs):
@@ -264,8 +425,18 @@ class ET_Bond_Interest_view(viewsets.ModelViewSet):
         try:
             bond_instance = MarketBondCode.objects.get(code=data['bond_code'])
             data['bond_code'] = int(bond_instance.id)
+            data['user_id'] = request.user.user_id
+            ins = MarketBondHowManyInterest.objects.get(bond_code=bond_instance.id)
+            MarketBondHowManyInterest.objects.update_or_create(
+                bond_code=MarketBondCode.objects.get(code=data['bond_code']),
+                defaults={
+                    'interest': ins.interest + 1
+                }
+            )
         except MarketBondCode.DoesNotExist:
             return Response({"bond_code": "해당 bond_code가 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        except MarketBondHowManyInterest.DoesNotExist:
+            MarketBondHowManyInterest.objects.create(bond_code=MarketBondCode.objects.get(id=data['bond_code']), interest=1)
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -296,6 +467,19 @@ class ET_Bond_Holding_view(viewsets.ModelViewSet):
         target = ET_Bond_Holding.objects.filter(user_id=user_id)
         # target의 ET_Bond의 값은 ET_Bond의 id 값이 노출됨
         # 시리얼라이저의 to_representation()로 해결
+        query = self.request.query_params.get('query')
+        if query:
+            temp = []
+            for each in target:
+                temp.append(each.bond_code.id)  # id 값이 드감
+            code_search_result = MarketBondCode.objects.filter(id__in=temp).filter(code__icontains=query)
+            name_search_result = MarketBondIssueInfo.objects.filter(code__in=temp).filter(prdt_name__icontains=query)
+            temp.clear()
+            for each in code_search_result:
+                temp.append(each.id)
+            for each in name_search_result:
+                temp.append(each.code.id)
+            return ET_Bond_Holding.objects.filter(bond_code__in=temp)
         return target
 
     def create(self, request, *args, **kwargs):
@@ -303,9 +487,25 @@ class ET_Bond_Holding_view(viewsets.ModelViewSet):
         try:
             bond_instance = MarketBondCode.objects.get(code=data['bond_code'])
             data['bond_code'] = int(bond_instance.id)
+            data['user_id'] = request.user.user_id
         except MarketBondCode.DoesNotExist:
             return Response({"bond_code": "해당 bond_code가 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        try:
+            data = request.data.copy()
+            bond_instance = MarketBondCode.objects.get(code=data['bond_code'])
+            data['bond_code'] = int(bond_instance.id)
+            request_data = ET_Bond_Holding.objects.filter(user_id=request.user.user_id).get(bond_code=data['bond_code'])
+        except MarketBondCode.DoesNotExist:
+            return Response('MarketBondCod does not exist', status=404)
+        except ET_Bond_Holding.DoesNotExist:
+            return Response('ET_Bond_Holding does not exist', status=404)
+        serializer = ET_Bond_Holding_Serializer(request_data, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -349,3 +549,27 @@ class EtBondPreDataMonthsView(viewsets.ReadOnlyModelViewSet):
 
         day_instances = MarketBondPreDataMonths.objects.filter(bond_code=ins_id).order_by('add_date')
         return day_instances
+
+class MarketBondTrendingView(viewsets.ReadOnlyModelViewSet):
+    queryset = MarketBondTrending.objects.all()
+    serializer_class = MarketBondTrendingSerializer
+
+class MarketBondExpiredView(viewsets.ReadOnlyModelViewSet):
+    serializer_class = MarketBondExpiredSerializer
+    def get_queryset(self):
+        user_id = self.request.user.user_id
+        target = ET_Bond_Expired.objects.filter(user_id=user_id)
+        query = self.request.query_params.get('query')
+        if query:
+            temp = []
+            for each in target:
+                temp.append(each.bond_code.id)  # id 값이 드감
+            code_search_result = MarketBondCode.objects.filter(id__in=temp).filter(code__icontains=query)
+            name_search_result = MarketBondIssueInfo.objects.filter(code__in=temp).filter(prdt_name__icontains=query)
+            temp.clear()
+            for each in code_search_result:
+                temp.append(each.id)
+            for each in name_search_result:
+                temp.append(each.code.id)
+            return ET_Bond_Expired.objects.filter(bond_code__in=temp)
+        return target

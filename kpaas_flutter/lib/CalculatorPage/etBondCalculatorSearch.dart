@@ -1,84 +1,40 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:dio/dio.dart';
-import '../apiconnectiontest/data_controller.dart';
-import 'package:kpaas_flutter/DescriptionPage/otcBondDescription.dart';
-
-class MatureBondDisplay extends StatefulWidget {
-
-  const MatureBondDisplay({Key? key}) : super(key: key);
+import 'package:kpaas_flutter/apiconnectiontest/data_controller.dart';
+class EtBondCalculatorSearch extends StatefulWidget {
+  const EtBondCalculatorSearch({super.key});
 
   @override
-  _MatureBondDisplayState createState() => _MatureBondDisplayState();
+  State<EtBondCalculatorSearch> createState() => _EtBondCalculatorSearchState();
 }
 
-class _MatureBondDisplayState extends State<MatureBondDisplay> {
+class _EtBondCalculatorSearchState extends State<EtBondCalculatorSearch> {
   final ScrollController _scrollController = ScrollController();
   List<dynamic> bondData = [];
-  String? nextUrl;
   bool isLoading = false;
   String searchQuery = "";
 
-  Future<void> _fetchBondData({String query = '', required String idToken}) async {
-    final dio = Dio();
+  Future<void> _fetchBondData({String query = ""}) async {
     setState(() {
-      isLoading = true;
-    });
-    try {
-      print(idToken);
-      final response = await dio.get(
-        'http://localhost:8000/api/otcbond/expired/?query=$query',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJlNmYyYjJhOGExNTFhMWNmN2FkNmRhMzQ5MTg5OTdmNSIsInN1YiI6IjM3Nzc1MTM2MTAiLCJhdXRoX3RpbWUiOjE3MzMzNzAyNTQsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwiZXhwIjoxNzMzMzkxODU0LCJpYXQiOjE3MzMzNzAyNTQsImVtYWlsIjoiZGxlZUBzdHUuaWljcy5rMTIudHIifQ.oz4zdLoO14JklujYkc5tGXzabe-iRqNfWG3bMCHYzhbN0Tm8ic7YQZDfGVEohYwMH8vORDLgCf22aYrNQ2rjyvvkvlVg4vjN6uAT2QPn8dAyok3cDlUUr7pal6Am7T4zd8JRUzsqpkn2uBvIa1uI33LFqPsXBTfdd13So0KRxlS3JCWFRBi5tdNQcDNAK6-D9AzCqBiF6H-6fyeDucF9Lv9seNJEc1HOHja_BlLgLP67g5vLV0zONkfnxT145JO8GkwgHa0WEZqnMR8tBN0L2XRv7yycG9vFQUNs0hjN-esvh9VDX4PkSJWWEsT7MEPQ3xqxvAZ4f7RVGXbm5gEWPQ',
-          },
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        List<dynamic> results = response.data['results'];
-
-        List<dynamic> metaValues = results.map((item) {
-          if (item['meta'] is String) {
-            return jsonDecode(item['meta']);
-          }
-          return item['meta'];
-        }).toList();
-
-        setState(() {
-          bondData = metaValues; // 데이터 업데이트
-          nextUrl = response.data['next']; // 다음 페이지 URL 설정
-        });
-        print('Bond data fetched successfully: $bondData');
-      } else {
-        print('Failed to fetch data: ${response.statusCode}');
-      }
-    } catch (e) {
-      print("Error fetching bond data: $e");
-    }
-  }
-
-  Future<void> _fetchMoreData() async {
-    if (nextUrl == null || nextUrl!.isEmpty) return; // Check if there's a next URL
-
-    setState(() {
-      isLoading = true; // Start loading state
+      isLoading = true; // 로딩 상태 설정
     });
 
     try {
       final dataController = Get.find<DataController>();
-      final response = await dataController.fetchOtcBondData(nextUrl!);
+      final String url = query.isNotEmpty
+          ? "http://localhost:8000/api/marketbond/combined/?search=$query"
+          : "";
+
+      final response = await dataController.fetchEtBondData(url);
+
       setState(() {
-        bondData.addAll(response['results']['meta'] ?? []); // Append new data to bondData
-        nextUrl = response['next']; // Update next URL
+        bondData = response['results'] ?? [];
       });
     } catch (e) {
-      print("Error loading more data: $e");
+      print("Error fetching bond data: $e");
     } finally {
       setState(() {
-        isLoading = false; // End loading state
+        isLoading = false; // 로딩 상태 해제
       });
     }
   }
@@ -86,15 +42,6 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
   @override
   void initState() {
     super.initState();
-    String idToken = "eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJlNmYyYjJhOGExNTFhMWNmN2FkNmRhMzQ5MTg5OTdmNSIsInN1YiI6IjM3Nzc1MTM2MTAiLCJhdXRoX3RpbWUiOjE3MzMzNzAyNTQsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwiZXhwIjoxNzMzMzkxODU0LCJpYXQiOjE3MzMzNzAyNTQsImVtYWlsIjoiZGxlZUBzdHUuaWljcy5rMTIudHIifQ.oz4zdLoO14JklujYkc5tGXzabe-iRqNfWG3bMCHYzhbN0Tm8ic7YQZDfGVEohYwMH8vORDLgCf22aYrNQ2rjyvvkvlVg4vjN6uAT2QPn8dAyok3cDlUUr7pal6Am7T4zd8JRUzsqpkn2uBvIa1uI33LFqPsXBTfdd13So0KRxlS3JCWFRBi5tdNQcDNAK6-D9AzCqBiF6H-6fyeDucF9Lv9seNJEc1HOHja_BlLgLP67g5vLV0zONkfnxT145JO8GkwgHa0WEZqnMR8tBN0L2XRv7yycG9vFQUNs0hjN-esvh9VDX4PkSJWWEsT7MEPQ3xqxvAZ4f7RVGXbm5gEWPQ";
-    _fetchBondData(idToken: idToken);
-
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels ==
-          _scrollController.position.maxScrollExtent && !isLoading) {
-        _fetchMoreData();
-      }
-    });
   }
 
   String formatDate(String date) {
@@ -124,11 +71,13 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
     }
   }
 
+  int selectedIndex = 0;
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      backgroundColor: const Color(0xFFF1F9F9),
       body: Center(
         child: Container(
           width: 500,
@@ -160,7 +109,7 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
                         const Padding(
                           padding: EdgeInsets.only(left: 20.0),
                           child: Text(
-                            '만기 채권',
+                            '장내 채권 추가',
                             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -198,8 +147,10 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
                       fillColor: Colors.white,
                     ),
                     onChanged: (query) {
-                      searchQuery = query;
-                      _fetchBondData(query: searchQuery, idToken: 'eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9');
+                      setState(() {
+                        searchQuery = query;
+                        _fetchBondData(query: searchQuery);
+                      });
                     },
                   ),
                 ),
@@ -212,7 +163,6 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
                     if (index == 0) {
                       return const SizedBox(height: 0);
                     }
-
                     final actualIndex = index - 1;
 
                     if (actualIndex == bondData.length) {
@@ -221,14 +171,8 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
 
                     return GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => OtcBondDescriptionPage(
-                              bondData: bondData[actualIndex], // 선택한 bondData 전달
-                            ),
-                          ),
-                        );
+                        selectedIndex = actualIndex;
+                        Navigator.pop(context, bondData[selectedIndex]);
                       },
                       child: Container(
                         constraints: const BoxConstraints(minHeight: 200),
@@ -251,7 +195,7 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              bondData[actualIndex]['prdt_name'] ?? 'N/A',
+                              bondData[actualIndex]['issue_info_data']['prdt_name'] ?? 'N/A',
                               style: const TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
@@ -269,7 +213,7 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
                                     child: Column(
                                       children: [
                                         const Text(
-                                          '이자 지급 주기',
+                                          '잔존 수량',
                                           style: TextStyle(
                                             fontSize: 16,
                                             color: Color(0xFF696969),
@@ -277,7 +221,7 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
                                           ),
                                         ),
                                         Text(
-                                          "${bondData[actualIndex]['int_pay_cycle'] ??
+                                          "${bondData[actualIndex]['inquire_asking_price_data']['total_askp_rsqn'] ??
                                               'N/A'}개월",
                                           style: const TextStyle(
                                             fontSize: 20,
@@ -294,7 +238,7 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
                                           ),
                                         ),
                                         Text(
-                                          "${bondData[actualIndex]['duration'] ??
+                                          "${bondData[actualIndex]['duration']['duration'] ??
                                               "N/A"}년",
                                           style: const TextStyle(
                                             fontSize: 20,
@@ -318,8 +262,9 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
                                           ),
                                         ),
                                         Text(
-                                          bondData[actualIndex]['nice_crdt_grad_text'] ??
-                                              'N/A',
+                                          (bondData[actualIndex]['issue_info_data']?['kbp_crdt_grad_text'] != null && bondData[actualIndex]['issue_info_data']!['kbp_crdt_grad_text'].toString().isNotEmpty)
+                                              ? bondData[actualIndex]['issue_info_data']['kbp_crdt_grad_text']
+                                              : '무위험',
                                           style: const TextStyle(
                                             fontSize: 20,
                                             color: Colors.black,
@@ -336,7 +281,7 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
                                         ),
                                         Text(
                                           formatDate(
-                                              bondData[actualIndex]['expd_dt']) ??
+                                              bondData[actualIndex]['issue_info_data']['expd_dt']) ??
                                               'N/A',
                                           style: const TextStyle(
                                             fontSize: 20,
@@ -358,8 +303,7 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
                                         ),
                                       ),
                                       Text(
-                                        '${bondData[actualIndex]['YTM_after_tax'] ??
-                                            'N/A'}%',
+                                        '${((double.tryParse(bondData[actualIndex]['inquire_asking_price_data']?['shnu_ernn_rate5']?.toString() ?? '0.0'))! * 0.846).toStringAsFixed(2)}%',
                                         style: const TextStyle(
                                           fontSize: 20,
                                           color: Colors.black,
@@ -376,7 +320,7 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
                                       ),
                                       Text(
                                         formatDate(
-                                            bondData[actualIndex]['issu_dt']) ??
+                                            bondData[actualIndex]['issue_info_data']['issu_dt']) ??
                                             'N/A',
                                         style: const TextStyle(
                                           fontSize: 20,
@@ -403,3 +347,4 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
     );
   }
 }
+

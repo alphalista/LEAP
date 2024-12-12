@@ -1,5 +1,6 @@
 from calendar import month
 
+from dateutil.relativedelta import relativedelta
 from django.shortcuts import render
 
 # Create your views here.
@@ -16,7 +17,7 @@ from .serializers import OTC_Bond_Serializer, OTC_Bond_Interest_Serializer, OTC_
     OTC_Bond_Trending_Serializer
 
 
-from django.db.models import IntegerField, DateField, Value
+from django.db.models import IntegerField, DateField, Value, FloatField
 from django.db.models.functions import Cast, Substr, Concat, Replace
 
 from datetime import timedelta, datetime
@@ -42,7 +43,21 @@ class OTC_Bond_Interest_view(viewsets.ModelViewSet):
     def get_queryset(self):
         user_id = self.request.user.user_id
         if user_id is not None:
-            return OTC_Bond_Interest.objects.filter(user_id=user_id)
+            ins = OTC_Bond_Interest.objects.filter(user_id=user_id)
+            ins_list = []
+            for each in ins:
+                ins_list.append(each.bond_code.code)
+            print(ins_list)
+            query = self.request.query_params.get('query')
+            if query:
+                bond_code_search = OTC_Bond.objects.filter(code__in=ins_list).filter(code__icontains=query)
+                prdt_name_search = OTC_Bond.objects.filter(code__in=ins_list).filter(prdt_name__icontains=query)
+                join = bond_code_search | prdt_name_search
+                return_list = []
+                for li in join:
+                    return_list.append(li.code)
+                return OTC_Bond_Interest.objects.filter(bond_code__in=return_list)
+            return ins
         return OTC_Bond_Interest.objects.all()
 
     def create(self, request, *args, **kwargs):
@@ -55,8 +70,10 @@ class OTC_Bond_Interest_view(viewsets.ModelViewSet):
                 }
             )
         except HowManyInterest.DoesNotExist:
-            HowManyInterest.objects.create(bond_code=request.data.get('bond_code'), interest=1)
-        serializer = OTC_Bond_Interest_Serializer(data=request.data)
+            HowManyInterest.objects.create(bond_code=OTC_Bond.objects.get(code=request.data.get('bond_code')), interest=1)
+        data = request.data.copy()
+        data['user_id'] = request.user.user_id
+        serializer = OTC_Bond_Interest_Serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -67,7 +84,20 @@ class OTC_Bond_Holding_view(viewsets.ModelViewSet):
     def get_queryset(self):
         user_id = self.request.user.user_id
         if user_id is not None:
-            return OTC_Bond_Holding.objects.filter(user_id=user_id)
+            ins = OTC_Bond_Holding.objects.filter(user_id=user_id)
+            ins_list = []
+            for each in ins:
+                ins_list.append(each.bond_code.code)
+            query = self.request.query_params.get('query')
+            if query:
+                bond_code_search = OTC_Bond.objects.filter(code__in=ins_list).filter(code__icontains=query)
+                prdt_name_search = OTC_Bond.objects.filter(code__in=ins_list).filter(prdt_name__icontains=query)
+                join = bond_code_search | prdt_name_search
+                return_list = []
+                for li in join:
+                    return_list.append(li.code)
+                return OTC_Bond_Holding.objects.filter(bond_code__in=return_list)
+            return ins
         return OTC_Bond_Holding.objects.all()
 
     def destroy(self, request, *args, **kwargs):
@@ -79,13 +109,46 @@ class OTC_Bond_Holding_view(viewsets.ModelViewSet):
         except OTC_Bond_Holding.DoesNotExist:
             return Response('OTC_Bond_Holding does not exist', status=404)
 
+    def update(self, request, *args, **kwargs):
+        try:
+            user_request_data = OTC_Bond_Holding.objects.filter(user_id=request.user.user_id).get(bond_code=request.data.get('bond_code'))
+        except OTC_Bond_Holding.DoesNotExist:
+            return Response('OTC_Bond_Holding does not exist', status=404)
+        serializer = OTC_Bond_Holding_Serializer(user_request_data, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        data['user_id'] = request.user.user_id
+        serializer = OTC_Bond_Holding_Serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 class OTC_Bond_Expired_view(viewsets.ReadOnlyModelViewSet):
     serializer_class = OTC_Bond_Expired_Serializer
 
     def get_queryset(self):
         user_id = self.request.user.user_id
         if user_id is not None:
-            return OTC_Bond_Expired.objects.filter(user_id=user_id)
+            ins = OTC_Bond_Expired.objects.filter(user_id=user_id)
+            ins_list = []
+            for each in ins:
+                ins_list.append(each.bond_code.code)
+            query = self.request.query_params.get('query')
+            if query:
+                bond_code_search = OTC_Bond.objects.filter(code__in=ins_list).filter(code__icontains=query)
+                prdt_name_search = OTC_Bond.objects.filter(code__in=ins_list).filter(prdt_name__icontains=query)
+                join = bond_code_search | prdt_name_search
+                return_list = []
+                for li in join:
+                    return_list.append(li.code)
+                return OTC_Bond_Expired.objects.filter(bond_code__in=return_list)
+            return ins
         return OTC_Bond_Expired.objects.all()
 
 class OTC_Bond_Days_View(viewsets.ReadOnlyModelViewSet):
@@ -128,8 +191,11 @@ class OtcBondFilterView(viewsets.ReadOnlyModelViewSet):
         if self.request.query_params.get('YTM'): # 수익률
             data = self.request.query_params.get('YTM')
             query = OTC_Bond.objects.filter(add_date=timezone.now())
-            if data == 'asc': return query.order_by('YTM')
-            elif data == 'desc': return query.order_by('-YTM')
+            query = query.annotate(
+                YTM_int=Cast('YTM', FloatField()),
+            )
+            if data == 'asc': return query.order_by('YTM_int')
+            elif data == 'desc': return query.order_by('-YTM_int')
         elif self.request.query_params.get('expd'): # 만기일
             data = self.request.query_params.get('expd')
             query = OTC_Bond.objects.annotate(
@@ -148,7 +214,8 @@ class OtcBondFilterView(viewsets.ReadOnlyModelViewSet):
             else:
                 try:
                     data = int(data)
-                    future = timezone.now() + timedelta(days=365*data)
+                    if data == 6: future = timezone.now() + relativedelta(months=6) # 6개월 이내 만기일을 일컫습니다.
+                    else : future = timezone.now() + timedelta(days=365*data)
                     return query.filter(date_field__lte=future).order_by('-date_field')
                 except ValueError:
                     return OTC_Bond.objects.all()

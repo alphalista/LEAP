@@ -541,6 +541,7 @@ class ET_Bond_Holding(models.Model): # TODO POST 요청 문제 해결 필요
     quantity = models.CharField(max_length=100)
     purchase_date = models.CharField(max_length=100)
     expire_date = models.DateField()
+    nickname = models.CharField(max_length=100, null=True, blank=True)
     class Meta:
         db_table = 'ET_Bond_Holding'
         unique_together = ('user_id', 'bond_code', 'price_per_10')
@@ -578,3 +579,15 @@ class MarketBondPreDataMonths(models.Model):
     class Meta:
         db_table = "MarketBondPreDataMonths"
         managed = False
+
+class MarketBondHowManyInterest(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    interest = models.IntegerField()
+    danger_degree = models.CharField(max_length=100)
+    # 프로젝트 명이 같기 때문에 테이블 명 따로 선언하지 않아도 됨
+
+class MarketBondTrending(models.Model):
+    bond_code = models.ForeignKey(MarketBondCode, on_delete=models.CASCADE)
+    bond_name = models.CharField(max_length=200)
+    YTM = models.CharField(max_length=100)
+    add_date = models.DateField(auto_now_add=True)

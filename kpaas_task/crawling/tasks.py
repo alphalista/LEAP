@@ -113,7 +113,7 @@ def pre_data_pipeline():
 def otc_bond_trending_pipeline():
     OtcBondTrending.objects.all().delete() # 매번 데이터가 바뀌므로 데이터 삭제 진행
     grading = ['AAA', 'AA+', 'AA', 'AA-', 'BBB', '매우낮은위험', '낮은위험', '보통위험']
-    ins_count = 10
+    ins_count = 15
     howManyInterestLen = len(HowManyInterest.objects.filter(danger_degree__in=grading))
     OTC_Bond_need = max(0, ins_count - howManyInterestLen)
     ins = OTC_Bond.objects.filter(nice_crdt_grad_text__in=grading).order_by('-YTM')[:OTC_Bond_need]
@@ -121,6 +121,7 @@ def otc_bond_trending_pipeline():
         OtcBondTrending.objects.update_or_create(
             bond_code=each,
             defaults={
+                'bond_name': each.prdt_name,
                 'YTM': each.YTM
             }
         )
@@ -129,6 +130,7 @@ def otc_bond_trending_pipeline():
         OtcBondTrending.objects.update_or_create(
             bond_code=each,
             defaults={
+                'bond_name': each.bond_code.prdt_name,
                 'YTM': each.bond_code.YTM
             }
         )

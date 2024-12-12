@@ -1,9 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:kpaas_flutter/etBondDescription.dart';
+import 'package:kpaas_flutter/DescriptionPage/etBondDescription.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:kpaas_flutter/MyPage/myPage_main.dart';
 import 'package:kpaas_flutter/apiconnectiontest/dummy_data.dart';
-import 'package:kpaas_flutter/otcBondDescription.dart';
+import 'package:kpaas_flutter/DescriptionPage/otcBondDescription.dart';
 import 'dart:convert';
 
 class HomePage extends StatefulWidget {
@@ -31,6 +32,52 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _fetchBondDetailsFromDummyData();
+    _fetchBondData(idToken: 'eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9');
+  }
+
+  Future<void> _fetchBondData({required String idToken}) async {
+    final dio = Dio();
+    setState(() {
+    });
+    try {
+      final otcTrendingResponse = await dio.get(
+        'http://localhost:8000/api/otcbond/trending',
+      );
+      final etTrendingResponse = await dio.get(
+        'http://localhost:8000/api/marketbond/trending',
+      );
+      if (otcTrendingResponse.statusCode == 200) {
+        List<dynamic> results = otcTrendingResponse.data['results'];
+        setState(() {});
+        print(results);
+        results.forEach((value) {
+          TrendingEtBondList.add({
+                "prdt_name": value['bond_name'] ?? "Unknown",
+                "code": value['bond_code'] ?? "Unknown",
+                'expd_asrc_erng_rt': value['YTM'] ?? "0.0%"
+          });
+        });
+      }
+
+      if (etTrendingResponse.statusCode == 200) {
+        List<dynamic> results = etTrendingResponse.data['results'];
+        setState(() {});
+        print(results);
+        results.forEach((value) {
+          TrendingOtcBondList.add({
+            "prdt_name": value['bond_name'] ?? "Unknown",
+            "code": value['bond_code'] ?? "Unknown",
+            'expd_asrc_erng_rt': value['YTM'] ?? "0.0%"
+          });
+        });
+      }
+
+      else {
+        print('Failed to fetch data: ${otcTrendingResponse.statusCode}');
+      }
+    } catch (e) {
+      print("Error fetching bond data: $e");
+    }
   }
 
   Future<void> _fetchBondDetailsFromDummyData() async {
@@ -68,15 +115,6 @@ class _HomePageState extends State<HomePage> {
         });
       });
 
-
-      dummyData2.forEach((key, value) {
-        TrendingEtBondList.add({
-          "prdt_name": value['prdt_name'] ?? "Unknown",
-          "code": value['code'] ?? "Unknown",
-          'expd_asrc_erng_rt': value['expd_asrc_erng_rt'] ?? "0.0%"
-        });
-      });
-
       dummyData3.forEach((element) {
         String interestPercentage = element['interest_percentage'] ?? "0.0";
         if (interestPercentage.length > 2) {
@@ -103,16 +141,13 @@ class _HomePageState extends State<HomePage> {
           "prdt_nick": element['prdt_nick'] ?? "Unknown",
         });
       });
-
-
-      dummyData4.forEach((key, value) {
-        TrendingOtcBondList.add({
-          "prdt_name": value['prdt_name'] ?? "Unknown",
-          "code": value['code'] ?? "Unknown",
-          'expd_asrc_erng_rt': value['expd_asrc_erng_rt'] ?? "0.0%"
-        });
-      });
-
+      // dummyData4.forEach((key, value) {
+      //   TrendingOtcBondList.add({
+      //     "prdt_name": value['prdt_name'] ?? "Unknown",
+      //     "code": value['code'] ?? "Unknown",
+      //     'expd_asrc_erng_rt': value['expd_asrc_erng_rt'] ?? "0.0%"
+      //   });
+      // });
       setState(() {}); // 데이터 업데이트 후 화면을 다시 그립니다.
     } catch (e) {
       print("Error parsing dummy data: $e");
@@ -517,7 +552,7 @@ class _HomePageState extends State<HomePage> {
   List<Widget> _buildTrendingBondRows() {
     List<Widget> rows = [];
 
-    List<Map<String, dynamic>> currentBondList = TrendingEtBond ? TrendingEtBondList : TrendingOtcBondList;
+    List<Map<String, dynamic>> currentBondList = TrendingEtBond ? TrendingOtcBondList : TrendingEtBondList;
 
     // 리스트가 비어있으면 빈 상태 처리
     if (currentBondList.isEmpty) {

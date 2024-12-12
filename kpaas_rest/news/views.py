@@ -50,6 +50,7 @@ class UserNewsViewSet(viewsets.ModelViewSet):
                 SearchKeyword.objects.create(search_keyword=keyword)
                 ins = SearchKeyword.objects.get(search_keyword=keyword)
             data['search_keyword'] = ins.id
+            data['user_id'] = request.user.user_id
             serializer = UserNewsSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
