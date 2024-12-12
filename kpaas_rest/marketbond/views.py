@@ -61,6 +61,8 @@ from django.db.models.functions import Cast, Substr, Concat, Replace
 from dateutil.relativedelta import relativedelta
 from datetime import timedelta
 from django.utils import timezone
+from django.db.models.functions import Cast
+from django.db.models import FloatField
 
 
 # Create your views here.
@@ -72,7 +74,7 @@ class MarketBondCmbViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = MarketBondCmbFilter
     filterset_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__nice_crdt_grad_text']  # 정확한 값 매칭
     search_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name']  # 부분 문자열 검색
-    ordering_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__srfc_inrt', 'inquire_price_data__bond_prpr', 'inquire_asking_price_data__seln_ernn_rate1', 'issue_info_data__expd_dt', 'inquire_asking_price_data__total_askp_rsqn']  # 정렬 가능한 필드
+    ordering_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__srfc_inrt', 'inquire_price_data__bond_prpr', 'inquire_asking_price_data__seln_ernn_rate1', 'issue_info_data__expd_dt', 'inquire_asking_price_data__total_askp_rsqn', 'total_askp_rsqn_float', 'seln_ernn_rate1_float', 'srfc_inrt_float', 'expd_dt_date']  # 정렬 가능한 필드
 
     def get_queryset(self):
         # Exclude records where relevant fields are 0
@@ -82,6 +84,15 @@ class MarketBondCmbViewSet(viewsets.ReadOnlyModelViewSet):
             inquire_price_data__bond_prpr=0
         ).exclude(
             inquire_asking_price_data__bidp_rsqn1=0
+        )
+        querySet = querySet.annotate(
+            total_askp_rsqn_float=Cast('inquire_asking_price_data__total_askp_rsqn', FloatField())
+        ).annotate(
+            seln_ernn_rate1_float=Cast('inquire_asking_price_data__seln_ernn_rate1', FloatField())
+        ).annotate(
+            srfc_inrt_float=Cast('issue_info_data__srfc_inrt', FloatField())
+        ).annotate(
+            expd_dt_date=Cast('issue_info_data__expd_dt', FloatField())
         )
         if self.request.query_params.get('expd_dt'):
             data = self.request.query_params.get('expd_dt')
