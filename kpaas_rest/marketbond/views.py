@@ -61,6 +61,8 @@ from django.db.models.functions import Cast, Substr, Concat, Replace
 from dateutil.relativedelta import relativedelta
 from datetime import timedelta
 from django.utils import timezone
+from django.db.models.functions import Cast
+from django.db.models import FloatField
 
 
 # Create your views here.
@@ -72,7 +74,7 @@ class MarketBondCmbViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = MarketBondCmbFilter
     filterset_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__nice_crdt_grad_text']  # 정확한 값 매칭
     search_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name']  # 부분 문자열 검색
-    ordering_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__srfc_inrt', 'inquire_price_data__bond_prpr', 'inquire_asking_price_data__seln_ernn_rate1', 'issue_info_data__expd_dt', 'inquire_asking_price_data__total_askp_rsqn']  # 정렬 가능한 필드
+    ordering_fields = ['issue_info_data__pdno', 'issue_info_data__prdt_name', 'issue_info_data__srfc_inrt', 'inquire_price_data__bond_prpr', 'inquire_asking_price_data__seln_ernn_rate1', 'issue_info_data__expd_dt', 'inquire_asking_price_data__total_askp_rsqn', 'total_askp_rsqn_float', 'seln_ernn_rate1_float', 'srfc_inrt_float', 'expd_dt_date']  # 정렬 가능한 필드
 
     def get_queryset(self):
         # Exclude records where relevant fields are 0
@@ -83,6 +85,15 @@ class MarketBondCmbViewSet(viewsets.ReadOnlyModelViewSet):
             inquire_price_data__bond_prpr=0
         ).exclude(
             inquire_asking_price_data__bidp_rsqn1=0
+        )
+        querySet = querySet.annotate(
+            total_askp_rsqn_float=Cast('inquire_asking_price_data__total_askp_rsqn', FloatField())
+        ).annotate(
+            seln_ernn_rate1_float=Cast('inquire_asking_price_data__seln_ernn_rate1', FloatField())
+        ).annotate(
+            srfc_inrt_float=Cast('issue_info_data__srfc_inrt', FloatField())
+        ).annotate(
+            expd_dt_date=Cast('issue_info_data__expd_dt', FloatField())
         )
         if self.request.query_params.get('expd_dt'):
             data = self.request.query_params.get('expd_dt')
@@ -424,23 +435,31 @@ class ET_Bond_Interest_view(viewsets.ModelViewSet):
         data = request.data.copy()
         try:
             bond_instance = MarketBondCode.objects.get(code=data['bond_code'])
-            data['bond_code'] = int(bond_instance.id)
+            data['bond_code'] = bond_instance.id
             data['user_id'] = request.user.user_id
-            ins = MarketBondHowManyInterest.objects.get(bond_code=bond_instance.id)
-            MarketBondHowManyInterest.objects.update_or_create(
-                bond_code=MarketBondCode.objects.get(code=data['bond_code']),
-                defaults={
-                    'interest': ins.interest + 1
-                }
+
+            # 기존 데이터 확인
+            existing_interest = ET_Bond_Interest.objects.filter(user_id=request.user.user_id, bond_code=bond_instance.id).first()
+            if existing_interest:
+                return Response({"message": "이미 존재하는 관심 채권입니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 관심도 업데이트
+            interest_instance, created = MarketBondHowManyInterest.objects.get_or_create(
+                bond_code=bond_instance,
+                defaults={'interest': 1}
             )
+            if not created:
+                interest_instance.interest += 1
+                interest_instance.save()
+
         except MarketBondCode.DoesNotExist:
             return Response({"bond_code": "해당 bond_code가 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
-        except MarketBondHowManyInterest.DoesNotExist:
-            MarketBondHowManyInterest.objects.create(bond_code=MarketBondCode.objects.get(id=data['bond_code']), interest=1)
+
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
     # delete 요청시 pk를 이용해 객체를 가져옴
     def destroy(self, request, *args, **kwargs):

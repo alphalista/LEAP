@@ -1,13 +1,14 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kpaas_flutter/DescriptionPage/etBondDescription.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:kpaas_flutter/MyPage/myPage_main.dart';
-import 'package:kpaas_flutter/apiconnectiontest/dummy_data.dart';
 import 'package:kpaas_flutter/DescriptionPage/otcBondDescription.dart';
-import 'dart:convert';
 
 class HomePage extends StatefulWidget {
+  final String idToken;
+  const HomePage({Key? key, required this.idToken}) : super(key: key);
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -18,24 +19,146 @@ class _HomePageState extends State<HomePage> {
   Map<String, dynamic>? MarketOtcBondInterestPrice;
   Map<String, dynamic>? MarketOtcBondTrendingPrice;
   List<Map<String, dynamic>> InterestEtBondList = [];
-  List<Map<String, dynamic>> TrendingEtBondList = [];
   List<Map<String, dynamic>> InterestOtcBondList = [];
+  List<Map<String, dynamic>> TrendingEtBondList = [];
   List<Map<String, dynamic>> TrendingOtcBondList = [];
-
+  List<Map<String, dynamic>> HoldingEtBondList = [];
+  List<Map<String, dynamic>> HoldingOtcBondList = [];
 
   bool InterestEtBond = true;
   bool InterestOtcBond = false;
   bool TrendingEtBond = true;
   bool TrendingOtcBond = false;
 
+  final ScrollController _TrendingScrollController = ScrollController();
+  final ScrollController _InterestScrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
-    _fetchBondDetailsFromDummyData();
-    _fetchBondData(idToken: 'eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9');
+    _fetchEtBondInterestData(idToken: widget.idToken);
+    _fetchEtBondTrendingData(idToken: widget.idToken);
+    _fetchOtcBondInterestData(idToken: widget.idToken);
+    _fetchOtcBondTrendingData(idToken: widget.idToken);
+    _fetchEtBondHoldingData(idToken: widget.idToken);
+    _fetchOtcBondHoldingData(idToken: widget.idToken);
   }
 
-  Future<void> _fetchBondData({required String idToken}) async {
+  Future<void> _fetchEtBondInterestData({required String idToken}) async {
+    final dio = Dio();
+    setState(() {
+    });
+    try {
+      final etInterestResponse = await dio.get(
+        'http://localhost:8000/api/marketbond/interest',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer ${widget.idToken}',
+          },
+        ),
+      );
+
+      if (etInterestResponse.statusCode == 200) {
+        List<dynamic> results = etInterestResponse.data['results'];
+        setState(() {});
+        results.forEach((value) {
+          InterestEtBondList.add({
+            "prdt_name": value['meta']['issue_info_data']['prdt_name'] ?? "Unknown",
+            "code": value['meta']['issue_info_data']['pdno'] ?? "Unknown",
+            'bond_prpr': value['meta']['inquire_price_data']['bond_prpr'] ?? "0000.0",
+            'srfc_inrt': value['meta']['issue_info_data']['srfc_inrt'] ?? "0.00%",
+            'seln_ernn_rate1': value['meta']['inquire_asking_price_data']['seln_ernn_rate1'] ?? "0.00%",
+            'expd_dt': value['meta']['issue_info_data']['expd_dt'] ?? "Unknown"
+          });
+        });
+      }
+
+      else {
+        print('Failed to fetch data: ${etInterestResponse.statusCode}');
+      }
+
+    } catch (e) {
+      print("Error fetching bond data: $e");
+    }
+  }
+
+  Future<void> _fetchEtBondTrendingData({required String idToken}) async {
+    final dio = Dio();
+    setState(() {
+    });
+    try {
+      final etTrendingResponse = await dio.get(
+        'http://localhost:8000/api/marketbond/trending',
+      );
+
+      if (etTrendingResponse.statusCode == 200) {
+        List<dynamic> results = etTrendingResponse.data['results'];
+        setState(() {});
+        results.forEach((value) {
+          TrendingEtBondList.add({
+            "prdt_name": value['bond_name'] ?? "Unknown",
+            'expd_asrc_erng_rt': value['YTM'] ?? "0.0%",
+          });
+        });
+        print(TrendingEtBondList[0]["expd_asrc_erng_rt"]);
+      }
+
+      else {
+        print('Failed to fetch data: ${etTrendingResponse.statusCode}');
+      }
+    } catch (e) {
+      print("Error fetching bond data: $e");
+    }
+  }
+
+  Future<void> _fetchOtcBondInterestData({required String idToken}) async {
+    final dio = Dio();
+    setState(() {
+    });
+    try {
+      final otcInterestResponse = await dio.get(
+        'http://localhost:8000/api/otcbond/interest/',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer ${widget.idToken}',
+          },
+        ),
+      );
+
+      if (otcInterestResponse.statusCode == 200) {
+        List<dynamic> results = otcInterestResponse.data['results'];
+        setState(() {});
+        results.forEach((value) {
+          InterestOtcBondList.add({
+            "code": value['meta']["code"],
+            "issu_istt_name": value['meta']["issu_istt_name"],
+            "prdt_name": value['meta']?["prdt_name"] ?? "뚱인데요",
+            "nice_crdt_grad_text": value['meta']["nice_crdt_grad_text"],
+            "issu_dt": value['meta']["issu_dt"],
+            "expd_dt": value['meta']["expd_dt"],
+            "YTM": value['meta']["YTM"],
+            "YTM_after_tax": value['meta']["YTM_after_tax"],
+            "price_per_10": value['meta']["price_per_10"],
+            "prdt_type_cd": value['meta']["prdt_type_cd"],
+            "bond_int_dfrm_mthd_cd": value['meta']["bond_int_dfrm_mthd_cd"],
+            "int_pay_cycle": value['meta']["int_pay_cycle"],
+            "interest_percentage": value['meta']["interest_percentage"],
+            "nxtm_int_dfrm_dt": value['meta']["nxtm_int_dfrm_dt"],
+            "expt_income": value['meta']["expt_income"],
+            "duration": value['meta']["duration"]
+          });
+        });
+      }
+
+      else {
+        print('Failed to fetch data: ${otcInterestResponse.statusCode}');
+      }
+    } catch (e) {
+      print("Error fetching bond data: $e");
+    }
+  }
+
+  Future<void> _fetchOtcBondTrendingData({required String idToken}) async {
     final dio = Dio();
     setState(() {
     });
@@ -43,33 +166,17 @@ class _HomePageState extends State<HomePage> {
       final otcTrendingResponse = await dio.get(
         'http://localhost:8000/api/otcbond/trending',
       );
-      final etTrendingResponse = await dio.get(
-        'http://localhost:8000/api/marketbond/trending',
-      );
+
       if (otcTrendingResponse.statusCode == 200) {
         List<dynamic> results = otcTrendingResponse.data['results'];
         setState(() {});
-        print(results);
         results.forEach((value) {
-          TrendingEtBondList.add({
+          TrendingOtcBondList.add({
                 "prdt_name": value['bond_name'] ?? "Unknown",
-                "code": value['bond_code'] ?? "Unknown",
                 'expd_asrc_erng_rt': value['YTM'] ?? "0.0%"
           });
         });
-      }
-
-      if (etTrendingResponse.statusCode == 200) {
-        List<dynamic> results = etTrendingResponse.data['results'];
-        setState(() {});
-        print(results);
-        results.forEach((value) {
-          TrendingOtcBondList.add({
-            "prdt_name": value['bond_name'] ?? "Unknown",
-            "code": value['bond_code'] ?? "Unknown",
-            'expd_asrc_erng_rt': value['YTM'] ?? "0.0%"
-          });
-        });
+        print(TrendingOtcBondList[0]["expd_asrc_erng_rt"]);
       }
 
       else {
@@ -80,78 +187,88 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _fetchBondDetailsFromDummyData() async {
+  Future<void> _fetchEtBondHoldingData({required String idToken}) async {
+    final dio = Dio();
+    setState(() {
+    });
     try {
-      final dummyData = jsonDecode(DummyData.MarketEtBondInterestPrice(5));
-      final dummyData2 = jsonDecode(DummyData.MarketEtBondTrendingPrice);
-      final dummyData3 = jsonDecode(DummyData.MarketOtcBondInterestPrice);
-      final dummyData4 = jsonDecode(DummyData.MarketOtcBondTrendingPrice);
+      final etHoldingResponse = await dio.get(
+        'http://localhost:8000/api/marketbond/holding',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer ${widget.idToken}',
+          },
+        ),
+      );
 
-      dummyData.forEach((key, value) {
-        String interestPercentage = value['interest_percentage'] ?? "0.0";
-        if (interestPercentage.length > 2) {
-          interestPercentage = interestPercentage.substring(0, interestPercentage.length - 2) + "%";
-        }
-
-        InterestEtBondList.add({
-          "prdt_name": value['prdt_name'] ?? "Unknown",
-          "prdt_nick": value['prdt_nick'] ?? "Unknown",
-          "code": value['code'] ?? "Unknown",
-          "kbp_crdt_grad_text": value['kbp_crdt_grad_text'] ?? "N/A",
-          "nxtm_int_dfrm_dt": value['nxtm_int_dfrm_dt'] ?? "N/A",
-          "expd_dt": value['expd_dt'] ?? "N/A",
-          "YTM_after_tax": value['expd_asrc_erng_rt'] ?? "0.0%",
-          "nice_crdt_grad_text": value['nice_crdt_grad_text'] ?? "N/A",
-          "total_askp_rsqn": value['total_askp_rsqn'] ?? "0",
-          "issu_istt_name": value['issu_istt_name'] ?? "Unknown",
-          "YTM": value['YTM'] ?? "0.0",
-          "price_per_10": value['price_per_10'] ?? "0",
-          "prdt_type_cd": value['prdt_type_cd'] ?? "Unknown",
-          "bond_int_dfrm_mthd_cd": value['bond_int_dfrm_mthd_cd'] ?? "Unknown",
-          "int_pay_cycle": value['int_pay_cycle'] ?? "0",
-          "interest_percentage": interestPercentage,  // 수정된 이자율
-          "expt_income": value['expt_income'] ?? "0.0",
-          "duration": value['duration'] ?? "0.0"
+      if (etHoldingResponse.statusCode == 200) {
+        List<dynamic> results = etHoldingResponse.data['results'];
+        setState(() {});
+        results.forEach((value) {
+          HoldingEtBondList.add({
+            "expire_date": value['meta']['issue_info_data']['expd_dt'] ?? "Unknown",
+            "nxtm_int_dfrm_dt": value['meta']['issue_info_data']['nxtm_int_dfrm_dt'] ?? "Unknown",
+            'nickname': value['nickname'] ?? "0.0%"
+          });
         });
-      });
+      }
 
-      dummyData3.forEach((element) {
-        String interestPercentage = element['interest_percentage'] ?? "0.0";
-        if (interestPercentage.length > 2) {
-          interestPercentage = interestPercentage.substring(0, interestPercentage.length - 2) + "%";
-        }
-
-        InterestOtcBondList.add({
-          "issu_istt_name": element['issu_istt_name'] ?? "Unknown",
-          "code": element['code'] ?? "Unknown",
-          "prdt_name": element['prdt_name'] ?? "Unknown",
-          "nice_crdt_grad_text": element['nice_crdt_grad_text'] ?? "N/A",
-          "issu_dt": element['issu_dt'] ?? "N/A",
-          "expd_dt": element['expd_dt'] ?? "N/A",
-          "YTM": element['YTM'] ?? "0.0",
-          "YTM_after_tax": element['YTM_after_tax'] ?? "0.0",
-          "price_per_10": element['price_per_10'] ?? "0",
-          "prdt_type_cd": element['prdt_type_cd'] ?? "Unknown",
-          "bond_int_dfrm_mthd_cd": element['bond_int_dfrm_mthd_cd'] ?? "Unknown",
-          "int_pay_cycle": element['int_pay_cycle'] ?? "0",
-          "interest_percentage": interestPercentage,  // 수정된 이자율
-          "nxtm_int_dfrm_dt": element['nxtm_int_dfrm_dt'] ?? "N/A",
-          "expt_income": element['expt_income'] ?? "0.0",
-          "duration": element['duration'] ?? "0.0",
-          "prdt_nick": element['prdt_nick'] ?? "Unknown",
-        });
-      });
-      // dummyData4.forEach((key, value) {
-      //   TrendingOtcBondList.add({
-      //     "prdt_name": value['prdt_name'] ?? "Unknown",
-      //     "code": value['code'] ?? "Unknown",
-      //     'expd_asrc_erng_rt': value['expd_asrc_erng_rt'] ?? "0.0%"
-      //   });
-      // });
-      setState(() {}); // 데이터 업데이트 후 화면을 다시 그립니다.
+      else {
+        print('Failed to fetch data: ${etHoldingResponse.statusCode}');
+      }
     } catch (e) {
-      print("Error parsing dummy data: $e");
+      print("Error fetching bond data: $e");
     }
+  }
+
+  Future<void> _fetchOtcBondHoldingData({required String idToken}) async {
+    final dio = Dio();
+    setState(() {
+    });
+    try {
+      final otcHoldingResponse = await dio.get(
+        'http://localhost:8000/api/otcbond/holding',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer ${widget.idToken}',
+          },
+        ),
+      );
+
+      if (otcHoldingResponse.statusCode == 200) {
+        List<dynamic> results = otcHoldingResponse.data['results'];
+        setState(() {});
+        results.forEach((value) {
+          HoldingOtcBondList.add({
+            "expire_date": value['meta']['expd_dt'] ?? "Unknown",
+            "nxtm_int_dfrm_dt": value['meta']['nxtm_int_dfrm_dt'] ?? "Unknown",
+            'nickname': value['nickname'] ?? "0.0%"
+          });
+        });
+      }
+
+      else {
+        print('Failed to fetch data: ${otcHoldingResponse.statusCode}');
+      }
+    } catch (e) {
+      print("Error fetching bond data: $e");
+    }
+  }
+
+  String formatDate(String? date) {
+    if (date == null || date.length != 8) return 'N/A';
+    return '${date.substring(2, 4)}/${date.substring(4, 6)}/${date.substring(6, 8)}';
+  }
+
+   Future<bool> isEtTrending () async {
+    return (double.parse(TrendingEtBondList[0]["expd_asrc_erng_rt"]) > double.parse(TrendingOtcBondList[0]["expd_asrc_erng_rt"]));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _TrendingScrollController.dispose();
+    _InterestScrollController.dispose();
   }
 
   @override
@@ -162,8 +279,8 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: const Color(0xFFF1F1F9),
         appBar: AppBar(
           scrolledUnderElevation: 0.0,
-          title: const Padding(
-            padding: EdgeInsets.only(left: 10.0),
+          title: Padding(
+            padding: const EdgeInsets.only(left: 10.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -172,7 +289,7 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                      fontSize: kIsWeb ? 15 : MediaQuery.of(context).size.height * 0.02
                   ),
                 ),
               ],
@@ -186,7 +303,9 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MyPage()),
+                  MaterialPageRoute(builder: (context) => MyPage(
+                    idToken: widget.idToken,
+                  )),
                 );
               },
             ),
@@ -211,14 +330,19 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
                       Icon(Icons.whatshot, color: Colors.red),
                       SizedBox(width: 8),
                       Text(
-                        'AJ네트웍스54가 트렌드에 올랐어요',
+                        // "${(double.parse(TrendingEtBondList[0]['expd_asrc_erng_rt']) > double.parse(TrendingOtcBondList[0]['expd_asrc_erng_rt']))
+                        //     ? TrendingEtBondList[0]['prdt_name']
+                        //     : TrendingOtcBondList[0]['prdt_name']}가 트렌드에 올랐어요",
+                        // 로딩해결하고 다시 구현
+                        "효성화학이12가 트렌드에 올랐어요",
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
@@ -258,7 +382,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     child: SfCalendar(
                       view: CalendarView.month,
-                      dataSource: MeetingDataSource(_getDataSource(InterestEtBondList, InterestOtcBondList)),
+                      dataSource: MeetingDataSource(_getDataSource(HoldingEtBondList, HoldingOtcBondList)),
                       headerHeight: 0,
                       monthViewSettings: const MonthViewSettings(
                         appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
@@ -273,10 +397,11 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Container(
                       alignment: Alignment.centerLeft,
-                      child: const Text(
+                      child: Text(
                         "관심채권",
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -332,16 +457,21 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
                 const SizedBox(height: 3),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: InterestEtBond
-                        ? InterestEtBondList.map((bond) {
-                      return _buildInterestBondItem(bond);
-                    }).toList()
-                        : InterestOtcBondList.map((bond) {
-                      return _buildInterestBondItem(bond);
-                    }).toList(),
+                Scrollbar(
+                  controller: _InterestScrollController,
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    controller: _InterestScrollController,
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: InterestEtBond
+                          ? InterestEtBondList.map((bond) {
+                        return _buildInterestBondItem(bond);
+                      }).toList()
+                          : InterestOtcBondList.map((bond) {
+                        return _buildInterestBondItem(bond);
+                      }).toList(),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -350,10 +480,11 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Container(
                       alignment: Alignment.centerLeft,
-                      child: const Text(
+                      child: Text(
                         "트렌딩 채권",
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -409,10 +540,15 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
                 const SizedBox(height: 10,),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Column(
-                    children: _buildTrendingBondRows(),
+                Scrollbar(
+                  thumbVisibility: true,
+                  controller: _TrendingScrollController,
+                  child: SingleChildScrollView(
+                    controller: _TrendingScrollController,
+                    scrollDirection: Axis.horizontal,
+                    child: Column(
+                      children: _buildTrendingBondRows(),
+                    ),
                   ),
                 ),
               ],
@@ -447,19 +583,25 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 3,),
           Container(
             child: GestureDetector(
-              onTap: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (context) => EtBondDescriptionPage(),
-                //   ),
-                // );
+              onTap: () { InterestEtBond
+                ? Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EtBondDescriptionPage(pdno: bond['code'], idToken: widget.idToken,),
+                  ),
+                ) :Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OtcBondDescriptionPage(idToken: widget.idToken, bondData: bond,),
+                ),
+              );
               },
               child: Text(
                 bond['prdt_name'],
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 20,
+                  fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -471,13 +613,14 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text(
-                  "${bond['expt_income']}",
+                  InterestEtBond
+                      ? double.parse(bond['bond_prpr']).toStringAsFixed(2)
+                      : double.parse(bond['price_per_10']).toStringAsFixed(2),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 30,
-                    color: bond['expd_asrc_erng_rt'].toString().startsWith('-')
-                        ? Colors.blue
-                        : const Color(0xFFD24244),
+                      fontSize:  kIsWeb
+                            ? 30 : MediaQuery.of(context).size.height * 0.03,
+                    color: Colors.red
                   ),
                 ),
               ],
@@ -486,30 +629,34 @@ class _HomePageState extends State<HomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     "수익률",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                     ),
                   ),
-                  SizedBox(height: 5,),
+                  const SizedBox(height: 5,),
                   Text(
                     "이자율",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                     ),
                   ),
-                  SizedBox(height: 5,),
-                  Text(
-                    "위험도",
+                  const SizedBox(height: 5,),
+                  Text( InterestEtBond
+                    ? "만기일"
+                    : "위험도",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                     ),
                   ),
                 ],
@@ -518,26 +665,40 @@ class _HomePageState extends State<HomePage> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    "${bond['YTM_after_tax']}%",
-                    style: const TextStyle(
+                    "${ InterestEtBond
+                        ? double.parse(bond['srfc_inrt']).toStringAsFixed(2)
+                        : double.parse(bond['YTM_after_tax']).toStringAsFixed(2)
+                    }%",
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                     ),
                   ),
                   const SizedBox(height: 5,),
                   Text(
-                    bond['interest_percentage'],
-                    style: const TextStyle(
+                    "${
+                      InterestEtBond
+                          ? double.parse(bond['seln_ernn_rate1'])
+                              .toStringAsFixed(2)
+                          : double.parse(bond['interest_percentage'])
+                              .toStringAsFixed(2)
+                    }%",
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                     ),
                   ),
                   const SizedBox(height: 5,),
-                  Text(
-                    bond['nice_crdt_grad_text'],
-                    style: const TextStyle(
+                  Text( InterestEtBond
+
+                    ? formatDate(bond['expd_dt'])
+                    : bond['nice_crdt_grad_text'],
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                     ),
                   ),
                 ],
@@ -552,9 +713,8 @@ class _HomePageState extends State<HomePage> {
   List<Widget> _buildTrendingBondRows() {
     List<Widget> rows = [];
 
-    List<Map<String, dynamic>> currentBondList = TrendingEtBond ? TrendingOtcBondList : TrendingEtBondList;
+    List<Map<String, dynamic>> currentBondList = TrendingEtBond ? TrendingEtBondList : TrendingOtcBondList;
 
-    // 리스트가 비어있으면 빈 상태 처리
     if (currentBondList.isEmpty) {
       rows.add(
         const Center(
@@ -596,9 +756,10 @@ class _HomePageState extends State<HomePage> {
                     child: GestureDetector(
                       child: Text(
                         bond['prdt_name'],
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 20,
+                          fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                         ),
                         overflow: TextOverflow.ellipsis,
                         softWrap: false,
@@ -606,7 +767,7 @@ class _HomePageState extends State<HomePage> {
                       onTap: () {
                         // Navigator.push(
                         //   context,
-                        //   MaterialPageRoute(builder: (context) => OtcBondDescriptionPage())
+                        //   MaterialPageRoute(builder: (context) => OtcBondDescriptionPage(bondData: bond, idToken: widget.idToken,))
                         // );
                       },
                     ),
@@ -615,10 +776,8 @@ class _HomePageState extends State<HomePage> {
                     "${bond['expd_asrc_erng_rt']}%",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      color: bond['expd_asrc_erng_rt'].toString().startsWith('-')
-                          ? Colors.blue
-                          : const Color(0xFFD24244),
+                        fontSize: kIsWeb ? 15 : MediaQuery.of(context).size.height * 0.02,
+                      color: Colors.red
                     ),
                   ),
                 ],
@@ -645,11 +804,9 @@ class MeetingDataSource extends CalendarDataSource {
 List<Appointment> _getDataSource(List<Map<String, dynamic>> bondList1, List<Map<String, dynamic>> bondList2) {
   final List<Appointment> meetings = <Appointment>[];
 
-  // 두 리스트를 합침
   List bondLists = [...bondList1, ...bondList2];
 
   for (var bond in bondLists) {
-    // 차기 이자 지급일 추가
     String? nextInterestDate = bond['nxtm_int_dfrm_dt'];
     if (nextInterestDate != null && nextInterestDate.length == 8) {
       DateTime nextInterest = DateTime.parse(
@@ -659,13 +816,12 @@ List<Appointment> _getDataSource(List<Map<String, dynamic>> bondList1, List<Map<
       meetings.add(Appointment(
         startTime: nextInterest,
         endTime: nextInterest.add(const Duration(hours: 1)),
-        subject: '${bond['prdt_nick'] ?? 'No Name'}',
+        subject: '${bond['nickname'] ?? 'No Name'}',
         color: Colors.blue,
       ));
     }
 
-    // 만기일 추가
-    String? expdDate = bond['expd_dt'];
+    String? expdDate = bond['expire_date'];
     if (expdDate != null && expdDate.length == 8) {
       DateTime expd = DateTime.parse(
           '${expdDate.substring(0, 4)}-${expdDate.substring(4, 6)}-${expdDate.substring(6, 8)}'
@@ -674,11 +830,10 @@ List<Appointment> _getDataSource(List<Map<String, dynamic>> bondList1, List<Map<
       meetings.add(Appointment(
         startTime: expd,
         endTime: expd.add(const Duration(hours: 1)),
-        subject: '${bond['prdt_nick'] ?? 'No Name'}',
+        subject: '${bond['nickname'] ?? 'No Name'}',
         color: Colors.red,
       ));
     }
   }
-
   return meetings;
 }

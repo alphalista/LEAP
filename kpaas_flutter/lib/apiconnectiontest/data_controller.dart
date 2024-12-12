@@ -10,31 +10,38 @@ class DataController extends GetxController {
   var market_bond_code = [].obs;
   var market_bond_nextPage = ''.obs;
   var market_bond_prevPage = ''.obs;
-
   var otc_bond_code = [].obs;
+  var news_nextPage = ''.obs;
 
   final ApiService apiService = ApiService();
 
-  Future<List<dynamic>> fetchNewsData() async {
+  Future<Map<String, dynamic>> fetchNewsBondData(String url) async {
     isLoading(true);
     try {
-      final response = await apiService.fetchData(
-          'http://localhost:8000/api/koreaib/news/data/?query=채권&sort=date');
+      final response = await apiService.fetchData(url);
       if (response.statusCode == 200 && response.data is Map) {
-        news.clear();
-        news.assignAll(response.data['items']); // 뉴스 데이터 업데이트
-        return news; // 데이터를 반환합니다.
+        var data = response.data;
+        news.assignAll(data['results']);
+        news_nextPage.value = data['next'] ?? '';
+        return data;
       } else {
-        print('Failed to load news data');
-        return [];
+        print('Failed to load news bond data');
+        return {};
       }
     } catch (e) {
-      print('Error fetching news: $e');
-      return [];
+      if (e is DioException) {
+        print('Error fetching otcBond data: ${e.message}');
+        print('Error status code: ${e.response?.statusCode}');
+        print('Error response data: ${e.response?.data}');
+      } else {
+        print('Unexpected error: $e');
+      }
+      return {};
     } finally {
       isLoading(false);
     }
   }
+
 
   Future<Map<String, dynamic>> fetchEtBondData(String url) async {
     isLoading(true);
@@ -44,7 +51,7 @@ class DataController extends GetxController {
 
       // Check if the response is valid and contains a map
       if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
-        var data = response.data as Map<String, dynamic>;
+        var data = response.data;
         market_bond_code.assignAll(data['results'] ?? []);
         market_bond_nextPage.value = data['next'] ?? '';
         market_bond_prevPage.value = data['previous'] ?? '';

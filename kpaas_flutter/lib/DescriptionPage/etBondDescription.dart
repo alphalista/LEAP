@@ -1,11 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class EtBondDescriptionPage extends StatefulWidget {
+  final String idToken;
   final String pdno;
-  const EtBondDescriptionPage({Key? key, required this.pdno}) : super(key: key);
+  const EtBondDescriptionPage({Key? key, required this.pdno, required this.idToken}) : super(key: key);
 
   @override
   _EtBondDescriptionPageState createState() => _EtBondDescriptionPageState();
@@ -36,7 +38,9 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
   }
 
   List<String> leftColumnData = ['발행일', '만기일', '채권 종류', '위험도', '이자 지급 구분', '차기 이자 지급일', '이자 지급 주기'];
-  List<String> rightColumnData = ['N/A', '54.12.05', '국채', '무위험', '복리채', '24.11.03', '1개월']; // 초기값 설정
+  List<String> rightColumnData = ['N/A', '54.12.05', '국채', '무위험', '복리채', '24.11.03', '1개월'];
+  final List<String> profitLeftColumnData = ['이자율', '세전 수익률', '세후 수익률', '예상 수익금'];
+  List<String> profitRightColumnData = ['4.63%', '3.94%', '3.27%', '12402.0'];
 
   late List<QuoteData> quoteData;
   late QuoteDataSource quoteDataSource;
@@ -51,6 +55,7 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
   }
 
   Future<void> fetchBondDetails() async {
+    print(widget.pdno);
     final url = 'http://localhost:8000/api/marketbond/marketbond/data/?pdno=${widget.pdno}';
     try {
       final response = await Dio().get(url);
@@ -71,6 +76,13 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
             formatDate(bondDetails['issue_info_data']?['nxtm_int_dfrm_dt']),  // 차기 이자 지급일
             "${bondDetails['issue_info_data']?['int_dfrm_mcnt']}개월" ?? 'N/A',
           ];
+
+          profitRightColumnData = [
+            "${(((double.parse(bondDetails['issue_info_data']?['srfc_inrt']?.toString() ?? '0.0'))).toStringAsFixed(2))}%",
+            "${(((double.parse(bondDetails['inquire_asking_price_data']?['seln_ernn_rate1']?.toString() ?? '0.0'))).toStringAsFixed(2))}%",
+            "${(((double.parse(bondDetails['inquire_asking_price_data']?['seln_ernn_rate1']?.toString() ?? '0.0')) * 0.846).toStringAsFixed(2))}%",
+            "${bondDetails['inquire_price_data']?['bond_prpr']}원",
+          ];
         });
       } else {
         print("Failed to fetch bond data: ${response.statusMessage}");
@@ -90,9 +102,6 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
       });
     }
   }
-
-  final List<String> profitLeftColumnData = ['이자율', '세전 수익률', '세후 수익률', '예상 수익금'];
-  final List<String> profitRightColumnData = ['4.63%', '3.94%', '3.27%', '12402.0'];
 
   final List<_ChartData> weeklyMarketPriceData = [
     _ChartData('일', 9410),
@@ -198,558 +207,328 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
-      body: Center(
-        child: Container(
-          width: 500,
-          color: const Color(0xFFF1F1F9),
-          child: isLoading
-              ? const CircularProgressIndicator()
-              :Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                color: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                alignment: Alignment.center,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // 좌우에 붙이기 위해 설정
-                  children: [
-                    // 왼쪽 영역 (백 버튼 + 타이틀)
-                    const Row(
-                      children: [
-                        const SizedBox(width: 10,),
-                        BackButton(),
-                        Text(
-                          '장내채권',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                String? buttonText;
-                                int currentPage = 0; // 현재 페이지 상태
-                                bool showFinalMessage = false; // 최종 메시지 표시 여부
-
-                                TextEditingController firstController = TextEditingController();
-                                TextEditingController secondController = TextEditingController();
-                                TextEditingController thirdController = TextEditingController();
-
-                                return StatefulBuilder(
-                                  builder: (context, setState) {
-                                    return Dialog(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(15),
-                                      ),
-                                      child: Container(
-                                        width: 470,
-                                        height: 150,
-                                        padding: const EdgeInsets.all(8.0),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(15),
-                                        ),
-                                        child: Center(
-                                          child: buttonText == null
-                                              ? Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              if (!showFinalMessage)
-                                                const Text(
-                                                  '어디에 추가할까요?',
-                                                  style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Colors.black),
-                                                ),
-                                              const SizedBox(height: 20),
-                                              if (!showFinalMessage)
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                  children: [
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        setState(() {
-                                                          buttonText = "추가되었습니다!\n마이페이지의 '관심 채권'을 확인하세요!";
-                                                        });
-                                                      },
-                                                      style: ButtonStyle(
-                                                        foregroundColor: MaterialStateProperty.resolveWith<Color>(
-                                                              (Set<MaterialState> states) {
-                                                            return states.contains(MaterialState.hovered) ? Colors.white : Colors.black;
-                                                          },
-                                                        ),
-                                                        backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                                                              (Set<MaterialState> states) {
-                                                            return states.contains(MaterialState.hovered) ? Colors.blueAccent : Colors.white;
-                                                          },
-                                                        ),
-                                                        shape: MaterialStateProperty.all(
-                                                          RoundedRectangleBorder(
-                                                            borderRadius: BorderRadius.circular(8),
-                                                            side: const BorderSide(color: Colors.blue),
-                                                          ),
-                                                        ),
-                                                        minimumSize: MaterialStateProperty.all(const Size(150, 40)),
-                                                      ),
-                                                      child: const Text('관심 채권'),
-                                                    ),
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        setState(() {
-                                                          currentPage = 0;
-                                                          showFinalMessage = true;
-                                                        });
-                                                      },
-                                                      style: ButtonStyle(
-                                                        foregroundColor: MaterialStateProperty.resolveWith<Color>(
-                                                              (Set<MaterialState> states) {
-                                                            return states.contains(MaterialState.hovered) ? Colors.white : Colors.black;
-                                                          },
-                                                        ),
-                                                        backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                                                              (Set<MaterialState> states) {
-                                                            return states.contains(MaterialState.hovered) ? Colors.blueAccent : Colors.white;
-                                                          },
-                                                        ),
-                                                        shape: MaterialStateProperty.all(
-                                                          RoundedRectangleBorder(
-                                                            borderRadius: BorderRadius.circular(8),
-                                                            side: const BorderSide(color: Colors.blue),
-                                                          ),
-                                                        ),
-                                                        minimumSize: MaterialStateProperty.all(const Size(150, 40)),
-                                                      ),
-                                                      child: const Text('보유 채권'),
-                                                    ),
-                                                  ],
-                                                ),
-                                              if (showFinalMessage)
-                                                Column(
+      backgroundColor: const Color(0xFFF1F1F9),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Container(
+            width: 500,
+            color: const Color(0xFFF1F1F9),
+            child: isLoading
+                ? const CircularProgressIndicator()
+                :Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  color: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  alignment: Alignment.center,
+                  child: Column(
+                    children: [
+                      SizedBox(height: kIsWeb ? 0 : MediaQuery.of(context).size.height*0.03),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const SizedBox(width: 10,),
+                              BackButton(),
+                              Text(
+                                '장내채권',
+                                style: TextStyle(fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.add),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      String? buttonText;
+                                      int currentPage = 0; // 현재 페이지 상태
+                                      bool showFinalMessage = false; // 최종 메시지 표시 여부
+        
+                                      TextEditingController firstController = TextEditingController();
+                                      TextEditingController secondController = TextEditingController();
+                                      TextEditingController thirdController = TextEditingController();
+                                      TextEditingController fourthController = TextEditingController();
+        
+                                      return StatefulBuilder(
+                                        builder: (context, setState) {
+                                          return Dialog(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(15),
+                                            ),
+                                            child: Container(
+                                              width: 470,
+                                              height: 150,
+                                              padding: const EdgeInsets.all(8.0),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.circular(15),
+                                              ),
+                                              child: Center(
+                                                child: buttonText == null
+                                                    ? Column(
                                                   mainAxisSize: MainAxisSize.min,
                                                   children: [
-                                                    if (currentPage == 0)
-                                                      Column(
+                                                    if (!showFinalMessage)
+                                                      Text(
+                                                        '어디에 추가할까요?',
+                                                        style: TextStyle(
+                                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: Colors.black),
+                                                      ),
+                                                    const SizedBox(height: 20),
+                                                    if (!showFinalMessage)
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                                         children: [
-                                                          const Text(
-                                                            '얼마나 추가할까요?',
-                                                            style: TextStyle(
-                                                              fontSize: 20,
-                                                              fontWeight: FontWeight.bold,
-                                                              color: Colors.black,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(height: 10),
-                                                          TextField(
-                                                            controller: firstController, // 첫 번째 페이지 컨트롤러
-                                                            decoration: const InputDecoration(
-                                                              labelText: '구매 갯수',
-                                                              hintText: '예: 1000',
-                                                              border: OutlineInputBorder(),
-                                                            ),
-                                                            onSubmitted: (value) {
-                                                              firstController.clear(); // 값 초기화
+                                                          TextButton(
+                                                            onPressed: () async {
+                                                              final dio = Dio();
+                                                              await dio.post(
+                                                                'http://localhost:8000/api/marketbond/interest/',
+                                                                data: {
+                                                                  'bond_code': widget.pdno
+                                                                },
+                                                                options: Options(
+                                                                  headers: {
+                                                                    'Authorization': 'Bearer ${widget.idToken}',
+                                                                  },
+                                                                ),
+                                                              );
                                                               setState(() {
-                                                                currentPage++; // 다음 페이지로 이동
+                                                                buttonText = "추가되었습니다!\n마이페이지의 '관심 채권'을 확인하세요!";
                                                               });
                                                             },
-                                                          ),
-                                                        ],
-                                                      )
-                                                    else if (currentPage == 1)
-                                                      Column(
-                                                        children: [
-                                                          const Text(
-                                                            '얼마에 구매하셨나요?',
-                                                            style: TextStyle(
-                                                              fontSize: 20,
-                                                              fontWeight: FontWeight.bold,
-                                                              color: Colors.black,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(height: 10),
-                                                          TextField(
-                                                            controller: secondController, // 두 번째 페이지 컨트롤러
-                                                            decoration: const InputDecoration(
-                                                              labelText: '구매 가격',
-                                                              hintText: '예: 10000',
-                                                              border: OutlineInputBorder(),
-                                                            ),
-                                                            onSubmitted: (value) {
-                                                              secondController.clear(); // 값 초기화
-                                                              setState(() {
-                                                                currentPage++; // 다음 페이지로 이동
-                                                              });
-                                                            },
-                                                          ),
-                                                        ],
-                                                      )
-                                                    else if (currentPage == 2)
-                                                        Column(
-                                                          children: [
-                                                            const Text(
-                                                              '언제 구매하셨나요?',
-                                                              style: TextStyle(
-                                                                fontSize: 20,
-                                                                fontWeight: FontWeight.bold,
-                                                                color: Colors.black,
-                                                              ),
-                                                            ),
-                                                            const SizedBox(height: 10),
-                                                            TextField(
-                                                              controller: secondController, // 두 번째 페이지 컨트롤러
-                                                              decoration: const InputDecoration(
-                                                                labelText: '구매 날짜',
-                                                                hintText: 'YYYY-MM-DD',
-                                                                border: OutlineInputBorder(),
-                                                              ),
-                                                              onSubmitted: (value) {
-                                                                secondController.clear(); // 값 초기화
-                                                                setState(() {
-                                                                  currentPage++; // 다음 페이지로 이동
-                                                                });
-                                                              },
-                                                            ),
-                                                          ],
-                                                        )
-                                                      else if (currentPage == 3)
-                                                          Column(
-                                                            children: [
-                                                              const Text(
-                                                                '채권의 닉네임을 지정해주세요!',
-                                                                style: TextStyle(
-                                                                  fontSize: 20,
-                                                                  fontWeight: FontWeight.bold,
-                                                                  color: Colors.black,
-                                                                ),
-                                                              ),
-                                                              const SizedBox(height: 10),
-                                                              TextField(
-                                                                controller: thirdController, // 세 번째 페이지 컨트롤러
-                                                                decoration: const InputDecoration(
-                                                                  labelText: '닉네임',
-                                                                  hintText: '5글자 이내',
-                                                                  border: OutlineInputBorder(),
-                                                                ),
-                                                                onSubmitted: (value) {
-                                                                  thirdController.clear(); // 값 초기화
-                                                                  setState(() {
-                                                                    buttonText = "추가되었습니다!\n마이페이지의 '보유 채권'을 확인하세요!";
-                                                                  });
+                                                            style: ButtonStyle(
+                                                              foregroundColor: WidgetStateProperty.resolveWith<Color>(
+                                                                    (Set<WidgetState> states) {
+                                                                  return states.contains(WidgetState.hovered) ? Colors.white : Colors.black;
                                                                 },
                                                               ),
-                                                            ],
+                                                              backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                                                                    (Set<MaterialState> states) {
+                                                                  return states.contains(MaterialState.hovered) ? Colors.blueAccent : Colors.white;
+                                                                },
+                                                              ),
+                                                              shape: WidgetStateProperty.all(
+                                                                RoundedRectangleBorder(
+                                                                  borderRadius: BorderRadius.circular(8),
+                                                                  side: const BorderSide(color: Colors.blue),
+                                                                ),
+                                                              ),
+                                                              minimumSize: WidgetStateProperty.all(const Size(150, 40)),
+                                                            ),
+                                                            child: const Text('관심 채권'),
                                                           ),
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              setState(() {
+                                                                currentPage = 0;
+                                                                showFinalMessage = true;
+                                                              });
+                                                            },
+                                                            style: ButtonStyle(
+                                                              foregroundColor: WidgetStateProperty.resolveWith<Color>(
+                                                                    (Set<WidgetState> states) {
+                                                                  return states.contains(WidgetState.hovered) ? Colors.white : Colors.black;
+                                                                },
+                                                              ),
+                                                              backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                                                                    (Set<WidgetState> states) {
+                                                                  return states.contains(WidgetState.hovered) ? Colors.blueAccent : Colors.white;
+                                                                },
+                                                              ),
+                                                              shape: WidgetStateProperty.all(
+                                                                RoundedRectangleBorder(
+                                                                  borderRadius: BorderRadius.circular(8),
+                                                                  side: const BorderSide(color: Colors.blue),
+                                                                ),
+                                                              ),
+                                                              minimumSize: WidgetStateProperty.all(const Size(150, 40)),
+                                                            ),
+                                                            child: const Text('보유 채권'),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    if (showFinalMessage)
+                                                      Column(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                          if (currentPage == 0)
+                                                            Column(
+                                                              children: [
+                                                                Text(
+                                                                  '얼마나 추가할까요?',
+                                                                  style: TextStyle(
+                                                                    fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                                                    fontWeight: FontWeight.bold,
+                                                                    color: Colors.black,
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(height: 10),
+                                                                TextField(
+                                                                  controller: firstController, // 첫 번째 페이지 컨트롤러
+                                                                  decoration: const InputDecoration(
+                                                                    labelText: '구매 갯수',
+                                                                    hintText: '예: 1000',
+                                                                    border: OutlineInputBorder(),
+                                                                  ),
+                                                                  onSubmitted: (value) {
+                                                                    setState(() {
+                                                                      currentPage++; // 다음 페이지로 이동
+                                                                    });
+                                                                  },
+                                                                ),
+                                                              ],
+                                                            )
+                                                          else if (currentPage == 1)
+                                                            Column(
+                                                              children: [
+                                                                Text(
+                                                                  '얼마에 구매하셨나요?',
+                                                                  style: TextStyle(
+                                                                    fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                                                    fontWeight: FontWeight.bold,
+                                                                    color: Colors.black,
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(height: 10),
+                                                                TextField(
+                                                                  controller: secondController, // 두 번째 페이지 컨트롤러
+                                                                  decoration: const InputDecoration(
+                                                                    labelText: '구매 가격',
+                                                                    hintText: '예: 10000',
+                                                                    border: OutlineInputBorder(),
+                                                                  ),
+                                                                  onSubmitted: (value) {
+                                                                    setState(() {
+                                                                      currentPage++; // 다음 페이지로 이동
+                                                                    });
+                                                                  },
+                                                                ),
+                                                              ],
+                                                            )
+                                                          else if (currentPage == 2)
+                                                              Column(
+                                                                children: [
+                                                                  Text(
+                                                                    '언제 구매하셨나요?',
+                                                                    style: TextStyle(
+                                                                      fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                                                      fontWeight: FontWeight.bold,
+                                                                      color: Colors.black,
+                                                                    ),
+                                                                  ),
+                                                                  const SizedBox(height: 10),
+                                                                  TextField(
+                                                                    controller: thirdController, // 두 번째 페이지 컨트롤러
+                                                                    decoration: const InputDecoration(
+                                                                      labelText: '구매 날짜',
+                                                                      hintText: 'YYYY-MM-DD',
+                                                                      border: OutlineInputBorder(),
+                                                                    ),
+                                                                    onSubmitted: (value) {
+                                                                      setState(() {
+                                                                        currentPage++;
+                                                                      });
+                                                                    },
+                                                                  ),
+                                                                ],
+                                                              )
+                                                            else if (currentPage == 3)
+                                                                Column(
+                                                                  children: [
+                                                                    Text(
+                                                                      '채권의 닉네임을 지정해주세요!',
+                                                                      style: TextStyle(
+                                                                        fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                                                        fontWeight: FontWeight.bold,
+                                                                        color: Colors.black,
+                                                                      ),
+                                                                    ),
+                                                                    const SizedBox(height: 10),
+                                                                    TextField(
+                                                                      controller: fourthController,
+                                                                      decoration: const InputDecoration(
+                                                                        labelText: '닉네임',
+                                                                        hintText: '5글자 이내',
+                                                                        border: OutlineInputBorder(),
+                                                                      ),
+                                                                      onSubmitted: (value) async {
+                                                                        final dio = Dio();
+                                                                        await dio.post(
+                                                                          'http://localhost:8000/api/marketbond/holding/',
+                                                                          data: {
+                                                                            'price_per_10': secondController.text,
+                                                                            'quantity': firstController.text,
+                                                                            'purchase_date': thirdController.text,
+                                                                            'expire_date': bondDetails['issue_info_data']?['expd_dt'],
+                                                                            'bond_code': widget.pdno,
+                                                                            'nickname': fourthController.text
+                                                                          },
+                                                                          options: Options(
+                                                                            headers: {
+                                                                              'Authorization': 'Bearer ${widget.idToken}',
+                                                                            },
+                                                                          ),
+                                                                        );
+                                                                        setState(() {
+                                                                          buttonText = "추가되었습니다!\n마이페이지의 '보유 채권'을 확인하세요!";
+                                                                        });
+                                                                      },
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                        ],
+                                                      ),
                                                   ],
+                                                )
+                                                    : Text(
+                                                  buttonText!,
+                                                  style: TextStyle(
+                                                    fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black,
+                                                    height: 1.5,
+                                                  ),
+                                                  textAlign: TextAlign.center,
                                                 ),
-                                            ],
-                                          )
-                                              : Text(
-                                            buttonText!,
-                                            style: const TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                              height: 1.5,
+                                              ),
                                             ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            );
-                          },
-                        ),
-                        const Text(
-                          '추가',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
-                        ),
-                        const SizedBox(width: 20,),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.all(16.0),
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 0,
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          bondDetails['issue_info_data']?['prdt_name'] ?? 'N/A',
-                          style: const TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
+                                          );
+                                        },
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                              Text(
+                                '추가',
+                                style: TextStyle(fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold, color: Colors.black),
+                              ),
+                              const SizedBox(width: 20,),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: 35),
-                        Text(
-                            "(${widget.pdno})" ?? 'N/A',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Align(
-                      alignment: Alignment.bottomRight,
-                      child: Text(
-                        "0000.0",
-                        style: TextStyle(
-                          fontSize: 35,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
-                        ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => _updateTextContent('정보'),
-                      child: Text(
-                        '정보',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: selectedText == '정보' ? Colors.black : Colors.grey,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: () => _updateTextContent('호가'),
-                      child: Text(
-                        '호가',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: selectedText == '호가' ? Colors.black : Colors.grey,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: () => _updateTextContent('수익'),
-                      child: Text(
-                        '수익',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: selectedText == '수익' ? Colors.black : Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                height: 240,
-                margin: const EdgeInsets.all(16.0),
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 0,
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: selectedText == '호가'
-                    ? SfDataGrid(
-                  source: QuoteDataSource(quoteData),
-                  columnWidthMode: ColumnWidthMode.fill,
-                  gridLinesVisibility: GridLinesVisibility.none,
-                  headerGridLinesVisibility: GridLinesVisibility.none,
-                  headerRowHeight: 30,
-                  rowHeight: 22.0,
-                  columns: <GridColumn>[
-                    GridColumn(
-                        columnName: '매도 수익율',
-                        label: Container(
-                            padding: EdgeInsets.zero,
-                            alignment: Alignment.center,
-                            child: const Text(
-                              '매도 수익율',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ))),
-                    GridColumn(
-                        columnName: '매도 잔량',
-                        label: Container(
-                            padding: EdgeInsets.zero,
-                            alignment: Alignment.center,
-                            child: const Text(
-                              '매도 잔량',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ))),
-                    GridColumn(
-                        columnName: '호가',
-                        label: Container(
-                            padding: EdgeInsets.zero,
-                            alignment: Alignment.center,
-                            child: const Text(
-                              '호가',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ))),
-                    GridColumn(
-                        columnName: '매수 잔량',
-                        label: Container(
-                            padding: EdgeInsets.zero,
-                            alignment: Alignment.center,
-                            child: const Text(
-                              '매수 잔량',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ))),
-                    GridColumn(
-                        columnName: '매수 수익율',
-                        label: Container(
-                            padding: EdgeInsets.zero,
-                            alignment: Alignment.center,
-                            child: const Text(
-                              '매수 수익율',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ))),
-                  ],
-                )
-                    : Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: leftColumnData
-                            .map((item) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 3.0),
-                          child: Text(item, style: const TextStyle(fontSize: 15)),
-                        ))
-                            .toList(),
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: rightColumnData
-                            .map((item) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 3.0),
-                          child: Text(item, style: const TextStyle(fontSize: 15)),
-                        ))
-                            .toList(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Row 간의 공간을 균등하게 분배
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            _updateChartData('시가');
-                          },
-                          child: Text(
-                            '시가',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: selectedChart == '시가' ? Colors.black : Colors.grey,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        GestureDetector(
-                          onTap: () {
-                            _updateChartData('듀레이션');
-                          },
-                          child: Text(
-                            '듀레이션',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: selectedChart == '듀레이션' ? Colors.black : Colors.grey,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => _updatePeriod('주별'),
-                          child: Text(
-                            '주별',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: selectedPeriod == '주별' ? Colors.black : Colors.grey,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        GestureDetector(
-                          onTap: () => _updatePeriod('월별'),
-                          child: Text(
-                            '월별',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: selectedPeriod == '월별' ? Colors.black : Colors.grey,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Expanded(
-                child: Container(
+                ),
+                Container(
                   margin: const EdgeInsets.all(16.0),
                   padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
@@ -764,21 +543,304 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
                       ),
                     ],
                   ),
-                  child: SfCartesianChart(
-                    primaryXAxis: CategoryAxis(),
-                    series: <ChartSeries>[
-                      LineSeries<_ChartData, String>(
-                        dataSource: chartData,
-                        xValueMapper: (_ChartData data, _) => data.label,
-                        yValueMapper: (_ChartData data, _) => data.value,
-                        markerSettings: const MarkerSettings(isVisible: true),
-                        color: Colors.blue,
+                    child: Column(
+                      children: [
+                        Align(
+                          alignment: Alignment.topLeft,
+                          child: Text(
+                            bondDetails['issue_info_data']?['prdt_name'] ?? 'N/A',
+                            style: TextStyle(
+                            fontSize:  kIsWeb
+                            ? 30 : MediaQuery.of(context).size.height * 0.03,
+                            fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 35),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Align(
+                              alignment: Alignment.bottomLeft,
+                              child: Text(
+                                "(${widget.pdno})",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: Text(
+                                bondDetails['inquire_price_data']['bond_prpr'],
+                                style: TextStyle(
+                                  fontSize: kIsWeb ? 30 : MediaQuery.of(context).size.height * 0.035,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => _updateTextContent('정보'),
+                        child: Text(
+                          '정보',
+                          style: TextStyle(
+                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                            fontWeight: FontWeight.bold,
+                            color: selectedText == '정보' ? Colors.black : Colors.grey,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: () => _updateTextContent('호가'),
+                        child: Text(
+                          '호가',
+                          style: TextStyle(
+                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                            fontWeight: FontWeight.bold,
+                            color: selectedText == '호가' ? Colors.black : Colors.grey,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: () => _updateTextContent('수익'),
+                        child: Text(
+                          '수익',
+                          style: TextStyle(
+                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                            fontWeight: FontWeight.bold,
+                            color: selectedText == '수익' ? Colors.black : Colors.grey,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ),
-            ],
+                Container(
+                  height: 240,
+                  margin: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 0,
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: selectedText == '호가'
+                      ? SfDataGrid(
+                    source: QuoteDataSource(quoteData),
+                    columnWidthMode: ColumnWidthMode.fill,
+                    gridLinesVisibility: GridLinesVisibility.none,
+                    headerGridLinesVisibility: GridLinesVisibility.none,
+                    headerRowHeight: 30,
+                    rowHeight: 22.0,
+                    columns: <GridColumn>[
+                      GridColumn(
+                          columnName: '매도 수익율',
+                          label: Container(
+                              padding: EdgeInsets.zero,
+                              alignment: Alignment.center,
+                              child: Text(
+                                '매도 수익율',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: kIsWeb ? 12 : MediaQuery.of(context).size.height * 0.015),
+                              ))),
+                      GridColumn(
+                          columnName: '매도 잔량',
+                          label: Container(
+                              padding: EdgeInsets.zero,
+                              alignment: Alignment.center,
+                              child: Text(
+                                '매도 잔량',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: kIsWeb ? 12 : MediaQuery.of(context).size.height * 0.015),
+                              ))),
+                      GridColumn(
+                          columnName: '호가',
+                          label: Container(
+                              padding: EdgeInsets.zero,
+                              alignment: Alignment.center,
+                              child: Text(
+                                '호가',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: kIsWeb ? 12 : MediaQuery.of(context).size.height * 0.015),
+                              ))),
+                      GridColumn(
+                          columnName: '매수 잔량',
+                          label: Container(
+                              padding: EdgeInsets.zero,
+                              alignment: Alignment.center,
+                              child: Text(
+                                '매수 잔량',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: kIsWeb ? 12 : MediaQuery.of(context).size.height * 0.015),
+                              ))),
+                      GridColumn(
+                          columnName: '매수 수익율',
+                          label: Container(
+                              padding: EdgeInsets.zero,
+                              alignment: Alignment.center,
+                              child: Text(
+                                '매수 수익율',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: kIsWeb ? 12 : MediaQuery.of(context).size.height * 0.015),
+                              ))),
+                    ],
+                  )
+                      : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: leftColumnData
+                              .map((item) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 3.0),
+                            child: Text(item, style: TextStyle(fontSize: kIsWeb ? 12 : MediaQuery.of(context).size.height * 0.015,)),
+                          ))
+                              .toList(),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: rightColumnData
+                              .map((item) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 3.0),
+                            child: Text(item, style: TextStyle(fontSize: kIsWeb ? 12 : MediaQuery.of(context).size.height * 0.015,)),
+                          ))
+                              .toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // Row 간의 공간을 균등하게 분배
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              _updateChartData('시가');
+                            },
+                            child: Text(
+                              '시가',
+                              style: TextStyle(
+                                fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                fontWeight: FontWeight.bold,
+                                color: selectedChart == '시가' ? Colors.black : Colors.grey,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          GestureDetector(
+                            onTap: () {
+                              _updateChartData('듀레이션');
+                            },
+                            child: Text(
+                              '듀레이션',
+                              style: TextStyle(
+                                fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                fontWeight: FontWeight.bold,
+                                color: selectedChart == '듀레이션' ? Colors.black : Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => _updatePeriod('주별'),
+                            child: Text(
+                              '주별',
+                              style: TextStyle(
+                                fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                fontWeight: FontWeight.bold,
+                                color: selectedPeriod == '주별' ? Colors.black : Colors.grey,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          GestureDetector(
+                            onTap: () => _updatePeriod('월별'),
+                            child: Text(
+                              '월별',
+                              style: TextStyle(
+                                fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                fontWeight: FontWeight.bold,
+                                color: selectedPeriod == '월별' ? Colors.black : Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Flexible(
+                  child: Container(
+                    height: 300,
+                    margin: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 0,
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: SfCartesianChart(
+                      primaryXAxis: CategoryAxis(),
+                      series: <ChartSeries>[
+                        LineSeries<_ChartData, String>(
+                          dataSource: chartData,
+                          xValueMapper: (_ChartData data, _) => data.label,
+                          yValueMapper: (_ChartData data, _) => data.value,
+                          markerSettings: const MarkerSettings(isVisible: true),
+                          color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -842,7 +904,7 @@ class _EtBondDescriptionPageState extends State<EtBondDescriptionPage> {
         '',
         askingPriceData['bond_bidp5'] ?? 'N/A',
         askingPriceData['bidp_rsqn5'] ?? 'N/A',
-        askingPriceData['shnu_ernn_rate5'] ?? 'N/A',
+        askingPriceData['seln_ernn_rate1'] ?? 'N/A',
       ),
     ];
   }
