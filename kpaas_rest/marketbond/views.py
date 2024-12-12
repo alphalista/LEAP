@@ -283,23 +283,31 @@ class ET_Bond_Interest_view(viewsets.ModelViewSet):
         data = request.data.copy()
         try:
             bond_instance = MarketBondCode.objects.get(code=data['bond_code'])
-            data['bond_code'] = int(bond_instance.id)
+            data['bond_code'] = bond_instance.id
             data['user_id'] = request.user.user_id
-            ins = MarketBondHowManyInterest.objects.get(bond_code=bond_instance.id)
-            MarketBondHowManyInterest.objects.update_or_create(
-                bond_code=MarketBondCode.objects.get(code=data['bond_code']),
-                defaults={
-                    'interest': ins.interest + 1
-                }
+
+            # 기존 데이터 확인
+            existing_interest = ET_Bond_Interest.objects.filter(user_id=request.user.user_id, bond_code=bond_instance.id).first()
+            if existing_interest:
+                return Response({"message": "이미 존재하는 관심 채권입니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 관심도 업데이트
+            interest_instance, created = MarketBondHowManyInterest.objects.get_or_create(
+                bond_code=bond_instance,
+                defaults={'interest': 1}
             )
+            if not created:
+                interest_instance.interest += 1
+                interest_instance.save()
+
         except MarketBondCode.DoesNotExist:
             return Response({"bond_code": "해당 bond_code가 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
-        except MarketBondHowManyInterest.DoesNotExist:
-            MarketBondHowManyInterest.objects.create(bond_code=MarketBondCode.objects.get(id=data['bond_code']), interest=1)
+
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
     # delete 요청시 pk를 이용해 객체를 가져옴
     def destroy(self, request, *args, **kwargs):
