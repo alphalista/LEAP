@@ -100,14 +100,14 @@ services:
     networks:
       - app_network
 
-#  flutter:
-#    image: 47813/fltr:latest
-#    ports:
-#      - "8080:80"
-#    depends_on:
-#      - nginx
-#    networks:
-#      - app_network
+  flutter:
+    image: 47813/fltr:latest
+    ports:
+      - "8080:80"
+    depends_on:
+      - nginx
+    networks:
+      - app_network
 
   db:
     image: mysql
