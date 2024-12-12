@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kpaas_flutter/apiconnectiontest/data_controller.dart';
@@ -91,159 +92,173 @@ class _OtcBondCalculatorSearch extends State<OtcBondCalculatorSearch> {
                 color: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 15.0),
                 alignment: Alignment.center,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
                   children: [
+                    SizedBox(height: kIsWeb ? 0 : MediaQuery.of(context).size.height*0.03),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 15.0),
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Icon(
+                                  Icons.arrow_back,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.only(left: 20.0),
+                              child: Text(
+                                '장외 채권 추가',
+                                style: TextStyle(fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
                         Padding(
-                          padding: const EdgeInsets.only(left: 15.0),
-                          child: GestureDetector(
+                          padding: const EdgeInsets.only(right: 20.0),
+                          child: InkWell(
                             onTap: () {
                               Navigator.pop(context);
                             },
-                            child: const Icon(
-                              Icons.arrow_back,
-                              size: 20,
+                            child: Text(
+                              '확인',
+                              style: TextStyle(fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
                             ),
-                          ),
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.only(left: 20.0),
-                          child: Text(
-                            '장외 채권 추가',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 20.0),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          '확인',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 15),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 8),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: '채권 검색...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                    onChanged: (query) {
-                      setState(() {
-                        searchQuery = query;
-                        _fetchBondData(query: searchQuery);
-                      });
-                    },
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  itemCount: bondData.length + 1,
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return const SizedBox(height: 0);
-                    }
-                    final actualIndex = index - 1;
-
-                    if (actualIndex == bondData.length) {
-                      return _buildLoadingIndicator();
-                    }
-
-                    return GestureDetector(
-                      onTap: () {
-                        selectedIndex = actualIndex;
-                        Navigator.pop(context, bondData[selectedIndex]);
-                      },
-                      child: Container(
-                        constraints: const BoxConstraints(minHeight: 200),
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 13, horizontal: 30),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 0,
-                              blurRadius: 0,
-                              offset: const Offset(0, 0),
-                            ),
-                          ],
+              Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: '채권 검색...',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              bondData[actualIndex]['prdt_name'] ?? 'N/A',
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
+                        onChanged: (query) {
+                          setState(() {
+                            searchQuery = query;
+                            _fetchBondData(query: searchQuery);
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    itemCount: bondData.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        return const SizedBox(height: 0);
+                      }
+
+                      final actualIndex = index - 1;
+
+                      if (actualIndex == bondData.length) {
+                        return _buildLoadingIndicator();
+                      }
+
+                      return GestureDetector(
+                        onTap: () {
+                          selectedIndex = actualIndex;
+                          Navigator.pop(context, bondData[selectedIndex]);
+                        },
+                        child: Container(
+                          constraints: const BoxConstraints(minHeight: 200),
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 13, horizontal: 30),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 0,
+                                blurRadius: 0,
+                                offset: const Offset(0, 0),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20.0),
-                              child: Row(
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                bondData[actualIndex]['prdt_name'] ?? 'N/A',
+                                style: TextStyle(
+                                  fontSize:  kIsWeb
+                            ? 30 : MediaQuery.of(context).size.height * 0.03,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Padding(
                                     padding: const EdgeInsets.only(left: 8.0),
                                     child: Column(
                                       children: [
-                                        const Text(
+                                        Text(
                                           '이자 지급 주기',
                                           style: TextStyle(
-                                            fontSize: 16,
-                                            color: Color(0xFF696969),
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                            color: const Color(0xFF696969),
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                         Text(
                                           "${bondData[actualIndex]['int_pay_cycle'] ??
                                               'N/A'}개월",
-                                          style: const TextStyle(
-                                            fontSize: 20,
+                                          style: TextStyle(
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                             color: Colors.black,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        const Text(
+                                        Text(
                                           '듀레이션',
                                           style: TextStyle(
-                                            fontSize: 16,
-                                            color: Color(0xFF696969),
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                            color: const Color(0xFF696969),
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                         Text(
                                           "${bondData[actualIndex]['duration'] ??
                                               "N/A"}년",
-                                          style: const TextStyle(
-                                            fontSize: 20,
+                                          style: TextStyle(
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                             color: Colors.black,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -255,28 +270,31 @@ class _OtcBondCalculatorSearch extends State<OtcBondCalculatorSearch> {
                                     padding: const EdgeInsets.only(left: 7.0),
                                     child: Column(
                                       children: [
-                                        const Text(
+                                        Text(
                                           '신용 등급',
                                           style: TextStyle(
-                                            fontSize: 16,
-                                            color: Color(0xFF696969),
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                            color: const Color(0xFF696969),
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                         Text(
                                           bondData[actualIndex]['nice_crdt_grad_text'] ??
                                               'N/A',
-                                          style: const TextStyle(
-                                            fontSize: 20,
+                                          style: TextStyle(
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                             color: Colors.black,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        const Text(
+                                        Text(
                                           '만기일',
                                           style: TextStyle(
-                                            fontSize: 16,
-                                            color: Color(0xFF696969),
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                            color: const Color(0xFF696969),
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
@@ -284,8 +302,9 @@ class _OtcBondCalculatorSearch extends State<OtcBondCalculatorSearch> {
                                           formatDate(
                                               bondData[actualIndex]['expd_dt']) ??
                                               'N/A',
-                                          style: const TextStyle(
-                                            fontSize: 20,
+                                          style: TextStyle(
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                             color: Colors.black,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -295,28 +314,31 @@ class _OtcBondCalculatorSearch extends State<OtcBondCalculatorSearch> {
                                   ),
                                   Column(
                                     children: [
-                                      const Text(
+                                      Text(
                                         '세후 수익률',
                                         style: TextStyle(
-                                          fontSize: 16,
-                                          color: Color(0xFF696969),
+                                          fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                          color: const Color(0xFF696969),
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                       Text(
                                         '${bondData[actualIndex]['YTM_after_tax'] ??
                                             'N/A'}%',
-                                        style: const TextStyle(
-                                          fontSize: 20,
+                                        style: TextStyle(
+                                          fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      const Text(
+                                      Text(
                                         '발행일',
                                         style: TextStyle(
-                                          fontSize: 16,
-                                          color: Color(0xFF696969),
+                                          fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                          color: const Color(0xFF696969),
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -324,8 +346,9 @@ class _OtcBondCalculatorSearch extends State<OtcBondCalculatorSearch> {
                                         formatDate(
                                             bondData[actualIndex]['issu_dt']) ??
                                             'N/A',
-                                        style: const TextStyle(
-                                          fontSize: 20,
+                                        style: TextStyle(
+                                          fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -334,13 +357,12 @@ class _OtcBondCalculatorSearch extends State<OtcBondCalculatorSearch> {
                                   ),
                                 ],
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
               ),
             ],
           ),

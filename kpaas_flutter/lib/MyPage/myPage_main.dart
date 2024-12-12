@@ -1,20 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kpaas_flutter/MyPage/MatureBondDisplay.dart';
 import 'package:kpaas_flutter/MyPage/OwningBondDisplay.dart';
 import 'package:kpaas_flutter/MyPage/InterestBondDisplay.dart';
 
-void main() {
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: const MyPage(),
-    theme: ThemeData(
-      primarySwatch: Colors.blue,
-    ),
-  ));
-}
+import '../NaviBar/calculator.dart';
+import '../NaviBar/news.dart';
 
 class MyPage extends StatefulWidget {
-  const MyPage({Key? key}) : super(key: key);
+  final String idToken;
+  const MyPage({Key? key, required this.idToken}) : super(key: key);
+
 
   @override
   _MyPageState createState() => _MyPageState();
@@ -36,16 +32,21 @@ class _MyPageState extends State<MyPage> {
                 color: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 alignment: Alignment.center,
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
                   children: [
+                    SizedBox(height: kIsWeb ? 0 : MediaQuery.of(context).size.height*0.03),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        SizedBox(width: 10),
-                        BackButton(),
-                        Text(
-                          '마이페이지',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        Row(
+                          children: [
+                            const SizedBox(width: 10),
+                            const BackButton(),
+                            Text(
+                              '마이페이지',
+                              style: TextStyle(fontSize: kIsWeb ? 15 : MediaQuery.of(context).size.height*0.02, fontWeight: FontWeight.bold),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -122,20 +123,23 @@ class _MyPageState extends State<MyPage> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const InterestBondDisplay()),
+                              MaterialPageRoute(builder: (context) => InterestBondDisplay(
+                                idToken: widget.idToken
+                              )),
                             );
                           },
-                          child: const Row(
+                          child: Row(
                             children: [
-                              Image(
+                              const Image(
                                 image: AssetImage('assets/images/First.png'),
                                 width: 24,
                                 height: 24,
                               ),
-                              SizedBox(width: 8,),
+                              const SizedBox(width: 8,),
                               Text(
                                 "관심있는 채권 목록",
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -145,22 +149,25 @@ class _MyPageState extends State<MyPage> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const OwningBondDisplay()),
+                            MaterialPageRoute(builder: (context) => OwningBondDisplay(
+                              idToken: widget.idToken
+                            )),
                           );
                         },
-                        child: const Padding(
-                          padding: EdgeInsets.all(13.0),
+                        child: Padding(
+                          padding: const EdgeInsets.all(13.0),
                           child: Row(
                             children: [
-                              Image(
+                              const Image(
                                 image: AssetImage('assets/images/Second.png'),
                                 width: 24,
                                 height: 24,
                               ),
-                              SizedBox(width: 8,),
+                              const SizedBox(width: 8,),
                               Text(
                                 "보유 중인 채권 목록",
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -170,22 +177,25 @@ class _MyPageState extends State<MyPage> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const MatureBondDisplay()),
+                            MaterialPageRoute(builder: (context) => MatureBondDisplay(
+                              idToken: widget.idToken
+                            )),
                           );
                         },
-                        child: const Padding(
-                          padding: EdgeInsets.all(13.0),
+                        child:  Padding(
+                          padding: const EdgeInsets.all(13.0),
                           child: Row(
                             children: [
-                              Image(
+                              const Image(
                                 image: AssetImage('assets/images/Third.png'),
                                 width: 24,
                                 height: 24,
                               ),
-                              SizedBox(width: 8,),
+                              const SizedBox(width: 8,),
                               Text(
                                 "만기된 채권 목록",
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -195,66 +205,90 @@ class _MyPageState extends State<MyPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 0),
-              Container(
-                height: 150,
-                margin: const EdgeInsets.all(16.0),
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 0,
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: const Align(
-                  alignment: Alignment.topLeft,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.all(13.0),
-                        child: Row(
-                          children: [
-                            Image(
-                              image: AssetImage('assets/images/Fourth.png'),
-                              width: 24,
-                              height: 24,
-                            ),
-                            SizedBox(width: 8,),
-                            Text(
-                              "내 수익 바로 계산해보기",
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(13.0),
-                        child: Row(
-                          children: [
-                            Image(
-                              image: AssetImage('assets/images/Fifth.png'),
-                              width: 24,
-                              height: 24,
-                            ),
-                            SizedBox(width: 8,),
-                            Text(
-                              "채권 뉴스 골라보기",
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              // const SizedBox(height: 0),
+              // Container(
+              //   height: 150,
+              //   margin: const EdgeInsets.all(16.0),
+              //   padding: const EdgeInsets.all(16.0),
+              //   decoration: BoxDecoration(
+              //     color: Colors.white,
+              //     borderRadius: BorderRadius.circular(12),
+              //     boxShadow: [
+              //       BoxShadow(
+              //         color: Colors.grey.withOpacity(0.5),
+              //         spreadRadius: 0,
+              //         blurRadius: 6,
+              //         offset: const Offset(0, 3),
+              //       ),
+              //     ],
+              //   ),
+              //   child: Align(
+              //     alignment: Alignment.topLeft,
+              //     child: Column(
+              //       crossAxisAlignment: CrossAxisAlignment.start,
+              //       children: [
+              //         GestureDetector(
+              //           onTap: () {
+              //             final oldRoute = ModalRoute.of(context);
+              //             if (oldRoute != null) {
+              //               Navigator.of(context).replace(
+              //                 oldRoute: oldRoute, // 기존 페이지(Route)
+              //                 newRoute: MaterialPageRoute(builder: (context) => CalculatorPage(idToken: widget.idToken)),
+              //               );
+              //             }
+              //           },
+              //           child: Padding(
+              //             padding: const EdgeInsets.all(13.0),
+              //             child: Row(
+              //               children: [
+              //                 const Image(
+              //                   image: AssetImage('assets/images/Fourth.png'),
+              //                   width: 24,
+              //                   height: 24,
+              //                 ),
+              //                 const SizedBox(width: 8,),
+              //                 Text(
+              //                   "내 수익 바로 계산해보기",
+              //                   style: TextStyle(fontSize: kIsWeb
+              //       ? 16 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
+              //                 ),
+              //               ],
+              //             ),
+              //           ),
+              //         ),
+              //         GestureDetector(
+              //           onTap: () {
+              //             // final oldRoute = ModalRoute.of(context);
+              //             // if (oldRoute != null) {
+              //             //   Navigator.of(context).replace(
+              //             //     oldRoute: oldRoute, // 기존 페이지(Route)
+              //             //     newRoute: MaterialPageRoute(builder: (context) => NewsPage(idToken: widget.idToken, initialNextUrl: '', newsData: [],)),
+              //             //   );
+              //             // }
+              //           },
+              //           child: Padding(
+              //             padding: const EdgeInsets.all(13.0),
+              //             child: Row(
+              //               children: [
+              //                 const Image(
+              //                   image: AssetImage('assets/images/Fifth.png'),
+              //                   width: 24,
+              //                   height: 24,
+              //                 ),
+              //                 const SizedBox(width: 8,),
+              //                 Text(
+              //                   "채권 뉴스 골라보기",
+              //                   style: TextStyle(fontSize: kIsWeb
+              //       ? 16 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
+              //                 ),
+              //               ],
+              //             ),
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
               Expanded(
                 child: Container(
                   color: const Color(0xFFF1F1F9),

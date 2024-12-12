@@ -1,4 +1,5 @@
 import 'package:dotted_line/dotted_line.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kpaas_flutter/CalculatorPage/etBondCalculatorSearch.dart';
 import 'package:kpaas_flutter/MyPage/myPage_main.dart';
@@ -7,6 +8,10 @@ import 'package:kpaas_flutter/CalculatorPage/otcBondCalculatorDescription.dart';
 import 'package:kpaas_flutter/CalculatorPage/otcBondCalculatorSearch.dart';
 
 class CalculatorPage extends StatefulWidget {
+  final String idToken;
+  const CalculatorPage({Key? key, required this.idToken}) : super(key: key);
+
+
   @override
   _CalculatorPageState createState() => _CalculatorPageState();
 }
@@ -42,9 +47,11 @@ class _CalculatorPageState extends State<CalculatorPage> {
     setState(() {
       if (isEtBond) {
         etCalculatedResult.removeWhere((bond) => CalculateEtBondList[index]['code'] == etCalculatedResult[index]['code']);
+        print(etCalculatedResult);
         CalculateEtBondList.removeAt(index);
       } else {
         otcCalculatedResult.removeWhere((bond) => CalculateOtcBondList[index]['code'] == otcCalculatedResult[index]['code']);
+        print(otcCalculatedResult);
         CalculateOtcBondList.removeAt(index);
       }
     });
@@ -56,8 +63,8 @@ class _CalculatorPageState extends State<CalculatorPage> {
       backgroundColor: const Color(0xFFF1F1F9),
       appBar: AppBar(
         scrolledUnderElevation: 0.0,
-        title: const Padding(
-          padding: EdgeInsets.only(left: 10.0),
+        title: Padding(
+          padding: const EdgeInsets.only(left: 10.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
@@ -66,7 +73,7 @@ class _CalculatorPageState extends State<CalculatorPage> {
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
-                  fontSize: 20,
+                    fontSize: kIsWeb ? 15 : MediaQuery.of(context).size.height * 0.02
                 ),
               ),
             ],
@@ -80,7 +87,9 @@ class _CalculatorPageState extends State<CalculatorPage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => MyPage()),
+                MaterialPageRoute(builder: (context) => MyPage(
+                  idToken: widget.idToken,
+                )),
               );
             },
           ),
@@ -91,7 +100,7 @@ class _CalculatorPageState extends State<CalculatorPage> {
           width: 500,
           color: const Color(0xFFF1F1F9),
           child: Container(
-            margin: EdgeInsets.only(top: 15),
+            margin: const EdgeInsets.only(top: 15),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -99,7 +108,7 @@ class _CalculatorPageState extends State<CalculatorPage> {
                 const SizedBox(height: 10),
                 _buildCalculateSection("장외 채권 계산", CalculateOtcBondList, false),
                 Container(
-                  height: 120,
+                  height: MediaQuery.of(context).size.height * 0.2,
                   margin: const EdgeInsets.all(16.0),
                   padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
@@ -134,7 +143,7 @@ class _CalculatorPageState extends State<CalculatorPage> {
                                     });
                                   },
                                 ),
-                                const Text("가장 먼 만기 자동 계산하기", style: TextStyle(fontWeight: FontWeight.bold),),
+                                Text("가장 먼 만기 자동 계산하기", style: TextStyle(fontWeight: FontWeight.bold, fontSize: kIsWeb ? 12 : MediaQuery.of(context).size.height * 0.015,),),
                               ],
                             ),
                             const SizedBox(width: 5,),
@@ -147,9 +156,10 @@ class _CalculatorPageState extends State<CalculatorPage> {
                               ),
                             ),
                             const SizedBox(width: 5,),
-                            const Text("2054-11-25", style: TextStyle(fontWeight: FontWeight.bold),),
+                            Text("2054-11-25", style: TextStyle(fontWeight: FontWeight.bold,fontSize: kIsWeb ? 12 : MediaQuery.of(context).size.height * 0.015,),),
                           ],
                         ),
+
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -164,7 +174,13 @@ class _CalculatorPageState extends State<CalculatorPage> {
                                     });
                                   },
                                 ),
-                                const Text("내가 원하는 날에 수익 계산하기", style: TextStyle(fontWeight: FontWeight.bold),),
+                                Text(
+                                  "내가 원하는 날에 수익 계산하기",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: kIsWeb ? 12 : MediaQuery.of(context).size.height * 0.015,
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(width: 5,),
@@ -189,14 +205,14 @@ class _CalculatorPageState extends State<CalculatorPage> {
                                     });
                                   }
                                 },
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   hintText: " YYYYMMDD",
-                                  hintStyle: TextStyle(fontSize: 12),
+                                  hintStyle: TextStyle(fontSize: kIsWeb ? 12 : MediaQuery.of(context).size.height * 0.015,),
                                   isDense: true,
-                                  border: UnderlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                  border: const UnderlineInputBorder(),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                                 ),
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize: kIsWeb ? 12 : MediaQuery.of(context).size.height * 0.015, fontWeight: FontWeight.bold),
                                 keyboardType: TextInputType.number,
                               ),
                             ),
@@ -233,7 +249,7 @@ class _CalculatorPageState extends State<CalculatorPage> {
                           children: [
                             Text(
                               "${selectedOption == 0 ? displayedDate : "2054 - 11 - 25"}까지의 수익은",
-                              style: TextStyle(fontWeight: FontWeight.bold),),
+                              style: const TextStyle(fontWeight: FontWeight.bold),),
                           ],
                         ),
                         Row(
@@ -241,9 +257,11 @@ class _CalculatorPageState extends State<CalculatorPage> {
                           children: [
                             Text(
                               calculatedTotal.toString(),
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 35),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize:  kIsWeb
+                            ? 30 : MediaQuery.of(context).size.height * 0.03,),
                             ),
-                              const Text("원", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                            Text("원", style: TextStyle(fontWeight: FontWeight.bold, fontSize:  kIsWeb
+                            ? 30 : MediaQuery.of(context).size.height * 0.03,)),
                           ],
                         ),
 
@@ -269,8 +287,8 @@ class _CalculatorPageState extends State<CalculatorPage> {
                       foregroundColor: Colors.black,
                       backgroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20),
-                      textStyle: const TextStyle(
-                        fontSize: 18,
+                      textStyle: TextStyle(
+                        fontSize: kIsWeb ? 12 : MediaQuery.of(context).size.height * 0.015,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -297,8 +315,9 @@ class _CalculatorPageState extends State<CalculatorPage> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 20,
+                style: TextStyle(
+                  fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -313,8 +332,8 @@ class _CalculatorPageState extends State<CalculatorPage> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => isEtBond
-                        ? EtBondCalculatorSearch()
-                        : OtcBondCalculatorSearch(),
+                        ? const EtBondCalculatorSearch()
+                        : const OtcBondCalculatorSearch(),
                       ),
                     );
                     if (bondCode != null) {
@@ -396,9 +415,9 @@ class _CalculatorPageState extends State<CalculatorPage> {
                     isEtBond
                     ? bond['issue_info_data']['prdt_name']
                     : bond['prdt_name'],
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
+                      fontSize: kIsWeb ? 15 : MediaQuery.of(context).size.height * 0.02,
                     ),
                     overflow: TextOverflow.ellipsis,
                     softWrap: false,
@@ -441,46 +460,35 @@ class _CalculatorPageState extends State<CalculatorPage> {
                       String nxtInterestDate = bond['issue_info_data']['nxtm_int_dfrm_dt'];
                       int interestCyclePeriod = 1;
 
-                      // double outcomeResult = 0;
-                      // for (int i in calculateMethod) {
-                      //   if (i == 0) {
-                      //     double output = exptIncome(i, purchasePrice, purchaseQuantity, interestRate, matDate, nxtInterestDate, interestCyclePeriod, isMat);
-                      //     outcomeResult = outcomeResult + output * 0.1 * purchaseQuantity;
-                      //   }
-                      //   else if (i == 1) {
-                      //     double output = exptIncome(i, salePrice, saleQuantity, interestRate, matDate, nxtInterestDate, interestCyclePeriod, isMat, salePrice);
-                      //     outcomeResult = outcomeResult + output * 0.1 * saleQuantity;
-                      //   }
-                      // }
-                      //
-                      // double outcomeResultRounded = double.tryParse(outcomeResult.toStringAsFixed(2)) ?? 0.00;
-                      //
-                      // etCalculatedResult.add(
-                      //     {
-                      //       "code": bond['issue_info_data']['pdno'],
-                      //       "price": outcomeResultRounded
-                      //     }
-                      // );
-                      // print(etCalculatedResult);
-                      Map<String, dynamic> parseData = {
-                        'purchasePrice': purchasePrice,
-                        'purchaseQuantity': purchaseQuantity,
-                        'salePrice': salePrice,
-                        'saleQuantity': saleQuantity,
-                        'code': code,
-                        'interestRate': interestRate,
-                        'matDate': matDate,
-                        'nxtInterestDate': nxtInterestDate,
-                        'interestCyclePeriod': interestCyclePeriod,
-                      };
+                      double outcomeResult = 0;
+                      for (int i in calculateMethod) {
+                        if (i == 0) {
+                          double output = exptIncome(i, purchasePrice, purchaseQuantity, interestRate, matDate, nxtInterestDate, interestCyclePeriod, true);
+                          outcomeResult = outcomeResult + output * 0.1 * purchaseQuantity;
+                        }
+                        else if (i == 1) {
+                          double output = exptIncome(i, salePrice, saleQuantity, interestRate, matDate, nxtInterestDate, interestCyclePeriod, true, salePrice);
+                          outcomeResult = outcomeResult + output * 0.1 * saleQuantity;
+                        }
+                      }
 
-                      etCalculatedResult.add(parseData);
+                      double outcomeResultRounded = double.tryParse(outcomeResult.toStringAsFixed(2)) ?? 0.00;
 
+                      etCalculatedResult.add(
+                          {
+                            "code": bond['code'],
+                            "price": outcomeResultRounded
+                          }
+                      );
+                      print(etCalculatedResult);
                     } else {
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => OtcBondCalculatorPage(bondData: bond),
+                          builder: (context) => OtcBondCalculatorPage(
+                              bondData: bond,
+                              idToken: widget.idToken,
+                          ),
                         ),
                       );
 
@@ -532,17 +540,6 @@ class _CalculatorPageState extends State<CalculatorPage> {
                           }
                       );
                       print(otcCalculatedResult);
-                      Map<String, dynamic> parseData = {
-                        'purchasePrice': purchasePrice,
-                        'purchaseQuantity': purchaseQuantity,
-                        'salePrice': salePrice,
-                        'saleQuantity': saleQuantity,
-                        'code': code,
-                        'interestRate': interestRate,
-                        'matDate': matDate,
-                        'nxtInterestDate': nxtInterestDate,
-                        'interestCyclePeriod': interestCyclePeriod,
-                      };
                     }
                   },
                   child: const Icon(

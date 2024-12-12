@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:kpaas_flutter/main.dart';
 
 Future<String?> showExpdDateDialog(BuildContext context) async {
   int selectedMaturity = 0;
@@ -17,124 +19,98 @@ Future<String?> showExpdDateDialog(BuildContext context) async {
       return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
+            backgroundColor: const Color(0xFFF1F1F9),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
-            title: const Center(
+            title: Center(
               child: Text(
                 '만기일',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
               ),
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (errorText.isNotEmpty) // 에러 메시지 표시
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Text(
-                      errorText,
-                      style: const TextStyle(color: Colors.red),
+            content: SizedBox(
+              width: 400,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (errorText.isNotEmpty) // 에러 메시지 표시
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(
+                        errorText,
+                        style: const TextStyle(color: Colors.red),
+                      ),
                     ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildOptionButton(
+                                context,
+                                label: '만기 5년 이내',
+                                isSelected: selectedMaturity == 1,
+                                onPressed: () {
+                                  setState(() {
+                                    selectedMaturity = 1;
+                                    errorText = "";
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 20),
+                              _buildOptionButton(
+                                context,
+                                label: '만기 3년 이내',
+                                isSelected: selectedMaturity == 2,
+                                onPressed: () {
+                                  setState(() {
+                                    selectedMaturity = 2;
+                                    errorText = "";
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildOptionButton(
+                                context,
+                                label: '만기 1년 이내',
+                                isSelected: selectedMaturity == 3,
+                                onPressed: () {
+                                  setState(() {
+                                    selectedMaturity = 3;
+                                    errorText = "";
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 20),
+                              _buildOptionButton(
+                                context,
+                                label: '만기 6개월 이내',
+                                isSelected: selectedMaturity == 4,
+                                onPressed: () {
+                                  setState(() {
+                                    selectedMaturity = 4;
+                                    errorText = "";
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedMaturity = 1;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedMaturity == 1 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        '만기 5년 이내',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedMaturity == 1 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedMaturity = 2;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedMaturity == 2 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        '만기 3년 이내',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedMaturity == 2 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedMaturity = 3;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedMaturity == 3 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        '만기 1년 이내',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedMaturity == 3 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedMaturity = 4;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedMaturity == 4 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        '만기 6개월 이내',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedMaturity == 4 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -160,20 +136,38 @@ Future<String?> showExpdDateDialog(BuildContext context) async {
   );
 }
 
+Widget _buildOptionButton(BuildContext context,
+    {required String label, required bool isSelected, required VoidCallback onPressed}) {
+  return ElevatedButton(
+    onPressed: onPressed,
+    style: ElevatedButton.styleFrom(
+      minimumSize: const Size(100, 50), // 버튼 크기
+      backgroundColor: isSelected ? Colors.blueAccent : Colors.white,
+      side: BorderSide(color: isSelected ? Colors.blueAccent : const Color(0xFFD2E1FC)),
+    ),
+    child: Text(
+      label,
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+        color: isSelected ? Colors.white : Colors.blueAccent,
+      ),
+    ),
+  );
+}
+
 
 Future<String?> showEtBondDangerDialog(BuildContext context) async {
   int selectedDanger = 0;
   String errorText = "";
 
   final Map<int, String> dangerOptions = {
-    1 : "AAA",
-    2 : "AA",
-    3 : "A",
-    4 : "BBB",
-    5 : "BB",
-    6 : "B",
-    7 : "CCC 이하",
-
+    1: "AAA",
+    2: "AA",
+    3: "A",
+    4: "BBB",
+    5: "BB",
+    6: "B",
+    7: "CCC 이하",
   };
 
   return await showDialog<String>(
@@ -182,19 +176,27 @@ Future<String?> showEtBondDangerDialog(BuildContext context) async {
       return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
+            backgroundColor: const Color(0xFFF1F1F9),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
-            title: const Center(
-              child: Text(
-                "신용등급",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            title: SizedBox(
+              width: 400,
+              child: Center(
+                child: Text(
+                  "신용등급",
+                  style: TextStyle(
+                    fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (errorText.isNotEmpty) // Show error text if it's set
+                if (errorText.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Text(
@@ -202,171 +204,41 @@ Future<String?> showEtBondDangerDialog(BuildContext context) async {
                       style: const TextStyle(color: Colors.red),
                     ),
                   ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    TextButton(
-                      onPressed: () {
+                Wrap(
+                  spacing: 16.0,
+                  runSpacing: 8.0,
+                  alignment: WrapAlignment.center,
+                  children: dangerOptions.entries.map((entry) {
+                    if (entry.key == 7) {
+                      return Padding(
+                        padding: EdgeInsets.only(left:MediaQuery.of(context).size.width*0.035),
+                        child: _buildDangerButton(
+                          context,
+                          entry.value,
+                          entry.key,
+                          selectedDanger,
+                              (int value) {
+                            setState(() {
+                              selectedDanger = value;
+                              errorText = "";
+                            });
+                          },
+                        ),
+                      );
+                    }
+                    return _buildDangerButton(
+                      context,
+                      entry.value,
+                      entry.key,
+                      selectedDanger,
+                          (int value) {
                         setState(() {
-                          selectedDanger = 1;
+                          selectedDanger = value;
                           errorText = "";
                         });
                       },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedDanger == 1 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        'AAA',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedDanger == 1 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedDanger = 2;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedDanger == 2 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        'AA',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedDanger == 2 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedDanger = 3;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedDanger == 3 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        'A',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedDanger == 3 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedDanger = 4;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedDanger == 4 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        'BBB',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedDanger == 4 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedDanger = 5;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedDanger == 5 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        'BB',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedDanger == 5 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedDanger = 6;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedDanger == 6 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        'B',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedDanger == 6 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedDanger = 7;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedDanger == 7 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        'CCC 이하',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedDanger == 7 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                  ],
+                    );
+                  }).toList(),
                 ),
               ],
             ),
@@ -375,12 +247,10 @@ Future<String?> showEtBondDangerDialog(BuildContext context) async {
                 onPressed: () {
                   if (selectedDanger == 0) {
                     setState(() {
-                      errorText = '모든 옵션을 선택해 주세요.'; // Set error message if options aren't selected
+                      errorText = '모든 옵션을 선택해 주세요.';
                     });
                   } else {
-                    Navigator.of(context).pop(
-                        '${dangerOptions[selectedDanger]}'
-                    );
+                    Navigator.of(context).pop(dangerOptions[selectedDanger]);
                   }
                 },
                 child: const Text(
@@ -393,6 +263,33 @@ Future<String?> showEtBondDangerDialog(BuildContext context) async {
         },
       );
     },
+  );
+}
+
+Widget _buildDangerButton(
+    BuildContext context,
+    String label,
+    int value,
+    int selectedValue,
+    void Function(int) onPressed,
+    ) {
+  return TextButton(
+    onPressed: () => onPressed(value),
+    style: ElevatedButton.styleFrom(
+      minimumSize: Size(MediaQuery.of(context).size.width * 0.1, 50),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+      backgroundColor: selectedValue == value ? Colors.blueAccent : Colors.white,
+      side: const BorderSide(
+        color: Color(0xFFD2E1FC),
+      ),
+    ),
+    child: Text(
+      label,
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+        color: selectedValue == value ? Colors.white : Colors.blueAccent,
+      ),
+    ),
   );
 }
 
@@ -411,16 +308,22 @@ Future<String?> showEarnRateDialog(BuildContext context) async {
       return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
+            backgroundColor: const Color(0xFFF1F1F9),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
-            title: const Center(
-              child: Text(
-                '수익율',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            title: SizedBox(
+              width: 400,
+              child: Center(
+                child: Text(
+                  '수익율',
+                  style: TextStyle(fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (errorText.isNotEmpty) // Show error text if it's set
@@ -438,11 +341,11 @@ Future<String?> showEarnRateDialog(BuildContext context) async {
                       onPressed: () {
                         setState(() {
                           selectedEarnRate = 1;
-                          errorText = ""; // Clear error if option is selected
+                          errorText = "";
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
+                        minimumSize: const Size(100, 50),
                         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
                         backgroundColor: selectedEarnRate == 1 ? Colors.blueAccent : Colors.white,
                         side: const BorderSide(
@@ -465,7 +368,7 @@ Future<String?> showEarnRateDialog(BuildContext context) async {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
+                        minimumSize: const Size(100, 50),
                         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
                         backgroundColor: selectedEarnRate == 2 ? Colors.blueAccent : Colors.white,
                         side: const BorderSide(
@@ -526,16 +429,22 @@ Future<String?> showRemainderDialog(BuildContext context) async {
       return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
+            backgroundColor: const Color(0xFFF1F1F9),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
-            title: const Center(
-              child: Text(
-                '잔존수량',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            title: SizedBox(
+              width: 400,
+              child: Center(
+                child: Text(
+                  '잔존수량',
+                  style: TextStyle(fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (errorText.isNotEmpty) // Show error text if it's set
@@ -557,7 +466,7 @@ Future<String?> showRemainderDialog(BuildContext context) async {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
+                        minimumSize: const Size(100, 50),
                         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
                         backgroundColor: selectedRemainder == 1 ? Colors.blueAccent : Colors.white,
                         side: const BorderSide(
@@ -580,7 +489,7 @@ Future<String?> showRemainderDialog(BuildContext context) async {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
+                        minimumSize: const Size(100, 50),
                         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
                         backgroundColor: selectedRemainder == 2 ? Colors.blueAccent : Colors.white,
                         side: const BorderSide(
@@ -641,19 +550,25 @@ Future<String?> showInterestRateDialog(BuildContext context) async {
       return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
+            backgroundColor: const Color(0xFFF1F1F9),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
-            title: const Center(
-              child: Text(
-                '이자율',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            title: SizedBox(
+              width: 400,
+              child: Center(
+                child: Text(
+                  '이자율',
+                  style: TextStyle(fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (errorText.isNotEmpty) // Show error text if it's set
+                if (errorText.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Text(
@@ -672,7 +587,7 @@ Future<String?> showInterestRateDialog(BuildContext context) async {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
+                        minimumSize: const Size(100, 50),
                         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
                         backgroundColor: selectedInterestRate == 1 ? Colors.blueAccent : Colors.white,
                         side: const BorderSide(
@@ -695,7 +610,7 @@ Future<String?> showInterestRateDialog(BuildContext context) async {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
+                        minimumSize: const Size(100, 50),
                         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
                         backgroundColor: selectedInterestRate == 2 ? Colors.blueAccent : Colors.white,
                         side: const BorderSide(
@@ -760,16 +675,22 @@ Future<String?> showOtcBondDangerDialog(BuildContext context) async {
       return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
+            backgroundColor: const Color(0xFFF1F1F9),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
-            title: const Center(
-              child: Text(
-                "신용등급",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            title: SizedBox(
+              width: 400,
+              child: Center(
+                child: Text(
+                  "신용등급",
+                  style: TextStyle(fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (errorText.isNotEmpty) // Show error text if it's set
@@ -782,144 +703,151 @@ Future<String?> showOtcBondDangerDialog(BuildContext context) async {
                   ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedDanger = 1;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedDanger == 1 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
+                    Column(
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedDanger = 1;
+                              errorText = "";
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(100, 50),
+                            backgroundColor: selectedDanger == 1 ? Colors.blueAccent : Colors.white,
+                            side: const BorderSide(
+                              color: Color(0xFFD2E1FC),
+                            ),
+                          ),
+                          child: Text(
+                            '매우낮은위험',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: selectedDanger == 1 ? Colors.white : Colors.blueAccent,
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        '매우낮은위험',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedDanger == 1 ? Colors.white : Colors.blueAccent,
+                        SizedBox(height: MediaQuery.of(context).size.height*0.01),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedDanger = 2;
+                              errorText = "";
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(100, 50),
+                            backgroundColor: selectedDanger == 2 ? Colors.blueAccent : Colors.white,
+                            side: const BorderSide(
+                              color: Color(0xFFD2E1FC),
+                            ),
+                          ),
+                          child: Text(
+                            '낮은위험',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: selectedDanger == 2 ? Colors.white : Colors.blueAccent,
+                            ),
+                          ),
                         ),
-                      ),
+                        SizedBox(height: MediaQuery.of(context).size.height*0.01),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedDanger = 3;
+                              errorText = "";
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(100, 50),
+                            backgroundColor: selectedDanger == 3 ? Colors.blueAccent : Colors.white,
+                            side: const BorderSide(
+                              color: Color(0xFFD2E1FC),
+                            ),
+                          ),
+                          child: Text(
+                            '보통위험',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: selectedDanger == 3 ? Colors.white : Colors.blueAccent,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedDanger = 2;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedDanger == 2 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
+                    Column(
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedDanger = 5;
+                              errorText = "";
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(100, 50),
+                            backgroundColor: selectedDanger == 5 ? Colors.blueAccent : Colors.white,
+                            side: const BorderSide(
+                              color: Color(0xFFD2E1FC),
+                            ),
+                          ),
+                          child: Text(
+                            '높은위험',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: selectedDanger == 5 ? Colors.white : Colors.blueAccent,
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        '낮은위험',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedDanger == 2 ? Colors.white : Colors.blueAccent,
+                        SizedBox(height: MediaQuery.of(context).size.height*0.01),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedDanger = 4;
+                              errorText = "";
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(100, 50),
+                            backgroundColor: selectedDanger == 4 ? Colors.blueAccent : Colors.white,
+                            side: const BorderSide(
+                              color: Color(0xFFD2E1FC),
+                            ),
+                          ),
+                          child: Text(
+                            '다소높은위험',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: selectedDanger == 4 ? Colors.white : Colors.blueAccent,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedDanger = 3;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedDanger == 3 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
+                        SizedBox(height: MediaQuery.of(context).size.height*0.01),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedDanger = 6;
+                              errorText = "";
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(100, 50),
+                            backgroundColor: selectedDanger == 6 ? Colors.blueAccent : Colors.white,
+                            side: const BorderSide(
+                              color: Color(0xFFD2E1FC),
+                            ),
+                          ),
+                          child: Text(
+                            '매우높은위험',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: selectedDanger == 6 ? Colors.white : Colors.blueAccent,
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        '보통위험',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedDanger == 3 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedDanger = 4;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedDanger == 4 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        '다소높은위험',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedDanger == 4 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedDanger = 5;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedDanger == 5 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        '높은위험',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedDanger == 5 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedDanger = 6;
-                          errorText = "";
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                        backgroundColor: selectedDanger == 6 ? Colors.blueAccent : Colors.white,
-                        side: const BorderSide(
-                          color: Color(0xFFD2E1FC),
-                        ),
-                      ),
-                      child: Text(
-                        '매우높은위험',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: selectedDanger == 6 ? Colors.white : Colors.blueAccent,
-                        ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
@@ -930,7 +858,7 @@ Future<String?> showOtcBondDangerDialog(BuildContext context) async {
                 onPressed: () {
                   if (selectedDanger == 0) {
                     setState(() {
-                      errorText = '모든 옵션을 선택해 주세요.'; // Set error message if options aren't selected
+                      errorText = '모든 옵션을 선택해 주세요.';
                     });
                   } else {
                     Navigator.of(context).pop(

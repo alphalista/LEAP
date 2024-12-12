@@ -100,6 +100,7 @@ services:
       - app_network
 
   flutter:
+    image: 47813/fltr:latest
     build: ../kpaas_flutter/
     ports:
       - "8080:80"
