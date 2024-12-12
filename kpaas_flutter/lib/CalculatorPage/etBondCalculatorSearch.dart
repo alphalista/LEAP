@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kpaas_flutter/apiconnectiontest/data_controller.dart';
@@ -89,43 +90,50 @@ class _EtBondCalculatorSearchState extends State<EtBondCalculatorSearch> {
                 color: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 15.0),
                 alignment: Alignment.center,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
                   children: [
+                    SizedBox(height: kIsWeb ? 0 : MediaQuery.of(context).size.height*0.03),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 15.0),
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Icon(
+                                  Icons.arrow_back,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.only(left: 20.0),
+                              child: Text(
+                                '장내 채권 추가',
+                                style: TextStyle(fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
                         Padding(
-                          padding: const EdgeInsets.only(left: 15.0),
-                          child: GestureDetector(
+                          padding: const EdgeInsets.only(right: 20.0),
+                          child: InkWell(
                             onTap: () {
                               Navigator.pop(context);
                             },
-                            child: const Icon(
-                              Icons.arrow_back,
-                              size: 20,
+                            child: Text(
+                              '확인',
+                              style: TextStyle(fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
-                        const Padding(
-                          padding: EdgeInsets.only(left: 20.0),
-                          child: Text(
-                            '장내 채권 추가',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                        ),
                       ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 20.0),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          '확인',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ),
                     ),
                   ],
                 ),
@@ -196,8 +204,9 @@ class _EtBondCalculatorSearchState extends State<EtBondCalculatorSearch> {
                           children: [
                             Text(
                               bondData[actualIndex]['issue_info_data']['prdt_name'] ?? 'N/A',
-                              style: const TextStyle(
-                                fontSize: 28,
+                              style: TextStyle(
+                                fontSize:  kIsWeb
+                            ? 30 : MediaQuery.of(context).size.height * 0.03,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -212,27 +221,30 @@ class _EtBondCalculatorSearchState extends State<EtBondCalculatorSearch> {
                                     padding: const EdgeInsets.only(left: 8.0),
                                     child: Column(
                                       children: [
-                                        const Text(
+                                        Text(
                                           '잔존 수량',
                                           style: TextStyle(
-                                            fontSize: 16,
-                                            color: Color(0xFF696969),
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                            color: const Color(0xFF696969),
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                         Text(
                                           "${bondData[actualIndex]['inquire_asking_price_data']['total_askp_rsqn'] ??
                                               'N/A'}개월",
-                                          style: const TextStyle(
-                                            fontSize: 20,
+                                          style: TextStyle(
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                             color: Colors.black,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        const Text(
+                                        Text(
                                           '듀레이션',
                                           style: TextStyle(
-                                            fontSize: 16,
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                             color: Color(0xFF696969),
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -240,8 +252,9 @@ class _EtBondCalculatorSearchState extends State<EtBondCalculatorSearch> {
                                         Text(
                                           "${bondData[actualIndex]['duration']['duration'] ??
                                               "N/A"}년",
-                                          style: const TextStyle(
-                                            fontSize: 20,
+                                          style: TextStyle(
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                             color: Colors.black,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -253,10 +266,11 @@ class _EtBondCalculatorSearchState extends State<EtBondCalculatorSearch> {
                                     padding: const EdgeInsets.only(left: 7.0),
                                     child: Column(
                                       children: [
-                                        const Text(
+                                        Text(
                                           '신용 등급',
                                           style: TextStyle(
-                                            fontSize: 16,
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                             color: Color(0xFF696969),
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -265,16 +279,18 @@ class _EtBondCalculatorSearchState extends State<EtBondCalculatorSearch> {
                                           (bondData[actualIndex]['issue_info_data']?['kbp_crdt_grad_text'] != null && bondData[actualIndex]['issue_info_data']!['kbp_crdt_grad_text'].toString().isNotEmpty)
                                               ? bondData[actualIndex]['issue_info_data']['kbp_crdt_grad_text']
                                               : '무위험',
-                                          style: const TextStyle(
-                                            fontSize: 20,
+                                          style: TextStyle(
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                             color: Colors.black,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        const Text(
+                                        Text(
                                           '만기일',
                                           style: TextStyle(
-                                            fontSize: 16,
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                             color: Color(0xFF696969),
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -283,8 +299,9 @@ class _EtBondCalculatorSearchState extends State<EtBondCalculatorSearch> {
                                           formatDate(
                                               bondData[actualIndex]['issue_info_data']['expd_dt']) ??
                                               'N/A',
-                                          style: const TextStyle(
-                                            fontSize: 20,
+                                          style: TextStyle(
+                                            fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                             color: Colors.black,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -294,27 +311,30 @@ class _EtBondCalculatorSearchState extends State<EtBondCalculatorSearch> {
                                   ),
                                   Column(
                                     children: [
-                                      const Text(
+                                      Text(
                                         '세후 수익률',
                                         style: TextStyle(
-                                          fontSize: 16,
+                                          fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                           color: Color(0xFF696969),
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                       Text(
                                         '${((double.tryParse(bondData[actualIndex]['inquire_asking_price_data']?['shnu_ernn_rate5']?.toString() ?? '0.0'))! * 0.846).toStringAsFixed(2)}%',
-                                        style: const TextStyle(
-                                          fontSize: 20,
+                                        style: TextStyle(
+                                          fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      const Text(
+                                      Text(
                                         '발행일',
                                         style: TextStyle(
-                                          fontSize: 16,
-                                          color: Color(0xFF696969),
+                                          fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
+                                          color: const Color(0xFF696969),
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -322,8 +342,9 @@ class _EtBondCalculatorSearchState extends State<EtBondCalculatorSearch> {
                                         formatDate(
                                             bondData[actualIndex]['issue_info_data']['issu_dt']) ??
                                             'N/A',
-                                        style: const TextStyle(
-                                          fontSize: 20,
+                                        style: TextStyle(
+                                          fontSize:  kIsWeb
+                            ? 18 : MediaQuery.of(context).size.height * 0.018,
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold,
                                         ),

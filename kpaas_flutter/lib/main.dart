@@ -75,12 +75,12 @@ class _MyHomePageState extends State<MyHomePage> {
   List<dynamic> newsData = [];
   List<dynamic> bondData = [];
   String nextUrl = '';
+  String nextNewsUrl = '';
 
   @override
   void initState() {
     super.initState();
     fetchBondData();
-    fetchNewsData();
   }
 
   Future<void> fetchBondData() async {
@@ -96,8 +96,13 @@ class _MyHomePageState extends State<MyHomePage> {
       final etResponse = await dataController.fetchEtBondData(
         "http://localhost:8000/api/marketbond/combined/",
       );
+      final newsResponse = await dataController.fetchNewsBondData(
+          "http://localhost:8000/api/news/data/"
+      );
 
       setState(() {
+        newsData = newsResponse['results'] ?? [];
+        nextNewsUrl = newsResponse['next'];
         etBondData = etResponse['results'] ?? [];
         nextEtBondUrl = etResponse['next'] ?? "";
         otcBondData = otcResponse['results'] ?? []; // 장외 채권 데이터 저장
@@ -112,12 +117,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-
-
-  Future<void> fetchNewsData() async {
-    newsData = await dataController.fetchNewsData();
-    setState(() {});
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +144,8 @@ class _MyHomePageState extends State<MyHomePage> {
       )
           : NewsPage(
           newsData: newsData,
-          idToken: widget.idToken
+          idToken: widget.idToken,
+          initialNextUrl: nextNewsUrl,
       ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,
