@@ -455,7 +455,7 @@ class _CalculatorPageState extends State<CalculatorPage> {
                       int saleQuantity = int.tryParse(saleQuantityString) ?? 0;
 
                       String code = result['code'];
-                      double interestRate = double.tryParse(bond['inquire_asking_price_data']['shnu_ernn_rate5']) ?? 0.00;
+                      double interestRate = double.tryParse(bond['inquire_asking_price_data']['seln_ernn_rate1']) ?? 0.00;
                       String matDate = bond['issue_info_data']['expd_dt'];
                       String nxtInterestDate = bond['issue_info_data']['nxtm_int_dfrm_dt'];
                       int interestCyclePeriod = 1;

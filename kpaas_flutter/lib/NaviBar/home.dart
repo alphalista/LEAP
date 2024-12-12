@@ -67,7 +67,7 @@ class _HomePageState extends State<HomePage> {
             "code": value['meta']['issue_info_data']['pdno'] ?? "Unknown",
             'bond_prpr': value['meta']['inquire_price_data']['bond_prpr'] ?? "0000.0",
             'srfc_inrt': value['meta']['issue_info_data']['srfc_inrt'] ?? "0.00%",
-            'shnu_ernn_rate5': value['meta']['inquire_asking_price_data']['shnu_ernn_rate5'] ?? "0.00%",
+            'seln_ernn_rate1': value['meta']['inquire_asking_price_data']['seln_ernn_rate1'] ?? "0.00%",
             'expd_dt': value['meta']['issue_info_data']['expd_dt'] ?? "Unknown"
           });
         });
@@ -679,7 +679,7 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     "${
                       InterestEtBond
-                          ? double.parse(bond['shnu_ernn_rate5'])
+                          ? double.parse(bond['seln_ernn_rate1'])
                               .toStringAsFixed(2)
                           : double.parse(bond['interest_percentage'])
                               .toStringAsFixed(2)

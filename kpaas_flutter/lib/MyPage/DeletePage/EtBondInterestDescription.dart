@@ -78,8 +78,8 @@ class _EtBondInterestDescriptionPageState extends State<EtBondInterestDescriptio
 
           profitRightColumnData = [
             "${(((double.parse(bondDetails['issue_info_data']?['srfc_inrt']?.toString() ?? '0.0'))).toStringAsFixed(2))}%",
-            "${(((double.parse(bondDetails['inquire_asking_price_data']?['shnu_ernn_rate5']?.toString() ?? '0.0'))).toStringAsFixed(2))}%",
-            "${(((double.parse(bondDetails['inquire_asking_price_data']?['shnu_ernn_rate5']?.toString() ?? '0.0')) * 0.846).toStringAsFixed(2))}%",
+            "${(((double.parse(bondDetails['inquire_asking_price_data']?['seln_ernn_rate1']?.toString() ?? '0.0'))).toStringAsFixed(2))}%",
+            "${(((double.parse(bondDetails['inquire_asking_price_data']?['seln_ernn_rate1']?.toString() ?? '0.0')) * 0.846).toStringAsFixed(2))}%",
             "${bondDetails['inquire_price_data']?['bond_prpr']}원",
           ];
         });
@@ -705,7 +705,7 @@ class _EtBondInterestDescriptionPageState extends State<EtBondInterestDescriptio
         '',
         askingPriceData['bond_bidp5'] ?? 'N/A',
         askingPriceData['bidp_rsqn5'] ?? 'N/A',
-        askingPriceData['shnu_ernn_rate5'] ?? 'N/A',
+        askingPriceData['seln_ernn_rate1'] ?? 'N/A',
       ),
     ];
   }
