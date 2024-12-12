@@ -10,7 +10,6 @@ import 'NaviBar/otcbond.dart';
 import 'NaviBar/calculator.dart';
 import 'NaviBar/news.dart';
 import 'apiconnectiontest/data_controller.dart';
-import 'apiconnectiontest/dummy_data.dart';
 import 'package:kpaas_flutter/first.dart';
 
 Future<void> main() async {

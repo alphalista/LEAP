@@ -83,11 +83,50 @@ class _EtBondPageState extends State<EtBondPage> {
     }
   }
 
+  Future<void> _fetchEtBondDataFilteredList(String url) async {
+    setState(() {
+      isLoading = true; // 로딩 상태 시작
+    });
+
+    try {
+      final dataController = Get.find<DataController>();
+      final response = await dataController.fetchEtBondData(url);
+
+      setState(() {
+        bondData = response['results'] ?? []; // 데이터를 업데이트
+        nextUrl = response['next'] ?? ''; // 다음 URL 업데이트
+      });
+    } catch (e) {
+      print("Error fetching bond data from endpoint: $e");
+    } finally {
+      setState(() {
+        isLoading = false; // 로딩 상태 해제
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     bondData = widget.initialBondData;
     nextUrl = widget.initialNextUrl;
+
+    buttonData[0]['onPressed'] = () async {
+      setState(() {
+        isLoading = true; // 로딩 상태 활성화
+      });
+
+      try {
+        String apiUrl = 'http://localhost:8000/api/marketbond/combined/?';
+        await _fetchEtBondDataFilteredList(apiUrl); // API 호출
+      } catch (e) {
+        print("Error fetching all bond data: $e");
+      } finally {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    };
 
     buttonData[1]['onPressed'] = () async {
       String? result = await showExpdDateDialog(context);
@@ -96,6 +135,21 @@ class _EtBondPageState extends State<EtBondPage> {
           buttonData[1]['label'] = result;
           buttonData[1]['hasSelected'] = true;
         });
+
+        String newEndPoint;
+        if (result == "만기 5년 이내") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?expd_dt=5';
+        } else if (result == "만기 3년 이내") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?expd_dt=3';
+        } else if (result == "만기 1년 이내") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?expd_dt=1';
+        } else if (result == "만기 6개월 이내") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?expd_dt=6';
+        } else {
+          print('잘못된 만기 선택: $result');
+          return;
+        }
+        await _fetchEtBondDataFilteredList(newEndPoint);
       }
     };
 
@@ -106,6 +160,26 @@ class _EtBondPageState extends State<EtBondPage> {
           buttonData[2]['label'] = result;
           buttonData[2]['hasSelected'] = true;
         });
+        String newEndPoint;
+        if (result == "AAA") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?grad=AAA';
+        } else if (result == "AA") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?grad=AA';
+        } else if (result == "A") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?grad=A';
+        } else if (result == "BBB") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?grad=BBB';
+        } else if (result == "BB") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?grad=BB';
+        } else if (result == "B") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?grad=B';
+        } else if (result == "CCC") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?grad=CCC';
+        }  else {
+          print('잘못된 위험 선택: $result');
+          return;
+        }
+        await _fetchEtBondDataFilteredList(newEndPoint);
       }
     };
 
@@ -116,6 +190,16 @@ class _EtBondPageState extends State<EtBondPage> {
           buttonData[3]['label'] = result;
           buttonData[3]['hasSelected'] = true;
         });
+        String newEndPoint;
+        if (result == "오름차순") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?ordering=seln_ernn_rate1_float';
+        } else if (result == "내림차순") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?ordering=-seln_ernn_rate1_float';
+        } else {
+          print('잘못된 정렬 선택: $result');
+          return;
+        }
+        await _fetchEtBondDataFilteredList(newEndPoint);
       }
     };
 
@@ -126,6 +210,16 @@ class _EtBondPageState extends State<EtBondPage> {
           buttonData[4]['label'] = result;
           buttonData[4]['hasSelected'] = true;
         });
+        String newEndPoint;
+        if (result == "오름차순") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?ordering=total_askp_rsqn_float';
+        } else if (result == "내림차순") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?ordering=-total_askp_rsqn_float';
+        } else {
+          print('잘못된 정렬 선택: $result');
+          return;
+        }
+        await _fetchEtBondDataFilteredList(newEndPoint);
       }
     };
 
@@ -136,8 +230,19 @@ class _EtBondPageState extends State<EtBondPage> {
           buttonData[5]['label'] = result;
           buttonData[5]['hasSelected'] = true;
         });
+        String newEndPoint;
+        if (result == "오름차순") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?ordering=srfc_inrt_float';
+        } else if (result == "내림차순") {
+          newEndPoint = 'http://localhost:8000/api/marketbond/combined/?ordering=-srfc_inrt_float';
+        } else {
+          print('잘못된 정렬 선택: $result');
+          return;
+        }
+        await _fetchEtBondDataFilteredList(newEndPoint);
       }
     };
+
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
@@ -469,7 +574,7 @@ class _EtBondPageState extends State<EtBondPage> {
                                     ),
                                   ),
                                   Text(
-                                    '${((double.tryParse(bondData[actualIndex]['inquire_asking_price_data']?['shnu_ernn_rate5']?.toString() ?? '0.0'))! * 0.846).toStringAsFixed(2)}%',
+                                    '${((double.tryParse(bondData[actualIndex]['inquire_asking_price_data']?['seln_ernn_rate1']?.toString() ?? '0.0'))! * 0.846).toStringAsFixed(2)}%',
                                     style: TextStyle(
                                       fontSize:  kIsWeb
                             ? 18 : MediaQuery.of(context).size.height * 0.018,

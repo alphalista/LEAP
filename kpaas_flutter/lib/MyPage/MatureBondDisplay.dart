@@ -504,7 +504,7 @@ class _MatureBondDisplayState extends State<MatureBondDisplay> {
                                       ),
                                       Text(
                                         (EtBond
-                                            ? '${((double.tryParse(etBondData[actualIndex]['inquire_asking_price_data']?['shnu_ernn_rate5']?.toString() ?? '0.0'))! * 0.846).toStringAsFixed(2)}%'
+                                            ? '${((double.tryParse(etBondData[actualIndex]['inquire_asking_price_data']?['seln_ernn_rate1']?.toString() ?? '0.0'))! * 0.846).toStringAsFixed(2)}%'
                                             : "${otcBondData[actualIndex]['YTM_after_tax'] ?? 'N/A'}%"),
                                         style: TextStyle(
                                           fontSize:  kIsWeb

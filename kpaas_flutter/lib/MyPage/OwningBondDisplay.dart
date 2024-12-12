@@ -555,7 +555,7 @@ class _OwningBondDisplayState extends State<OwningBondDisplay> {
                                       Text(
                                         (EtBond
                                             ? '${((double.tryParse(
-                                            etBondData[actualIndex]["value"]['inquire_asking_price_data']?['shnu_ernn_rate5']
+                                            etBondData[actualIndex]["value"]['inquire_asking_price_data']?['seln_ernn_rate1']
                                                 ?.toString() ?? '0.0'))! *
                                             0.846).toStringAsFixed(2)}%'
                                             : "${otcBondData[actualIndex]["value"]['YTM_after_tax']}%"),
