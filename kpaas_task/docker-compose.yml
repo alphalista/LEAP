@@ -8,21 +8,30 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./selfsigned.crt:/etc/nginx/ssl/selfsigned.crt
-      - ./selfsigned.key:/etc/nginx/ssl/selfsigned.key
       - static_volume:/usr/share/nginx/html/static
+    depends_on:
+      - django-rest
+      - celery-flower
+      - landing
+      - flutter
+    networks:
+      - app_network
+
+  landing:
+    image: sungmin330/landing:latest
+    environment:
+      - PORT=4000
+    ports:
+      - "4000:4000"
     networks:
       - app_network
 
   django-rest:
-    build: ../kpaas_rest/
+    image: sungmin330/kpaas_rest:latest
 #    command: python manage.py collectstatic --no-input && daphne -b 0.0.0.0 -p 8000 kpaas_rest.asgi:application
     ports:
       - "8000:8000"
-    volumes:
-      - ../kpaas_rest:/code
     depends_on:
-      - nginx
       - db
       - redis
     environment:
@@ -33,18 +42,15 @@ services:
       - app_network
 
   celery-flower:
-    build: .
+    image: sungmin330/kpaas_task:latest
     command: celery -A config flower
     ports:
       - "5555:5555"
     depends_on:
-      - nginx
       - db
       - redis
       - celery-worker
       - celery-beat
-    volumes:
-      - .:/code
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -52,14 +58,11 @@ services:
       - app_network
 
   celery-beat:
-    build: .
+    image: sungmin330/kpaas_task:latest
     command: celery -A config beat
     depends_on:
-      - nginx
       - db
       - redis
-    volumes:
-      - .:/code
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -67,32 +70,27 @@ services:
       - app_network
 
   celery-worker:
-    build: .
+    image: sungmin330/kpaas_task:latest
     command: celery -A config worker
     depends_on:
-      - nginx
       - db
       - redis
       - celery-beat
-    volumes:
-      - .:/code
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     networks:
       - app_network
+
   login-listen:
-    build: .
+    image: sungmin330/kpaas_task:latest
     command: python manage.py runserver 0.0.0.0:3000 --settings=config.settings.production
     ports:
       - "3000:3000"
     depends_on:
-      - nginx
       - db
       - redis
       - celery-beat
-    volumes:
-      - .:/code
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -100,12 +98,9 @@ services:
       - app_network
 
   flutter:
-    image: 47813/fltr:latest
-    build: ../kpaas_flutter/
+    image: sungmin330/kpaas_flutter:latest
     ports:
       - "8080:80"
-    depends_on:
-      - nginx
     networks:
       - app_network
 
