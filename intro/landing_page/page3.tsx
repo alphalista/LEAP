@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import leap_icon from '../public/leap_white.svg'
 import main_page from '../public/main_page.svg'
 
 
@@ -17,7 +16,7 @@ export function Page3() {
             height="100"
             style={{
               width: '30vw', 
-              height: '80vw', 
+              height: '80vh', 
               objectFit: 'contain', 
               objectPosition: 'center'
             }}

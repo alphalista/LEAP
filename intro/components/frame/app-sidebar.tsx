@@ -1,4 +1,4 @@
-import { Home, GalleryVerticalEnd } from "lucide-react"
+import { Home } from "lucide-react"
 import Image from 'next/image';
 import {
     Sidebar,
@@ -7,7 +7,6 @@ import {
     SidebarGroup,
     SidebarGroupLabel,
     SidebarHeader,
-    SidebarGroupContent,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,

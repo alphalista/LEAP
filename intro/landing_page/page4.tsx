@@ -2,7 +2,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -16,14 +15,17 @@ import { Button } from "@/components/ui/button"
       <div className="h-screen snap-start">
         <div className='h-12'></div>
         <div className='flex'>
-          <div style={{ width:'100%' }}>
+          <div style={{ width: '10%' }}></div>
+          <div style={{ width:'50%' }}>
             <Card>
             <CardHeader>
               <CardTitle>다운로드</CardTitle>
               <CardDescription>version</CardDescription>
             </CardHeader>
-            <CardContent>
-            <Button variant="outline">다운로드</Button>
+            <CardContent className="flex justify-center">
+            <Button className="m-4" variant="outline" onClick={() => window.open("https://naver.com")}>앱 다운로드</Button>
+            <div className="w-4"></div>
+            <Button className="m-4" variant="outline" onClick={() => window.open("https://naver.com")}>웹으로 사용해 보기</Button>
             </CardContent>
 
             </Card>

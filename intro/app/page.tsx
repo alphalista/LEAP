@@ -5,7 +5,7 @@ import { Page3 } from '@/landing_page/page3'
 import { Page4 } from '@/landing_page/page4'
 
 
-import { useRef, useState, useEffect, useLayoutEffect } from 'react';
+import { useRef, useState } from 'react';
 import debounce from 'lodash.debounce';
  
 export default function Home() {
@@ -18,7 +18,7 @@ export default function Home() {
     useRef<HTMLDivElement | null>(null),
   ];
 
-  const handleScroll = debounce((e: WheelEvent) => {
+  const handleScroll = debounce((e: React.WheelEvent<HTMLDivElement>) => {
 
     if (isScrolling) return;
 
