@@ -56,6 +56,12 @@ from .filters import MarketBondCmbFilter
 
 from rest_framework import viewsets, status
 
+from django.db.models import IntegerField, DateField, Value, FloatField
+from django.db.models.functions import Cast, Substr, Concat, Replace
+from dateutil.relativedelta import relativedelta
+from datetime import timedelta
+from django.utils import timezone
+
 
 # Create your views here.
 
@@ -194,8 +200,76 @@ class MarketBondCodeViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class MarketBondIssueInfoViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = MarketBondIssueInfo.objects.all()
+    # queryset = MarketBondIssueInfo.objects.all()
     serializer_class = MarketBondIssueInfoSerializer
+
+    def get_queryset(self):
+        if self.request.query_params.get('expd_dt'):
+            data = self.request.query_params.get('expd_dt')
+            query = MarketBondIssueInfo.objects.annotate(
+                date_field=Cast(
+                    Concat(
+                        Substr('expd_dt', 1, 4), Value('-'),
+                        Substr('expd_dt', 5, 2), Value('-'),
+                        Substr('expd_dt', 7, 2)
+                    )
+                    , DateField())
+            )
+            if data == 'asc':
+                return query.order_by('date_field')
+            elif data == 'desc':
+                return query.order_by('-date_field')
+            else:
+                try:
+                    data = int(data)
+                    if data == 6: future = timezone.now() + relativedelta(months=6) # 6개월 이내 만기일을 일컫습니다.
+                    else : future = timezone.now() + timedelta(days=365*data)
+                    return query.filter(date_field__lte=future).order_by('-date_field')
+                except ValueError:
+                    return MarketBondIssueInfo.objects.all()
+        elif self.request.query_params.get('grad'):
+            data = self.request.query_params.get('grad')
+            obj = MarketBondIssueInfo.objects
+            query = MarketBondIssueInfo.objects.all()
+            if data == 'AAA':
+                query = obj.filter(kbp_crdt_grad_text='AAA')
+            elif data == 'AA':
+                plus = obj.filter(kbp_crdt_grad_text='AA+')
+                zero = obj.filter(kbp_crdt_grad_text='AA')
+                minus = obj.filter(kbp_crdt_grad_text='AA-')
+                query = plus | zero | minus
+            elif data == 'A':
+                plus = obj.filter(kbp_crdt_grad_text='A+')
+                zero = obj.filter(kbp_crdt_grad_text='A')
+                minus = obj.filter(kbp_crdt_grad_text='A-')
+                query = plus | zero | minus
+            elif data == 'BBB':
+                plus = obj.filter(kbp_crdt_grad_text='BBB+')
+                zero = obj.filter(kbp_crdt_grad_text='BBB')
+                minus = obj.filter(kbp_crdt_grad_text='BBB-')
+                query = plus | zero | minus
+            elif data == 'BB':
+                plus = obj.filter(kbp_crdt_grad_text='BB+')
+                zero = obj.filter(kbp_crdt_grad_text='BB')
+                minus = obj.filter(kbp_crdt_grad_text='BB-')
+                query = plus | zero | minus
+            elif data == 'B':
+                plus = obj.filter(kbp_crdt_grad_text='B')
+                zero = obj.filter(kbp_crdt_grad_text='B')
+                minus = obj.filter(kbp_crdt_grad_text='B')
+                query = plus | zero | minus
+            elif data == 'CCC':
+                plus = obj.filter(kbp_crdt_grad_text='CCC+')
+                zero = obj.filter(kbp_crdt_grad_text='CCC')
+                minus = obj.filter(kbp_crdt_grad_text='CCC-')
+                under1 = obj.filter(kbp_crdt_grad_text='CC')
+                under2 = obj.filter(kbp_crdt_grad_text='C')
+                under3 = obj.filter(kbp_crdt_grad_text='D')
+                query = plus | zero | minus | under1 | under2 | under3
+            elif data == 'none':
+                query = obj.filter(kbp_crdt_grad_text='')
+            return query
+        return MarketBondIssueInfo.objects.all()
 
 
 class MarketBondSearchInfoViewSet(viewsets.ReadOnlyModelViewSet):
