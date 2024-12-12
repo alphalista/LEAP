@@ -56,6 +56,12 @@ from .filters import MarketBondCmbFilter
 
 from rest_framework import viewsets, status
 
+from django.db.models import IntegerField, DateField, Value, FloatField
+from django.db.models.functions import Cast, Substr, Concat, Replace
+from dateutil.relativedelta import relativedelta
+from datetime import timedelta
+from django.utils import timezone
+
 
 # Create your views here.
 
@@ -194,8 +200,34 @@ class MarketBondCodeViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class MarketBondIssueInfoViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = MarketBondIssueInfo.objects.all()
+    # queryset = MarketBondIssueInfo.objects.all()
     serializer_class = MarketBondIssueInfoSerializer
+
+    def get_queryset(self):
+        if self.request.query_params.get('expd_dt'):
+            data = self.request.query_params.get('expd_dt')
+            query = MarketBondIssueInfo.objects.annotate(
+                date_field=Cast(
+                    Concat(
+                        Substr('expd_dt', 1, 4), Value('-'),
+                        Substr('expd_dt', 5, 2), Value('-'),
+                        Substr('expd_dt', 7, 2)
+                    )
+                    , DateField())
+            )
+            if data == 'asc':
+                return query.order_by('date_field')
+            elif data == 'desc':
+                return query.order_by('-date_field')
+            else:
+                try:
+                    data = int(data)
+                    if data == 6: future = timezone.now() + relativedelta(months=6) # 6개월 이내 만기일을 일컫습니다.
+                    else : future = timezone.now() + timedelta(days=365*data)
+                    return query.filter(date_field__lte=future).order_by('-date_field')
+                except ValueError:
+                    return MarketBondIssueInfo.objects.all()
+        return MarketBondIssueInfo.objects.all()
 
 
 class MarketBondSearchInfoViewSet(viewsets.ReadOnlyModelViewSet):
