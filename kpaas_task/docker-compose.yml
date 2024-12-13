@@ -32,7 +32,7 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      - mysql
       - redis
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -47,7 +47,7 @@ services:
     ports:
       - "5555:5555"
     depends_on:
-      - db
+      - mysql
       - redis
       - celery-worker
       - celery-beat
@@ -61,7 +61,7 @@ services:
     image: sungmin330/kpaas_task:latest
     command: celery -A config beat
     depends_on:
-      - db
+      - mysql
       - redis
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -73,7 +73,7 @@ services:
     image: sungmin330/kpaas_task:latest
     command: celery -A config worker
     depends_on:
-      - db
+      - mysql
       - redis
       - celery-beat
     environment:
@@ -88,7 +88,7 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - db
+      - mysql
       - redis
       - celery-beat
     environment:
@@ -104,7 +104,7 @@ services:
     networks:
       - app_network
 
-  db:
+  mysql:
     image: mysql
     restart: always
     environment:
