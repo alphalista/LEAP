@@ -131,5 +131,5 @@ volumes:
   static_volume:
 
 networks:
-  app_network:
+  app_netswork:
     driver: bridge
