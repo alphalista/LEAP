@@ -11,13 +11,15 @@ class CustomJWTAuthentication(BaseAuthentication):
             return None
         try:
             prefix, token = auth_header.split(' ')
-            if prefix.lower() != 'bearer':
-                raise AuthenticationFailed('Invalid token prefix')
+            #if prefix.lower() != 'bearer':
+            #    raise AuthenticationFailed('Invalid token prefix')
 
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Token expired')
-        except jwt.InvalidTokenError:
-            raise AuthenticationFailed('Invalid token')
+        #except jwt.ExpiredSignatureError:
+        #    raise AuthenticationFailed('Token expired')
+        #except jwt.InvalidTokenError:
+        #    raise AuthenticationFailed('Invalid token')
+        except:
+            return None
 
         try:
             payload = jwt.decode(token, options={"verify_signature": False})
@@ -27,6 +29,7 @@ class CustomJWTAuthentication(BaseAuthentication):
             raise AuthenticationFailed('User not found')
 
         return user, token
+
 
     def authenticate_header(self, request):
         return 'Bearer'
